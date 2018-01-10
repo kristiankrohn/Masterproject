@@ -3,9 +3,8 @@ from scipy import signal
 import scipy.fftpack
 import numpy as np
 from globalvar import *
+import threading
 
-
-window = 3
 #fs = 250.0
 f0 = 50.0
 Q = 50
@@ -48,19 +47,24 @@ bandpassZi = np.zeros([8, window-1])
 highpassB = signal.firwin(window, lc, pass_zero=False, window = 'hann') #Bandpass
 print("Filtersetup finished")
 
+
 def appendData(y, i, xt, yr):
 	global data, rawdata
-	global avgTimeData, timeData
-	for j in range(len(y)):
-		data[i].append(y[j])
-		timeData[i].append(xt[j])
-		rawdata[i].append(yr[j])
+	global newTimeData, timeData, mutex
+	#global rtData
+	with mutex:
+		for j in range(len(y)):
+			#data[i].append(y[j])
+			#timeData[i].append(xt[j])
+			#rawdata[i].append(yr[j])
+			data[i].append(rtData(yr, y, xt))
+			print(data[i])
 
 def init_filter():
 	global lowpassB, lowpassA, lowpassZi 
 	global bandpassB, bandpassA, bandpassZi
 	global notchB, notchA, notchZi, notchZi2, notchZi3, notchZi4 
-	global newSamples
+	global newSamples, nPlots
 	global bandstopFilter, lowpassFilter, bandpassFilter
 	global DcNotchB, DcNotchA, DCnotchZi, DCnotchZi2
 	global bNotch100, aNotch100, notchZi1001, notchZi1002
@@ -81,42 +85,53 @@ def init_filter():
 		init = False
 
 
-def filter():
+def filter(newSamples, newTimeData):
 	global lowpassB, lowpassA, lowpassZi 
 	global bandpassB, bandpassA, bandpassZi
 	global notchB, notchA, notchZi, notchZi2, notchZi3 
-	global newSamples, data, window, init, initNotch, initLowpass, initBandpass
+	global data, window, nPLots, init, initNotch, initLowpass, initBandpass
 	global bandstopFilter, lowpassFilter, bandpassFilter
-	global avgTimeData, timeData, mutex
+	global timeData, mutex
 	global DcNotchB, DcNotchA, DCnotchZi, DCnotchZi2
 	global bNotch100, aNotch100, notchZi1001, notchZi1002
+	#global newSamples, newTimeData
+	#print(newSamples)
 
+	#with(mutex):
+		#print("Unfiltered data\n")
+		#print(newSamples)	
 
-	with(mutex):
-			
-		for i in range(nPlots):
-			x = newSamples[i]
-			yr = x
-			xt = avgTimeData[i]
+	for i in range(nPlots):
+		x = newSamples[i]
+		yr = x
+		xt = newTimeData[i]
+		
+		x, DCnotchZi[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi[i])
+		#x, DCnotchZi2[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi2[i])
 
-			x, DCnotchZi[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi[i])
-			#x, DCnotchZi2[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi2[i])
+		if bandstopFilter: 
+			x, notchZi[i] = signal.lfilter(notchB, notchA, x, zi=notchZi[i])
+			x, notchZi2[i] = signal.lfilter(notchB, notchA, x, zi=notchZi2[i])
+			x, notchZi3[i] = signal.lfilter(notchB, notchA, x, zi=notchZi3[i])
+			x, notchZi4[i] = signal.lfilter(notchB, notchA, x, zi=notchZi4[i])
+			x, notchZi1001[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1001[i])
+			x, notchZi1002[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1002[i])
+		if lowpassFilter:
+			x, lowpassZi[i] = signal.lfilter(lowpassB, lowpassA, x, zi=lowpassZi[i])
+		
+		if bandpassFilter:
+			x, bandpassZi[i] = signal.lfilter(bandpassB, bandpassA, x, zi=bandpassZi[i])
+		#print("Filtered data\n")
+		#print(x)
 
-			if bandstopFilter: #Dette er feil filter
-				x, notchZi[i] = signal.lfilter(notchB, notchA, x, zi=notchZi[i])
-				x, notchZi2[i] = signal.lfilter(notchB, notchA, x, zi=notchZi2[i])
-				x, notchZi3[i] = signal.lfilter(notchB, notchA, x, zi=notchZi3[i])
-				x, notchZi4[i] = signal.lfilter(notchB, notchA, x, zi=notchZi4[i])
-				x, notchZi1001[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1001[i])
-				x, notchZi1002[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1002[i])
-			if lowpassFilter:
-				x, lowpassZi[i] = signal.lfilter(lowpassB, lowpassA, x, zi=lowpassZi[i])
-			
-			if bandpassFilter:
-				x, bandpassZi[i] = signal.lfilter(bandpassB, bandpassA, x, zi=bandpassZi[i])
+		appendData(x,i,xt,yr)
 
+		#newTimeData = [],[],[],[],[],[],[],[]
+		#newSamples = [],[],[],[],[],[],[],[]
 
-			appendData(x,i,xt,yr)
+	
 
-		avgTimeData = [],[],[],[],[],[],[],[]
-		newSamples = [],[],[],[],[],[],[],[]
+def savefiltercoeff():
+	np.savetxt('bandpasscoeff.out', bandpassB)
+	np.savetxt('highpasscoeff.out', highpassB)
+	print("Saved filter coefficients")

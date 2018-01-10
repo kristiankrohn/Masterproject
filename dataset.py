@@ -1,6 +1,6 @@
 import os, shutil
 import threading
-from filterlib import *
+#from filterlib import *
 from globalvar import *
 filelock = Lock()
 from operator import sub
@@ -94,7 +94,7 @@ def saveTempData(direction):
 						f += ":"
 
 				if not abort:		
-					file = open('temp.txt', 'a')
+					file = open('Dataset\\temp.txt', 'a')
 					file.write(f)
 					file.close()
 
@@ -103,8 +103,8 @@ def saveTempData(direction):
 def openFile():
 	global length
 	#PATH er feil
-	dir_path = os.path.dirname(os.path.realpath(__file__))
-	folder = dir_path + "\\figures\\Center"
+	dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+	folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -115,7 +115,7 @@ def openFile():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\figures\\Down"
+	folder = dir_path + "\\Dataset_exports\\figures\\Down"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -126,7 +126,7 @@ def openFile():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\figures\\Left"
+	folder = dir_path + "\\Dataset_exports\\figures\\Left"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -137,7 +137,7 @@ def openFile():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\figures\\Right"
+	folder = dir_path + "\\Dataset_exports\\figures\\Right"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -148,7 +148,7 @@ def openFile():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\figures\\Up"
+	folder = dir_path + "\\Dataset_exports\\figures\\Up"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -160,7 +160,7 @@ def openFile():
 			print(e)
 			return
 
-	file = open('data.txt', 'r')
+	file = open('Dataset\\data.txt', 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -248,8 +248,8 @@ def openFile():
 def opentemp():
 	global length
 
-	dir_path = os.path.dirname(os.path.realpath(__file__))
-	folder = dir_path + "\\tempfigures\\Center"
+	dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+	folder = dir_path + "\\Dataset_exports\\tempfigures\\Center"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -260,7 +260,7 @@ def opentemp():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\tempfigures\\Down"
+	folder = dir_path + "\\Dataset_exports\\tempfigures\\Down"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -271,7 +271,7 @@ def opentemp():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\tempfigures\\Left"
+	folder = dir_path + "\\Dataset_exports\\tempfigures\\Left"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -282,7 +282,7 @@ def opentemp():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\tempfigures\\Right"
+	folder = dir_path + "\\Dataset_exports\\tempfigures\\Right"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -293,7 +293,7 @@ def opentemp():
 		except Exception as e:
 			print(e)
 			return
-	folder = dir_path + "\\tempfigures\\Up"
+	folder = dir_path + "\\Dataset_exports\\tempfigures\\Up"
 	print(folder)
 	for the_file in os.listdir(folder):
 		file_path = os.path.join(folder, the_file)
@@ -305,7 +305,7 @@ def opentemp():
 			print(e)
 			return
 
-	file = open('temp.txt', 'r')
+	file = open('Dataset\\temp.txt', 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -370,7 +370,7 @@ def opentemp():
 	print("Finished exporting plots")
 def viewdataelement(index):
 	global length
-	file = open('data.txt', 'r')
+	file = open('Dataset\\data.txt', 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -437,7 +437,7 @@ def viewdataelement(index):
 
 def viewtempelement(index):
 	global length
-	file = open('temp.txt', 'r')
+	file = open('Dataset\\temp.txt', 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -504,7 +504,7 @@ def viewtempelement(index):
 def deletedataelement(index):
 	global length
 	index = index * 2
-	file = open('data.txt', 'r')
+	file = open('Dataset\\data.txt', 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -512,7 +512,7 @@ def deletedataelement(index):
 	DataSet.pop(index)
 	#print(DataSet)
 	file.close()
-	file = open('data.txt', 'w')
+	file = open('Dataset\\data.txt', 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -523,7 +523,7 @@ def deletedataelement(index):
 def deletetempelement(index):
 	global length
 	index = index * 2
-	file = open('temp.txt', 'r')
+	file = open('Dataset\\temp.txt', 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -531,7 +531,7 @@ def deletetempelement(index):
 	DataSet.pop(index)
 	#print(DataSet)
 	file.close()
-	file = open('temp.txt', 'w')
+	file = open('Dataset\\temp.txt', 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -544,25 +544,25 @@ def parametrization(map1, map2):
 
 
 def saveData():
-	tempfile = open('temp.txt', 'r')
+	tempfile = open('Dataset\\temp.txt', 'r')
 	tempData = tempfile.read()
 	tempfile.close()
-	permfile = open('data.txt', 'a')
+	permfile = open('Dataset\\data.txt', 'a')
 	permfile.write(tempData)
 	permfile.close()
-	tempfile = open('temp.txt', 'w')
+	tempfile = open('Dataset\\temp.txt', 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Saved")
 
 def clearTemp():
-	tempfile = open('temp.txt', 'w')
+	tempfile = open('Dataset\\temp.txt', 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Temp is cleared")
 
 def clearData():
-	tempfile = open('data.txt', 'w')
+	tempfile = open('Dataset\\data.txt', 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Data is deleted")

@@ -1,4 +1,5 @@
 from globalvar import *
+import numpy as np
 
 def plot():
 	global mutex

@@ -6,8 +6,6 @@ from globalvar import *
 #from threading import Lock
 import threading
 import matplotlib.pyplot as plt
-
-
 from scipy import signal
 import os, shutil
 import dataset

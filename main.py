@@ -16,15 +16,16 @@ import matplotlib.pyplot as plt
 #from numpy.random import randint
 import Tkinter as tk
 import gui as ttk
-from globalvar import *
 import plot as plotlib
-from filterlib import *
+import filterlib 
+import dataset
+from globalvar import *
 
 #mutex = Lock()
 board = None
 root = None
 graphVar = False
-nPlots = 8
+
 
 count = None
 
@@ -33,14 +34,20 @@ ptr = 0
 
 p = None
 
-init = True
+
 exit = False
 filtering = True
 averageCondition = False
-bandstopFilter = True
-lowpassFilter = False
-bandpassFilter = False
+
 app = QtGui.QApplication([])
+
+
+
+
+
+
+
+
 
 
 
@@ -65,30 +72,37 @@ def dataCatcher():
 	board.start_streaming(printData)
 
 
-def printData(sample):	#This function is too slow, we are loosing data and fucking up everything
-	global nPlots, data, df, init, newSamples, rawdata, threadFilter 
-	global avgTimeData, timeData, timestamp 
-	global mutex
+def printData(sample):	
+	global nSamples, nPlots, data, df, init, newSamples, rawdata, threadFilter 
+	global newTimeData, timeData, timestamp 
+	global mutex, window
+	
+	timestamp = tme.time()
+	
+	for i in range(nPlots):			
+		newSamples[i].append(sample.channel_data[i])
+		newTimeData[i].append(timestamp)
 
-	with(mutex):
-		timestamp = tme.time()
-		
-		for i in range(nPlots):			
-			newSamples[i].append(sample.channel_data[i])
-			timeData[i].append(timestamp)
-
-		if len(data[0]) >= nSamples:
+	if len(data[0]) >= nSamples:
+		with(mutex):
 			for i in range(nPlots):
 				data[i].pop(0)
-				timeData[i].pop(0)
-				rawdata[i].pop(0)
+				#timeData[i].pop(0)
+				#rawdata[i].pop(0)
 
-		if len(averagedata[0]) >= window:					
-			threadFilter = threading.Thread(target=filter,args=())
-			#threadFilter.setDaemon(True)
-			threadFilter.start()
-			#print(len(averagedata[0]))
-
+	if len(newSamples[0]) >= window:
+		#print("Starting filter\n")
+		#print(newSamples[0])
+						
+		#threadFilter = threading.Thread(target=filterlib.filter,args=(newSamples, newTimeData))
+		#threadFilter.setDaemon(True)
+		#threadFilter.start()
+		#threadFilter.join()
+		#print("Joining thread\n")
+		filterlib.filter(newSamples, newTimeData)
+		#print(len(averagedata[0]))
+		newTimeData = [],[],[],[],[],[],[],[]
+		newSamples = [],[],[],[],[],[],[],[]
 
 
 
@@ -98,10 +112,14 @@ def update():
 	string = ""
 	with(mutex):
 		for i in range(nPlots):
-			curves[i].setData(data[i])
+			#curves[i].setData(data[i])
+			#attr = [Data.filterdata for Data in data[i]]
+			#print(data[i][-1].filterdata)
+			#print(dir(data))
+			curves[i].setData(data[i].__getattribute__('filterdata'))
 			if len(data[i])>100:
 				string += '   Ch: %d ' % i
-				string += ' = %0.2f uV ' % data[i][-1]
+				string += ' = %0.2f uV ' % data[i][-1].filterdata
 
 	ptr += nPlots
 	#now = time()
@@ -203,12 +221,12 @@ def keys():
 			#print("Quit board")
 			os._exit(0)
 		elif string == "plot":
-			plot()
+			plotlib.plot()
 			#plotThread = threading.Thread(target=plot,args=())
 			#plotThread.start()
 			#plotthread.join()
 		elif string == "plotall":
-			plotAll()
+			plotlib.plotAll()
 			#plotAllThread = threading.Thread(target=plotAll,args=())
 			#plotAllThread.start()
 			#plotAllThread.join()
@@ -226,43 +244,47 @@ def keys():
 			threadGui.setDaemon(True)
 			threadGui.start()
 		elif string == "printdata":
-			ttk.openFile()
+			dataset.openFile()
 		
 		elif string == "save":
-			ttk.saveData()
+			dataset.saveData()
 
 		elif string == "deletealldata":
-			ttk.clearData()
+			dataset.clearData()
 		elif string == "cleartemp":
-			ttk.clearTemp()
+			dataset.clearTemp()
 		elif string == "savefilter":
-			np.savetxt('bandpasscoeff.out', bandpassB)
-			np.savetxt('highpasscoeff.out', highpassB)
-			print("Saved filter coefficients")
+			savefiltercoeff()
+			
+
 		elif string == "deletedataelement":
 			if inputval != None:
-				ttk.deletedataelement(inputval)
+				dataset.deletedataelement(inputval)
 			else:
 				print("Invalid input")
+
 		elif string == "deletetempelement":
 			if inputval != None:
-				ttk.deletetempelement(inputval)
+				dataset.deletetempelement(inputval)
 			else:
 				print("Invalid input")
+
 		elif string == "viewdataelement":
 			if inputval != None:
-				ttk.viewdataelement(inputval)
+				dataset.viewdataelement(inputval)
 			else:
 				print("Invalid input")
+
 		elif string == "viewtempelement":
 			if inputval != None:
-				ttk.viewtempelement(inputval)
+				dataset.viewtempelement(inputval)
 			else:
 				print("Invalid input")
+
 		elif string == "printtemp":
 			ttk.opentemp()
 		elif string == "fftplot":
-			fftplot(0)
+			plotlib.fftplot(0)
 			plt.show()
 
 def save():
