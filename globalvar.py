@@ -11,11 +11,25 @@ global newSamples
 global timestamp
 global avgLength
 global mutex
-rawdata = [],[],[],[],[],[],[],[]
-data = [],[],[],[],[],[],[],[]
-timeData = [],[],[],[],[],[],[],[]
+#rawdata = [],[],[],[],[],[],[],[]
+#data = [],[],[],[],[],[],[],[]
+data = [[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]]]
+
+#timeData = [],[],[],[],[],[],[],[]
 newTimeData = [],[],[],[],[],[],[],[]
 newSamples = [],[],[],[],[],[],[],[]
+
+rawdata = 0
+filterdata = 1
+timestamp = 2
+
 #nSamples = 1000
 nSamples = 1800
 #avgLength = 1000
@@ -32,18 +46,18 @@ lowpassFilter = False
 bandpassFilter = False
 
 #data.append(Data(rawdata, filterdata, timestamp))
-class rtData():
-	"Container for data"
-	def __init__(self, rawdata, filterdata, timestamp):
-		self.rawdata = rawdata
-		self.filterdata = filterdata
-		self.timestamp = timestamp
+#class rtData():
+	#"Container for data"
+	#def __init__(self, rawdata, filterdata, timestamp):
+		#self.rawdata = rawdata
+		#self.filterdata = filterdata
+		#self.timestamp = timestamp
 	
-class newData():
-	"Container for new data before processing"
-	def __init__(self, rawdata, timestamp):
-		self.rawdata = rawdata
-		self.timestamp = timestamp
+#class newData():
+	#"Container for new data before processing"
+	#def __init__(self, rawdata, timestamp):
+		#self.rawdata = rawdata
+		#self.timestamp = timestamp
 
 
 

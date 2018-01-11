@@ -57,8 +57,13 @@ def appendData(y, i, xt, yr):
 			#data[i].append(y[j])
 			#timeData[i].append(xt[j])
 			#rawdata[i].append(yr[j])
-			data[i].append(rtData(yr, y, xt))
-			print(data[i])
+			#data[i].append(rtData(yr, y, xt))
+			data[i][rawdata].append(yr[j])
+			data[i][filterdata].append(y[j])
+			data[i][timestamp].append(xt[j])
+			
+			
+			#print(data[i])
 
 def init_filter():
 	global lowpassB, lowpassA, lowpassZi 

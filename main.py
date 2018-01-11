@@ -25,16 +25,10 @@ from globalvar import *
 board = None
 root = None
 graphVar = False
-
-
 count = None
-
 curves = []
 ptr = 0
-
 p = None
-
-
 exit = False
 filtering = True
 averageCondition = False
@@ -83,12 +77,11 @@ def printData(sample):
 		newSamples[i].append(sample.channel_data[i])
 		newTimeData[i].append(timestamp)
 
-	if len(data[0]) >= nSamples:
+	if len(data[0][0]) >= nSamples:
 		with(mutex):
-			for i in range(nPlots):
-				data[i].pop(0)
-				#timeData[i].pop(0)
-				#rawdata[i].pop(0)
+			for i in range(nPlots):				
+				dataset.databufferPop()
+
 
 	if len(newSamples[0]) >= window:
 		#print("Starting filter\n")
@@ -112,14 +105,10 @@ def update():
 	string = ""
 	with(mutex):
 		for i in range(nPlots):
-			#curves[i].setData(data[i])
-			#attr = [Data.filterdata for Data in data[i]]
-			#print(data[i][-1].filterdata)
-			#print(dir(data))
-			curves[i].setData(data[i].__getattribute__('filterdata'))
+			curves[i].setData(data[i][filterdata])
 			if len(data[i])>100:
 				string += '   Ch: %d ' % i
-				string += ' = %0.2f uV ' % data[i][-1].filterdata
+				string += ' = %0.2f uV ' % data[i][filterdata][-1]
 
 	ptr += nPlots
 	#now = time()
@@ -288,7 +277,7 @@ def keys():
 			plt.show()
 
 def save():
-	np.savetxt('data.out', data[1])
+	np.savetxt('data.out', data[1][1])
 
 def gui():
 	ttk.guiloop()

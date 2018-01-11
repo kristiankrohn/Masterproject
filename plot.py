@@ -1,19 +1,21 @@
 from globalvar import *
+import dataset
 import numpy as np
 
 def plot():
 	global mutex
 	with(mutex):
-		while len(data[0]) > nSamples:
+		while len(data[0][filterdata]) > nSamples:
 			for i in range(nPlots):
-				data[i].pop(0)
-		x = np.arange(0, len(data[1])/fs, 1/fs)
+				#data[i].pop(0)
+				dataset.databufferPop()
+		x = np.arange(0, len(data[1][filterdata])/fs, 1/fs)
 		legends = []
 		for i in range(2):
 			label = "Fp %d" %(i+1)
 			#print(label)
 			#label = tuple([label])
-			legend, = plt.plot(x, data[i], label=label)
+			legend, = plt.plot(x, data[i][filterdata], label=label)
 			legends.append(legend)
 	plt.ylabel('uV')
 	plt.xlabel('Seconds')
@@ -27,7 +29,7 @@ def plotAll():
 		label = "Channel %d" %(i+1)
 		#print(label)
 		#label = tuple([label])
-		legend, = plt.plot(data[i], label=label)
+		legend, = plt.plot(data[i][filterdata], label=label)
 		legends.append(legend)
 	plt.ylabel('uV')
 	plt.xlabel('Sample')
@@ -37,7 +39,7 @@ def plotAll():
 
 def fftplot(channel, title=""):
 	global fs
-	y = data[channel]
+	y = data[channel][filterdata]
 	# Number of samplepoints
 	N = len(y)
 	# sample spacing
