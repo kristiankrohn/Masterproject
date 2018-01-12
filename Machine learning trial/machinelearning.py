@@ -8,6 +8,7 @@ from sklearn.externals import joblib #in order to store the svm
 import pandas as pd
 import seaborn as sns
 sns.set_palette('husl')
+import pyeeg
 
 DataSet = []
 predictSet = []
@@ -16,7 +17,11 @@ convertedDataSet = [[]]
 convertedCh0 = [[]]
 convertedCh1 = [[]]
 convertedPredictData = [[]]
+featureVectorCh0 = []
 
+
+
+#divide dependent on Direction
 
 
 def main():
@@ -30,8 +35,8 @@ def main():
 
 def readFile():
 
-    file = open('data.txt', 'r')
-    pFile = open('data.txt', 'r')
+    file = open('c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Dataset\data.txt', 'r')
+    pFile = open('c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Dataset\data.txt', 'r')
     AllData = file.read()
     predictData = pFile.read()
     return AllData, predictData
@@ -51,10 +56,11 @@ def arrangeDataset(AllData, predictData):
         feature = []
         feature = DataSet[i].split(',')
 
+
         featuretype = feature[0]
         feature.pop(0)
         convertedDataSet.append(map(float, feature))
-        chIndex = getChannelIndexAndAppendLabel(featuretype)
+        chIndex = getChannelIndexAndAppendLabel(featuretype, feature)
         if chIndex == 0:
             convertedCh0.append(map(float, feature))
         if chIndex == 1:
@@ -84,19 +90,24 @@ def arrangeDataset(AllData, predictData):
 
 
 
-def getChannelIndexAndAppendLabel(featuretype):
-    global DataSetLabels
+def getChannelIndexAndAppendLabel(featuretype, feature):
+    global DataSetLabels, convertedCh0R, convertedCh0L, convertedCh0U, convertedCh0D, convertedCh0C
 
     if featuretype == 'r1' or featuretype == 'r0':
         DataSetLabels.append(0)
+        #convertedCh0R.append(map(float, feature[0]))
     if featuretype == 'u1' or featuretype == 'u0':
         DataSetLabels.append(1)
+        #convertedCh0U.append(map(float, feature[0]))
     if featuretype == 'l1' or featuretype == 'l0':
         DataSetLabels.append(2)
+        #convertedCh0L.append(map(float, feature[0]))
     if featuretype == 'd1' or featuretype == 'd0':
         DataSetLabels.append(3)
+        #convertedCh0D.append(map(float, feature[0]))
     if featuretype == 'c1' or featuretype == 'c0':
         DataSetLabels.append(4)
+        #convertedCh0C.append(map(float, feature[0]))
 
     if '0' in featuretype:
         return 0
@@ -121,6 +132,7 @@ def loadAndTrain():
 
     X = np.array(convertedDataSet)
     Y = np.array(map(float, DataSetLabels))
+    print(X)
 
 
     clf = joblib.load('machinestate.pkl')#loads the machine-learning state
@@ -140,40 +152,37 @@ def predict(clf):
 
 
 def extractFeatures():
-    global convertedDataSet, convertedCh0, convertedCh1
+    global convertedDataSet, DataSetLabels, convertedCh0, convertedCh1, featureVectorCh0
+    for i in range(len(convertedCh0)):
+        tempDFA = pyeeg.dfa(convertedCh0[i])
+        featureVectorCh0.append(tempDFA)
+    visualizeFeature(featureVectorCh0, "pfd") #need to have "compare" in string if you want to compare channels
     #print(convertedDataSet)
-    std = np.std(convertedDataSet, axis = 1) #prints the standard-deviation of the 500 samples, for all movementdirections
+    #std = np.std(convertedDataSet, axis = 1) #prints the standard-deviation of the 500 samples, for all movementdirections
     #cov = np.cov(convertedDataSet, rowvar = True)
-
-    mean = np.mean(convertedDataSet, axis = 1) #mean when not looking at channels seperately
-    meanCh0 = np.mean(convertedCh0, axis = 1)
-    meanCh1 = np.mean(convertedCh1, axis = 1)
-    var = np.var(convertedDataSet, axis = 1) #var when not looking at channels seperately
-    varCh0 = np.var(convertedCh0, axis = 1)
-    varCh1 = np.var(convertedCh0, axis = 1)
-    minimum = np.amin(convertedDataSet, axis = 1) #minimum when not looking at channels seperately
-    minimumCh0 = np.amin(convertedCh0, axis = 1)
-    minimumCh1 = np.amin(convertedCh1, axis = 1)
-    maximum = np.amax(convertedDataSet, axis = 1)#maximum when not looking at channels seperately
-    maximumCh0 = np.amax(convertedCh0, axis = 1)
-    maximumCh1 = np.amax(convertedCh1, axis = 1)
+    #mean = np.mean(convertedDataSet, axis = 1) #mean when not looking at channels seperately
+    #meanCh0 = np.mean(convertedCh0, axis = 1)
+    #meanCh1 = np.mean(convertedCh1, axis = 1)
+    #var = np.var(convertedDataSet, axis = 1) #var when not looking at channels seperately
+    #varCh0 = np.var(convertedCh0, axis = 1)
+    #varCh1 = np.var(convertedCh0, axis = 1)
+    #minimum = np.amin(convertedDataSet, axis = 1) #minimum when not looking at channels seperately
+    #minimumCh0 = np.amin(convertedCh0, axis = 1)
+    #minimumCh1 = np.amin(convertedCh1, axis = 1)
+    #maximum = np.amax(convertedDataSet, axis = 1)#maximum when not looking at channels seperately
+    #maximumCh0 = np.amax(convertedCh0, axis = 1)
+    #maximumCh1 = np.amax(convertedCh1, axis = 1)
 
     #absolute = np.absolute(convertedDataSet) Blir et 2D-array fordi den tar absoluttverdien til alle samples, for alle retninger. What to do?
-    compMean = np.subtract(np.mean(convertedCh0, axis = 1), np.mean(convertedCh1, axis = 1))
-    compStd = np.subtract(np.std(convertedCh0, axis = 1), np.std(convertedCh1, axis = 1))
-    compVar = np.subtract(np.var(convertedCh0, axis = 1), np.var(convertedCh1, axis = 1))
-    compMinimum = np.subtract(np.amin(convertedCh0, axis = 1), np.amin(convertedCh1, axis = 1))
-    compMaximum = np.subtract(np.amax(convertedCh0, axis = 1), np.amax(convertedCh1, axis = 1))
+    #compMean = np.subtract(np.mean(convertedCh0, axis = 1), np.mean(convertedCh1, axis = 1))
+    #compStd = np.subtract(np.std(convertedCh0, axis = 1), np.std(convertedCh1, axis = 1))
+    #compVar = np.subtract(np.var(convertedCh0, axis = 1), np.var(convertedCh1, axis = 1))
+    #compMinimum = np.subtract(np.amin(convertedCh0, axis = 1), np.amin(convertedCh1, axis = 1))
+    #compMaximum = np.subtract(np.amax(convertedCh0, axis = 1), np.amax(convertedCh1, axis = 1))
     #compIndexMinimum = np.fmin(convertedCh0, convertedCh1)
     #corr = np.correlate(convertedCh0, convertedCh1)
-    
 
 
-    #predictFeatures = [mean, var, min, max, compMean, compStd, compVar, compMin, compMax]
-
-    #from here and down is for visualization purposes only.
-
-    visualizeFeature(std, "standard-deviation") #need to have "compare" in string if you want to compare channels
 
 def visualizeFeature(visu, string):
     global DataSetLabels
@@ -205,7 +214,7 @@ def visualizeFeature(visu, string):
                 visuDirection.append('Center')
 
     else:
-        for i in range(len(Y)):
+        for i in range(len(Y)/2): #/2 because of just using one channel
             visuValue.append(visu[i])
             if Y[i] == 0:
                 visuDirection.append('Right')
@@ -229,7 +238,7 @@ def visualizeFeature(visu, string):
     dataframe = pd.DataFrame(dictionary, columns = ['Direction', '%s' % string])
     #print(dataframe)
     g = sns.violinplot(y = dataframe.Direction, x = '%s' % string, data=dataframe, inner='point')
-    savestring = "featureFigures/" + string + ".png"
+    savestring = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\FeatureFigures\ " + string + ".png"
     plt.savefig(savestring, bbox_inches='tight')
     plt.close()
 
