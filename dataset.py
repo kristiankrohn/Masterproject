@@ -4,16 +4,33 @@ import threading
 from globalvar import *
 filelock = Lock()
 from operator import sub
+import plot
+import matplotlib.pyplot as plt
+import filterlib
 
 #TODO
 #fil path er feil i alle funksjoner
 numCh = 8
 
-def saveTempData(direction):
+def saveShortTemp(direction):
+	global shortLength
+	f = prepSaveData(direction, shortLength)
+	file = open('Dataset\\temp.txt', 'a')
+	file.write(f)
+	file.close()
+
+def saveLongtemp(direction):
+	global longLength	
+	f = prepSaveData(direction, longLength)
+	file = open('Dataset\\longtemp.txt', 'a')
+	file.write(f)
+	file.close()
+
+def prepSaveData(direction, length):
 	global data, nSamples
+	global rawdata, filterdata, timestamp
 	global timeData
 	global mutex
-	global length
 	global numCh
 	
 	
@@ -25,7 +42,7 @@ def saveTempData(direction):
 	ready = False
 
 	while not ready:
-		if timeData[1][-1] > startTime:
+		if data[1][timestamp][-1] > startTime:
 			ready = True
 
 	with(mutex):
@@ -69,7 +86,7 @@ def saveTempData(direction):
 						f += "dd"
 					elif direction == 5:
 						f += "cs"
-					elif direction == 5:
+					elif direction == 0:
 						f += "cb"
 					else:
 						good = False
@@ -95,26 +112,33 @@ def saveTempData(direction):
 
 						f += ":"
 
-				if not abort:		
-					file = open('Dataset\\temp.txt', 'a')
-					file.write(f)
-					file.close()
+				if not abort:
+					return f
+				else:
+					return -1
+
+					
 
 
 
 def exportPlots():
-	global length, numCh
+	global numCh
 	#PATH er feil
 	dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 	#folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	#print(folder)
-	folders = ["\\figures","\\tempfigures"]
-	movements = ["\\Center", "\\Down", "\\Up", "\\Left", "\\Right"]
+	folders = ["\\figures", "\\tempfigures", "\\longfigures", "\\longtempfigures"]
+	movements = ["\\Center_blink", "\\Center_still", 
+				"\\Down_direction", "\\Down_return", 
+				"\\Up_direction", "\\Up_return",
+				"\\Left_direction", "\\Left_return", 
+				"\\Right_direction", "\\Right_return", "\\Garbage"]
 	channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
 
 
-	for i in len(folders)-1:
-		for j in len(movements)-1:
+	for i in range(len(folders)):
+		print(len(folders))
+		for j in range(len(movements)):
 			folder = dir_path + "\\Dataset_exports" + folders[i] + movements[j]
 			print(folder)
 
@@ -132,90 +156,87 @@ def exportPlots():
 
 		if i == 0:
 			file = open('Dataset\\data.txt', 'r')
-		else: 
+		elif i == 1: 
 			file = open('Dataset\\temp.txt', 'r')
-
+		elif i == 2:
+			file = open('Dataset\\longdata.txt', 'r')
+		elif i == 3:
+			file = open('Dataset\\longtemp.txt', 'r')
 		with filelock:	
 			AllData = file.read()
 			file.close()
 		
 		DataSet = []
 		DataSet = AllData.split(':')
-
-		for i in range(0, len(DataSet), numCh):
+		#Definer numch skikkelig!!
+		for k in range(0, len(DataSet), numCh):
 			care = True
-			feature1 = []
-			feature1 = DataSet[i].split(',')
-			featuretype1 = feature1[0]
-			feature1.pop(0)
+			feature = []
+			feature = DataSet[k].split(',')
+			featuretype = feature[0]
+			feature.pop(0)
+			print("Featuretype: \n")
+			print(featuretype)
 
-			for j in range(0, numCh):
-				if not(featuretype1[0] == featuretype1[j]):
-					care = False
-
-			if featuretype1[0] == 'u':
+			if featuretype[0] == 'u':
 				title = "Up"
-			elif featuretype1[0] == 'd':
+			elif featuretype[0] == 'd':
 				title = "Down"
-			elif featuretype1[0] == 'l':
+			elif featuretype[0] == 'l':
 				title = "Left"
-			elif featuretype1[0] == 'r':
+			elif featuretype[0] == 'r':
 				title = "Right"
-			elif featuretype1[0] == 'c':
+			elif featuretype[0] == 'c':
 				title = "Center"
 				#care = False
 			else:
 				care = False
 
-			if featuretype1[1] == 'd':
-				title += " direction"
-			elif featuretype1[1] == 'r':
-				title += " return"
-			elif featuretype1[1] == 's':
-				title += " still"
-			elif featuretype1[1] == 'b':
-				title += " blink"
+			if featuretype[1] == 'd':
+				title += "_direction"
+			elif featuretype[1] == 'r':
+				title += "_return"
+			elif featuretype[1] == 's':
+				title += "_still"
+			elif featuretype[1] == 'b':
+				title += "_blink"
 			else:
-				title = featuretype1
-				care = False
+				title = "Garbage"
+				#care = False
 
-			if care: ##--MÅ LEGGE INN FILTRERING FØRST--##
+			if care:
 				plt.suptitle(title)
 				#print(title)
 				#print(featuretype1)
-				featureData1 = map(float, feature1)
-				x = np.arange(0, length/250.0, 1.0/250.0)
-				ax1 = plt.subplot(211)
-				ax1.set_autoscaley_on(False)
-				ax1.set_ylim([-100,100])
-				plt.plot(x, featureData1, label=featuretype1)
-				ax1.set_title(channels[k])
-				plt.ylabel('uV')
-				plt.xlabel('Seconds')
+				b, a = filterlib.designplotfilter()
+				for l in range(0, numCh):
+					feature1 = DataSet[k+l].split(',')
+					featuretype1 = feature1[0]
+					feature1.pop(0)
 
-				feature2 = []
-				feature2 = DataSet[i+1].split(',')
-				featuretype2 = feature2[0]
-				feature2.pop(0)
-				#print(featuretype2)
-				featureData2 = map(float, feature2)
-				ax2 = plt.subplot(212)
-				ax2.set_autoscaley_on(False)
-				ax2.set_ylim([-100,100])
-				plt.plot(x, featureData2, label=featuretype2)
-				ax2.set_title("X2")
-				plt.ylabel('uV')
-				plt.xlabel('Seconds')
+					if not(featuretype[0] == featuretype1[0]):
+						break
+
+					featureData1 = map(float, feature1)
+					subplotnum = (numCh/2)*100 + 20 + j + 1
+					ax1 = plt.subplot(subplotnum)
+					featureData1 = filterlib.plotfilter(featureData1, b, a)
+					plot.exportplot(featureData1, channels[l], ax1)
 
 
 				tempOrNot = None
 				if i == 0:
-					tempOrNot = "figures/"
-				else:
-					tempOrNot = "tempfigures/"
+					tempOrNot = "figures"
+				elif i == 1:
+					tempOrNot = "tempfigures"
+				elif i == 2:
+					tempOrNot = "longfigures"
+				elif i == 3:
+					tempOrNot = "longtempfigures"
 
-				savestring = tempOrNot + title +"/"+ title + str(i/2) + ".png"
-				
+
+				savestring = dir_path + "\\Dataset_exports\\"+tempOrNot +"\\"+title +"\\"+ title+str(i/numCh) + ".png"
+				print(savestring)
 				plt.subplots_adjust(hspace=0.45)
 				with filelock:
 					plt.savefig(savestring, bbox_inches='tight')
@@ -225,130 +246,9 @@ def exportPlots():
 	#plt.close('all')
 	print("Finished exporting plots")
 
-def opentemp():
-	global length
 
-	dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-	folder = dir_path + "\\Dataset_exports\\tempfigures\\Center"
-	print(folder)
-	for the_file in os.listdir(folder):
-		file_path = os.path.join(folder, the_file)
-		try:
-			if os.path.isfile(file_path):
-				os.unlink(file_path)
-        	#elif os.path.isdir(file_path): shutil.rmtree(file_path)
-		except Exception as e:
-			print(e)
-			return
-	folder = dir_path + "\\Dataset_exports\\tempfigures\\Down"
-	print(folder)
-	for the_file in os.listdir(folder):
-		file_path = os.path.join(folder, the_file)
-		try:
-			if os.path.isfile(file_path):
-				os.unlink(file_path)
-        	#elif os.path.isdir(file_path): shutil.rmtree(file_path)
-		except Exception as e:
-			print(e)
-			return
-	folder = dir_path + "\\Dataset_exports\\tempfigures\\Left"
-	print(folder)
-	for the_file in os.listdir(folder):
-		file_path = os.path.join(folder, the_file)
-		try:
-			if os.path.isfile(file_path):
-				os.unlink(file_path)
-        	#elif os.path.isdir(file_path): shutil.rmtree(file_path)
-		except Exception as e:
-			print(e)
-			return
-	folder = dir_path + "\\Dataset_exports\\tempfigures\\Right"
-	print(folder)
-	for the_file in os.listdir(folder):
-		file_path = os.path.join(folder, the_file)
-		try:
-			if os.path.isfile(file_path):
-				os.unlink(file_path)
-        	#elif os.path.isdir(file_path): shutil.rmtree(file_path)
-		except Exception as e:
-			print(e)
-			return
-	folder = dir_path + "\\Dataset_exports\\tempfigures\\Up"
-	print(folder)
-	for the_file in os.listdir(folder):
-		file_path = os.path.join(folder, the_file)
-		try:
-			if os.path.isfile(file_path):
-				os.unlink(file_path)
-        	#elif os.path.isdir(file_path): shutil.rmtree(file_path)
-		except Exception as e:
-			print(e)
-			return
 
-	file = open('Dataset\\temp.txt', 'r')
-	AllData = file.read()
-	DataSet = []
-	DataSet = AllData.split(':')
-	#print(DataSet)
-	file.close()
-	#DataSet.pop(-1)
-	for i in range(0, len(DataSet), 2):
-		care = True
-		feature1 = []
-		feature1 = DataSet[i].split(',')
-		featuretype1 = feature1[0]
-		feature1.pop(0)
-		if featuretype1 == 'ur0':
-			title = "Up"
-		elif featuretype1 == 'dr0':
-			title = "Down"
-		elif featuretype1 == 'lr0':
-			title = "Left"
-		elif featuretype1 == 'rr0':
-			title = "Right"
-		elif featuretype1 == 'cr0':
-			title = "Center"
-			#care = False
-		else:
-			title = featuretype1
-			care = False
-
-		if care:
-			plt.suptitle(title)
-			#print(title)
-			#print(featuretype1)
-			featureData1 = map(float, feature1)
-			x = np.arange(0, length/250.0, 1.0/250.0)
-			ax1 = plt.subplot(211)
-			ax1.set_autoscaley_on(False)
-			ax1.set_ylim([-200,200])
-			plt.plot(x, featureData1, label=featuretype1)
-			ax1.set_title("X1")
-			plt.ylabel('uV')
-			plt.xlabel('Seconds')
-
-			feature2 = []
-			feature2 = DataSet[i+1].split(',')
-			featuretype2 = feature2[0]
-			feature2.pop(0)
-			#print(featuretype2)
-			featureData2 = map(float, feature2)
-			ax2 = plt.subplot(212)
-			ax2.set_autoscaley_on(False)
-			ax2.set_ylim([-200,200])
-			plt.plot(x, featureData2, label=featuretype2)
-			ax2.set_title("X2")
-			plt.ylabel('uV')
-			plt.xlabel('Seconds')
-
-			savestring = "tempfigures/" + title +"/"+ title + str(i/2) + ".png"
-			plt.subplots_adjust(hspace=0.45)
-			plt.savefig(savestring, bbox_inches='tight')
-			#plt.show()
-			plt.close()
-	plt.close('all')
-	print("Finished exporting plots")
-def viewdataelement(index):
+def viewdataelement(index): #Utdatert
 	global length
 	file = open('Dataset\\data.txt', 'r')
 	AllData = file.read()
@@ -409,13 +309,13 @@ def viewdataelement(index):
 			plt.ylabel('uV')
 			plt.xlabel('Seconds')
 
-			savestring = "figures/" + title +"/"+ title + str(i/2) + ".png"
+			savestring = "Dataset_exports/figures/" + title +"/"+ title + str(i/2) + ".png"
 			plt.subplots_adjust(hspace=0.45)
 			#plt.savefig(savestring, bbox_inches='tight')
 			plt.show()
 			#plt.close()
 
-def viewtempelement(index):
+def viewtempelement(index): #Utdatert
 	global length
 	file = open('Dataset\\temp.txt', 'r')
 	AllData = file.read()
@@ -488,12 +388,32 @@ def deletedataelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in numCh
+	for i in numCh:
 		DataSet.pop(index)
 	#DataSet.pop(index)
 	#print(DataSet)
 	file.close()
 	file = open('Dataset\\data.txt', 'w')
+	for i in range(len(DataSet)-1):
+		file.write(DataSet[i])
+		file.write(':')
+	file.close()
+	index = index / 2
+	print("Data element %d is deleted" % index)
+
+def deletelongdataelement(index):
+	global length, numCh
+	index = index * 2
+	file = open('Dataset\\longdata.txt', 'r')
+	AllData = file.read()
+	DataSet = []
+	DataSet = AllData.split(':')
+	for i in numCh:
+		DataSet.pop(index)
+	#DataSet.pop(index)
+	#print(DataSet)
+	file.close()
+	file = open('Dataset\\longdata.txt', 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -508,12 +428,32 @@ def deletetempelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in numCh
+	for i in numCh:
 		DataSet.pop(index)
 	#DataSet.pop(index)
 	#print(DataSet)
 	file.close()
 	file = open('Dataset\\temp.txt', 'w')
+	for i in range(len(DataSet)-1):
+		file.write(DataSet[i])
+		file.write(':')
+	file.close()
+	index = index / 2
+	print("Temp element %d is deleted" % index)
+
+def deletelongtempelement(index):
+	global length, numCh
+	index = index * 2
+	file = open('Dataset\\longtemp.txt', 'r')
+	AllData = file.read()
+	DataSet = []
+	DataSet = AllData.split(':')
+	for i in numCh:
+		DataSet.pop(index)
+	#DataSet.pop(index)
+	#print(DataSet)
+	file.close()
+	file = open('Dataset\\longtemp.txt', 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -531,19 +471,43 @@ def saveData():
 	tempfile = open('Dataset\\temp.txt', 'w')
 	tempfile.truncate(0)
 	tempfile.close()
-	print("Saved")
+	print("Short Data Saved")
+
+def saveLongData():
+	tempfile = open('Dataset\\longtemp.txt', 'r')
+	tempData = tempfile.read()
+	tempfile.close()
+	permfile = open('Dataset\\longdata.txt', 'a')
+	permfile.write(tempData)
+	permfile.close()
+	tempfile = open('Dataset\\longtemp.txt', 'w')
+	tempfile.truncate(0)
+	tempfile.close()
+	print("Long Data Saved")
 
 def clearTemp():
 	tempfile = open('Dataset\\temp.txt', 'w')
 	tempfile.truncate(0)
 	tempfile.close()
-	print("Temp is cleared")
+	print("Short Temp is cleared")
+
+def clearLongTemp():
+	tempfile = open('Dataset\\temp.txt', 'w')
+	tempfile.truncate(0)
+	tempfile.close()
+	print("Long Temp is cleared")
 
 def clearData():
 	tempfile = open('Dataset\\data.txt', 'w')
 	tempfile.truncate(0)
 	tempfile.close()
-	print("Data is deleted")
+	print("Short Data is deleted")
+
+def clearLongData():
+	tempfile = open('Dataset\\data.txt', 'w')
+	tempfile.truncate(0)
+	tempfile.close()
+	print("Long Data is deleted")
 
 def databufferPop():
 	global data

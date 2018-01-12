@@ -12,7 +12,7 @@ from threading import Lock
 from scipy import signal
 import matplotlib.pyplot as plt
 from numpy.random import randn
-#import tkinter
+from scipy.signal import blackman
 import scipy.fftpack
 mutex = Lock()
 
@@ -448,7 +448,7 @@ def fftplot(channel, title="", ax=None):
 	# sample spacing
 	T = 1.0 / fs
 	x = np.linspace(0.0, N*T, N)
-	from scipy.signal import blackman
+	
 	w = blackman(N)
 	yf = scipy.fftpack.fft(y*w)
 	xf = np.linspace(0.0, 1.0/(2.0*T), N/2)

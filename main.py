@@ -232,8 +232,8 @@ def keys():
 			threadGui = threading.Thread(target=gui, args=())
 			threadGui.setDaemon(True)
 			threadGui.start()
-		elif string == "printdata":
-			dataset.openFile()
+		elif string == "exportplots":
+			dataset.exportPlots()
 		
 		elif string == "save":
 			dataset.saveData()
@@ -270,8 +270,6 @@ def keys():
 			else:
 				print("Invalid input")
 
-		elif string == "printtemp":
-			ttk.opentemp()
 		elif string == "fftplot":
 			plotlib.fftplot(0)
 			plt.show()

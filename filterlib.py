@@ -140,3 +140,39 @@ def savefiltercoeff():
 	np.savetxt('bandpasscoeff.out', bandpassB)
 	np.savetxt('highpasscoeff.out', highpassB)
 	print("Saved filter coefficients")
+
+def designplotfilter():
+	a = [1 , -0.9] 
+	b = [1,-1]
+	fs = 250.0
+	f0 = 50.0
+	Q = 50
+	w0 = f0/(fs/2)
+	bNotch, aNotch = signal.iirnotch(w0, Q)
+
+	f100 = 100.0
+	w100 = f100/(fs/2)
+	bNotch100, aNotch100 = signal.iirnotch(w100, Q)
+
+	bTot = signal.convolve(b, bNotch, mode='full')
+	bTot = signal.convolve(bTot, bNotch, mode='full')
+	bTot = signal.convolve(bTot, bNotch, mode='full')
+	bTot = signal.convolve(bTot, bNotch100, mode='full')
+	bTot = signal.convolve(bTot, bNotch, mode='full')
+	bTot = signal.convolve(bTot, bNotch100, mode='full')
+	aTot = signal.convolve(a, aNotch, mode='full')
+	aTot = signal.convolve(aTot, aNotch, mode='full')
+	aTot = signal.convolve(aTot, aNotch, mode='full')
+	aTot = signal.convolve(aTot, aNotch100, mode='full')
+	aTot = signal.convolve(aTot, aNotch, mode='full')
+	aTot = signal.convolve(aTot, aNotch100, mode='full')
+
+	return bTot, aTot
+
+def plotfilter(data, b=0, a=0):
+	if b[0] == 0:
+		b, a = designplotfilter()
+
+	Zi = signal.lfilter_zi(b, a) * data[0]
+	data, Zi = signal.lfilter(b, a, data, zi=Zi)
+	return data

@@ -1,6 +1,7 @@
 from globalvar import *
 import dataset
 import numpy as np
+import matplotlib.pyplot as plt
 
 def plot():
 	global mutex
@@ -53,3 +54,16 @@ def fftplot(channel, title=""):
 	ax.set_title(title)
 	plt.ylabel('uV')
 	plt.xlabel('Frequency (Hz)')
+
+def exportplot(plotdata,  title="", ax=None):
+	if ax == None:
+		fig, ax = plt.subplots()
+
+	length = len(plotdata)
+	x = np.arange(0, length/250.0, 1.0/250.0)
+	ax.set_autoscaley_on(False)
+	ax.set_ylim([-100,100])
+	plt.plot(x, plotdata, label=title)
+	ax.set_title(title)
+	plt.ylabel('uV')
+	plt.xlabel('Seconds')
