@@ -16,13 +16,17 @@ size = 1000
 speed = 40
 ballsize = 30
 startButton = None
+wait = False
+startWait = tme.time()
+removeBall = False
+startSleep = tme.time()
 w = None
 root = None
 sleeping = False
 startMove = tme.time()
 endMode = tme.time()
 z = 3
-length = 500
+
 
 class Alien(object):
 	def __init__(self, canvas, *args, **kwargs):
@@ -44,6 +48,7 @@ class Alien(object):
 		global size, speed, center, right, left, up, down, startSleep, sleeping, startMove, endMove
 		global timestamp
 		global z
+		global removeBall, startRemoveBall, wait, startWait
 		x1, y1, x2, y2 = self.canvas.bbox(self.id)
 
 		if not center and ((right and (x1 <= (size/2) - ballsize)) 
@@ -71,14 +76,40 @@ class Alien(object):
 				cmd = 2
 
 			
-			threadSave = threading.Thread(target=dataset.saveTempData, args=(cmd,))
+			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			threadSave.setDaemon(True)
 			threadSave.start()
-
+			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+			threadShortSave.setDaemon(True)
+			threadShortSave.start()
 			right = False
 			left = False
 			up = False
 			down = False
+			wait=True
+			startWait = tme.time()
+		if wait and (tme.time()>startWait+1):
+			wait=False
+			removeBall = True
+			startRemoveBall = tme.time()
+			self.id = self.canvas.create_oval((size/2) - ballsize, (size/2) - ballsize, 
+				(size/2) + ballsize, (size/2) + ballsize, 
+				outline='white', fill='white')
+
+		if removeBall and (tme.time()>startRemoveBall+2):
+			removeBall = False
+			self.id = self.canvas.create_oval((size/2) - ballsize, (size/2) - ballsize, 
+				(size/2) + ballsize, (size/2) + ballsize, 
+				outline='white', fill='red')
+			cmd = 0
+			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
+			threadSave.setDaemon(True)
+			threadSave.start()
+			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+			threadShortSave.setDaemon(True)
+			threadShortSave.start()
+
+
 			startSleep = tme.time()
 			sleeping = True
 			#tme.sleep(4)
@@ -88,9 +119,12 @@ class Alien(object):
 			endMove = tme.time()
 			#print("Movementtime= ")
 			#print(tme.time())
-			threadSave = threading.Thread(target=dataset.saveTempData, args=(cmd,))
+			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			threadSave.setDaemon(True)
 			threadSave.start()
+			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+			threadShortSave.setDaemon(True)
+			threadShortSave.start()
 			#z = randint(0,4)
 			if z == 3:
 				z = 0
@@ -122,9 +156,9 @@ class Alien(object):
 			right = True
 			center = False
 			cmd = 3
-			#threadSave = threading.Thread(target=saveTempData, args=(cmd,))
-			#threadSave.setDaemon(True)
-			#threadSave.start()
+			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+			threadSave.setDaemon(True)
+			threadSave.start()
 			tme.sleep(1)
 			self.vx = -speed
 
@@ -133,9 +167,9 @@ class Alien(object):
 			left = True
 			center = False
 			cmd = 7
-			#threadSave = threading.Thread(target=saveTempData, args=(cmd,))
-			#threadSave.setDaemon(True)
-			#threadSave.start()
+			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+			threadSave.setDaemon(True)
+			threadSave.start()
 			tme.sleep(1)
 			self.vx = speed
 
@@ -144,9 +178,9 @@ class Alien(object):
 			down = True
 			center = False
 			cmd = 9
-			#threadSave = threading.Thread(target=saveTempData, args=(cmd,))
-			#threadSave.setDaemon(True)
-			#threadSave.start()
+			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+			threadSave.setDaemon(True)
+			threadSave.start()
 			tme.sleep(1)
 			self.vy = -speed
 			
@@ -155,9 +189,9 @@ class Alien(object):
 			up = True
 			center = False
 			cmd = 1
-			#threadSave = threading.Thread(target=saveTempData, args=(cmd,))
-			#threadSave.setDaemon(True)
-			#threadSave.start()
+			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+			threadSave.setDaemon(True)
+			threadSave.start()
 			tme.sleep(1)
 			self.vy = speed
 

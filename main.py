@@ -37,14 +37,6 @@ app = QtGui.QApplication([])
 
 
 
-
-
-
-
-
-
-
-
 def dataCatcher():
 	global board
 	#Helmetsetup
@@ -68,19 +60,21 @@ def dataCatcher():
 
 def printData(sample):	
 	global nSamples, nPlots, data, df, init, newSamples, rawdata, threadFilter 
-	global newTimeData, timeData, timestamp 
+	global newTimeData, timeData, timestamp, xt 
 	global mutex, window
 	
-	timestamp = tme.time()
+	xt = tme.time()
 	
 	for i in range(nPlots):			
 		newSamples[i].append(sample.channel_data[i])
-		newTimeData[i].append(timestamp)
+		newTimeData[i].append(xt)
 
 	if len(data[0][0]) >= nSamples:
 		with(mutex):
 			for i in range(nPlots):				
-				dataset.databufferPop()
+				data[i][rawdata].pop(0)
+				data[i][filterdata].pop(0)
+				data[i][timestamp].pop(0)
 
 
 	if len(newSamples[0]) >= window:
@@ -106,7 +100,7 @@ def update():
 	with(mutex):
 		for i in range(nPlots):
 			curves[i].setData(data[i][filterdata])
-			if len(data[i])>100:
+			if len(data[i][filterdata])>100:
 				string += '   Ch: %d ' % i
 				string += ' = %0.2f uV ' % data[i][filterdata][-1]
 
@@ -232,43 +226,70 @@ def keys():
 			threadGui = threading.Thread(target=gui, args=())
 			threadGui.setDaemon(True)
 			threadGui.start()
-		elif string == "exportplots":
-			dataset.exportPlots()
-		
-		elif string == "save":
-			dataset.saveData()
+		elif string == "exportdataplots":
+			dataset.exportPlots("data")
+		elif string == "exporttempplots":
+			dataset.exportPlots("temp")
+		elif string == "exportallplots":
+			dataset.exportPlots("all")
 
-		elif string == "deletealldata":
-			dataset.clearData()
-		elif string == "cleartemp":
-			dataset.clearTemp()
+		elif string == "saveshortdata":
+			dataset.saveShortData()
+
+		elif string == "savelongdata":
+			dataset.saveLongData()
+
+		elif string == "deleteshortdata":
+			dataset.clearShortData()
+
+		elif string == "deletelongdata":
+			dataset.clearLongData()
+
+		elif string == "deleteshorttemp":
+			dataset.clearShortTemp()
+
+		elif string == "deletelongtemp":
+			dataset.clearLongTemp()
+
+
 		elif string == "savefilter":
 			savefiltercoeff()
 			
 
-		elif string == "deletedataelement":
+		elif string == "deleteshortdataelement":
 			if inputval != None:
-				dataset.deletedataelement(inputval)
+				dataset.deleteShortDataelement(inputval)
 			else:
 				print("Invalid input")
 
-		elif string == "deletetempelement":
+		elif string == "deleteshorttempelement":
 			if inputval != None:
-				dataset.deletetempelement(inputval)
+				dataset.deleteShortTempelement(inputval)
 			else:
 				print("Invalid input")
 
-		elif string == "viewdataelement":
+		elif string == "deletelongdataelement":
 			if inputval != None:
-				dataset.viewdataelement(inputval)
+				dataset.deleteLongDataelement(inputval)
 			else:
 				print("Invalid input")
 
-		elif string == "viewtempelement":
+		elif string == "deletelongtempelement":
 			if inputval != None:
-				dataset.viewtempelement(inputval)
+				dataset.deleteLongTempelement(inputval)
 			else:
 				print("Invalid input")
+		#elif string == "viewdataelement":
+			#if inputval != None:
+				#dataset.viewdataelement(inputval)
+			#else:
+				#print("Invalid input")
+
+		#elif string == "viewtempelement":
+			#if inputval != None:
+				#dataset.viewtempelement(inputval)
+			#else:
+				#print("Invalid input")
 
 		elif string == "fftplot":
 			plotlib.fftplot(0)

@@ -58,6 +58,7 @@ def appendData(y, i, xt, yr):
 			#timeData[i].append(xt[j])
 			#rawdata[i].append(yr[j])
 			#data[i].append(rtData(yr, y, xt))
+
 			data[i][rawdata].append(yr[j])
 			data[i][filterdata].append(y[j])
 			data[i][timestamp].append(xt[j])
