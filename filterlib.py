@@ -174,6 +174,7 @@ def plotfilter(data, b=0, a=0):
 	if b[0] == 0:
 		b, a = designplotfilter()
 
-	Zi = signal.lfilter_zi(b, a) * data[0]
-	data, Zi = signal.lfilter(b, a, data, zi=Zi)
+	#Zi = signal.lfilter_zi(b, a) * data[0]
+	#data, Zi = signal.lfilter(b, a, data, zi=Zi)
+	data = signal.lfilter(b, a, data)
 	return data

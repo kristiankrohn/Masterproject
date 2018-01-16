@@ -7,7 +7,6 @@ import plot
 import matplotlib.pyplot as plt
 import filterlib
 
-#TODO Lag fft export av dataset
 #TODO Lag machinelearning load av dataset 
 
 
@@ -74,7 +73,7 @@ def prepSaveData(direction, length):
 				break
 
 		stop = stopindex
-		start = stop - (length + frontPadding)
+		start = stop - (length + frontPadding + backPadding)
 		if stop > len(temp[0][timestamp])-1:
 			print("Index error, aborting save operation")
 		else: 
@@ -136,9 +135,9 @@ def prepSaveData(direction, length):
 
 
 
-def exportPlots(command):
-	global numCh, frontPadding, backPadding
-	#PATH er feil
+def exportPlots(command, plottype="time"):
+	global numCh, frontPadding, backPadding, filelock
+
 	dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 	#folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	#print(folder)
@@ -147,21 +146,30 @@ def exportPlots(command):
 
 	elif command == "data":
 		folders == ["\\figures", "\\longfigures"]
+
 	else:
-		folders = ["\\figures", "\\tempfigures", "\\longfigures", "\\longtempfigures"]
+		folders = ["\\figures", "\\tempfigures", 
+				"\\longfigures", "\\longtempfigures"]
 	
 	movements = ["\\Center_blink", "\\Center_still", 
 				"\\Down_direction", "\\Down_return", 
 				"\\Up_direction", "\\Up_return",
 				"\\Left_direction", "\\Left_return", 
 				"\\Right_direction", "\\Right_return", "\\Garbage"]
+
 	channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
 
 
 	for i in range(len(folders)):
 		print("i = %d" %i)
 		for j in range(len(movements)):
-			folder = dir_path + "\\Dataset_exports" + folders[i] + movements[j]
+			if plottype == "fft":
+				folder = dir_path + "\\Dataset_fft" + folders[i] + movements[j]
+			elif plottype == "time":
+				folder = dir_path + "\\Dataset_exports" + folders[i] + movements[j]
+			else:
+				print("Invalid plottype")
+				break
 			print(folder)
 
 			for the_file in os.listdir(folder):
@@ -269,7 +277,10 @@ def exportPlots(command):
 						ax1 = plt.subplot(subplotnum)
 						featureData1 = filterlib.plotfilter(featureData1, b, a)
 						featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
-						plot.exportplot(featureData1, channels[l], ax1)
+						if plottype == "fft":
+							plot.exportFftPlot(featureData1, channels[l], ax1)
+						else:
+							plot.exportplot(featureData1, channels[l], ax1)
 
 
 					tempOrNot = None
@@ -295,11 +306,17 @@ def exportPlots(command):
 						elif i == 3:
 							tempOrNot = "longtempfigures"
 
-					
-					savestring = dir_path + "\\Dataset_exports\\"+tempOrNot +"\\"+title +"\\"+ title+str(k/numCh) + ".png"
+					if plottype == "fft":
+						savestring = (dir_path + "\\Dataset_fft\\"
+										+ tempOrNot +"\\"+title +"\\"
+										+ title+str(k/numCh) + ".png")
+					else:
+						savestring = (dir_path + "\\Dataset_exports\\"
+										+ tempOrNot +"\\"+title +"\\"
+										+ title+str(k/numCh) + ".png")
 					print(savestring)
 
-					plt.subplots_adjust(hspace=0.2)
+					plt.subplots_adjust(hspace=0.6)
 					with filelock:
 						plt.savefig(savestring, bbox_inches='tight')
 					
@@ -443,5 +460,69 @@ def clearLongData():
 	tempfile.close()
 	print("Long Data is deleted")
 
+def loadDataset(filename="data.txt"):
+	global numCh, frontPadding, backPadding, filelock
+	print("Starting to load dataset")
+	x = [[],[],[],[],[],[],[],[]]
+	y = [[],[],[],[],[],[],[],[]]
+
+	file = None
+
+	with filelock:
+		file = open(("Dataset\\"+filename), 'r')
+		AllData = file.read()
+		file.close()
+		
+	DataSet = []
+	DataSet = AllData.split(':')
+
+	b, a = filterlib.designplotfilter()
+	for k in range(0, len(DataSet)):
+		#print("k = %d" %k)
+		care = True
+		feature = []
+		feature = DataSet[k].split(',')
+
+		if len(feature) > 10:
+			featuretype = feature[0]
+			label = featuretype[0:2]
+			channel = map(int, featuretype[2])
+			channel = channel[0]
+			feature.pop(0)
+			
+			if label == "lr":
+				y[channel].append(4)
+			elif label == "ld":
+				y[channel].append(1)
+			elif label == "rr":
+				y[channel].append(6)
+			elif label == "rd":
+				y[channel].append(9)
+			elif label == "ur":
+				y[channel].append(8)
+			elif label == "ud":
+				y[channel].append(7)
+			elif label == "dr":
+				y[channel].append(2)
+			elif label == "dd":
+				y[channel].append(3)
+			elif label == "cs":
+				y[channel].append(5)
+			elif label == "cb":
+				y[channel].append(0)
+			else:
+				break
+			
+				
+			
+			featureData = map(float, feature)
+			featureData = filterlib.plotfilter(featureData, b, a)
+			featureData = featureData[frontPadding:-backPadding] #Remove paddings
+			x[channel].append(featureData)
+		else:
+			print("Invalid datapoint")
+	#plt.close('all')
+	print("Finished loading dataset")
+	return(x,y)
 
 

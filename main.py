@@ -290,11 +290,17 @@ def keys():
 				#dataset.viewtempelement(inputval)
 			#else:
 				#print("Invalid input")
-
+		elif string == "exportfft":
+			dataset.exportPlots("all", "fft")
 		elif string == "fftplot":
 			plotlib.fftplot(0)
 			plt.show()
-
+		elif string == "loaddataset":
+			x,y = dataset.loadDataset("temp.txt")
+			for i in range(len(x[0])):
+				print(len(x[0][0]))
+		else:
+			print("Unknown command")	
 def save():
 	np.savetxt('data.out', data[1][1])
 

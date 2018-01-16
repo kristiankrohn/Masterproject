@@ -2,6 +2,9 @@ from globalvar import *
 import dataset
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import blackman
+import scipy.fftpack
+
 
 def plot():
 	global mutex
@@ -67,3 +70,29 @@ def exportplot(plotdata,  title="", ax=None):
 	ax.set_title(title)
 	plt.ylabel('uV')
 	plt.xlabel('Seconds')
+
+def exportFftPlot(plotdata, title="", ax=None):
+	global fs
+
+	# Number of samplepoints
+	N = len(plotdata)
+	# sample spacing
+	T = 1.0 / fs
+	x = np.linspace(0.0, N*T, N)
+	
+	w = blackman(N)
+	yf = scipy.fftpack.fft(plotdata*w)
+	xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
+
+	if ax == None:
+		fig, ax = plt.subplots()
+
+	#print(yf)
+	yf = 20 * np.log10(2.0/N * (np.abs(yf[:N//2])))
+	#print(yf)
+	#ax.plot(xf, 2.0/N * np.abs(yf[:N//2]))
+	ax.plot(xf, yf)
+	ax.set_title(title)
+	plt.ylabel('dBuV')
+	plt.xlabel('Frequency (Hz)')
+	#plt.yscale('log')
