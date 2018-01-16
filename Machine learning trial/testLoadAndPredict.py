@@ -96,7 +96,7 @@ def predict():
     #X_test_minmax = min_max_scaler.fit_transform(Xtest)
 
     clf = joblib.load('testMachineState.pkl')#loads the machine-learning state
-    
+
 
     print(clf.predict(Xscaled))
 
