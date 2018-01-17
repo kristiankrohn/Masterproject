@@ -11,6 +11,7 @@ global newSamples
 global timestamp
 global avgLength
 global mutex
+import os, shutil
 #rawdata = [],[],[],[],[],[],[],[]
 #data = [],[],[],[],[],[],[],[]
 data = [[[],[],[]],
@@ -45,19 +46,9 @@ bandstopFilter = True
 lowpassFilter = False
 bandpassFilter = False
 
-#data.append(Data(rawdata, filterdata, timestamp))
-#class rtData():
-	#"Container for data"
-	#def __init__(self, rawdata, filterdata, timestamp):
-		#self.rawdata = rawdata
-		#self.filterdata = filterdata
-		#self.timestamp = timestamp
-	
-#class newData():
-	#"Container for new data before processing"
-	#def __init__(self, rawdata, timestamp):
-		#self.rawdata = rawdata
-		#self.timestamp = timestamp
 
+dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+		
+print(os.listdir(dir_path))  
 
 

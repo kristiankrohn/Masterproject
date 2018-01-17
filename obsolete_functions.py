@@ -1,13 +1,13 @@
-def viewdataelement(index): #Utdatert
-	global length
-	file = open('Dataset\\data.txt', 'r')
+def viewdataelement(index, filename): #Utdatert
+	global length, numCh
+	file = open(("Dataset\\"+filename), 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
 	#print(DataSet)
 	file.close()
 	#DataSet.pop(-1)
-	i = index * 2
+	i = index * numCh
 	if i > len(DataSet)-2:
 		print("Value is too big")
 	else:

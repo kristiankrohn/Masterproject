@@ -27,7 +27,7 @@ notchZi1002 = np.zeros([8,2])
 #print(notchA)
 #Butterworth lowpass filter
 N  = 4    # Filter order
-fk = 30
+fk = 30.0
 Wn = fk/(fs/2) # Cutoff frequency
 lowpassB, lowpassA = signal.butter(N, Wn, output='ba')
 lowpassZi = np.zeros([8,N])
@@ -174,7 +174,7 @@ def plotfilter(data, b=0, a=0):
 	if b[0] == 0:
 		b, a = designplotfilter()
 
-	#Zi = signal.lfilter_zi(b, a) * data[0]
-	#data, Zi = signal.lfilter(b, a, data, zi=Zi)
-	data = signal.lfilter(b, a, data)
+	Zi = signal.lfilter_zi(b, a) * data[0]
+	data, Zi = signal.lfilter(b, a, data, zi=Zi)
+	#data = signal.lfilter(b, a, data)
 	return data

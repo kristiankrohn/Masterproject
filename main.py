@@ -40,7 +40,9 @@ app = QtGui.QApplication([])
 def dataCatcher():
 	global board
 	#Helmetsetup
-	port = 'COM6'
+	user = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+	print(user)
+	port = 'COM3'
 	baud = 115200
 	logging.basicConfig(filename="test.log",format='%(asctime)s - %(levelname)s : %(message)s',level=logging.DEBUG)
 	logging.info('---------LOG START-------------')
@@ -291,7 +293,7 @@ def keys():
 			#else:
 				#print("Invalid input")
 		elif string == "exportfft":
-			dataset.exportPlots("all", "fft")
+			dataset.exportPlots("temp", "fft")
 		elif string == "fftplot":
 			plotlib.fftplot(0)
 			plt.show()

@@ -7,7 +7,7 @@ import plot
 import matplotlib.pyplot as plt
 import filterlib
 
-#TODO Lag machinelearning load av dataset 
+
 
 
 
@@ -15,14 +15,16 @@ filelock = Lock()
 numCh = 8
 longLength = 500
 shortLength = 250
-frontPadding = 250
+frontPadding = 750
 backPadding = 25
+
+
 def saveShortTemp(direction):
-	global shortLength, filelock
+	global shortLength, filelock, dir_path
 	f = prepSaveData(direction, shortLength)
 	if f != -1:
 		with filelock:
-			file = open('Dataset\\temp.txt', 'a')
+			file = open(dir_path+"\\Dataset\\temp.txt", 'a')
 			file.write(f)
 			file.close()
 		#print("Save short temp completed")
@@ -30,11 +32,11 @@ def saveShortTemp(direction):
 		print("Failed to save short temp")
 
 def saveLongTemp(direction):
-	global longLength, filelock	
+	global longLength, filelock, dir_path	
 	f = prepSaveData(direction, longLength)
 	if f != -1:
 		with filelock:
-			file = open('Dataset\\longtemp.txt', 'a')
+			file = open(dir_path+"\\Dataset\\longtemp.txt", 'a')
 			file.write(f)
 			file.close()
 		#print("Save long temp completed")
@@ -136,9 +138,9 @@ def prepSaveData(direction, length):
 
 
 def exportPlots(command, plottype="time"):
-	global numCh, frontPadding, backPadding, filelock
+	global numCh, frontPadding, backPadding, filelock, dir_path
 
-	dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+	
 	#folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	#print(folder)
 	if command == "temp":
@@ -169,10 +171,10 @@ def exportPlots(command, plottype="time"):
 				folder = dir_path + "\\Dataset_exports" + folders[i] + movements[j]
 			else:
 				print("Invalid plottype")
-				break
-			print(folder)
+				return
 
-			for the_file in os.listdir(folder):
+
+			for the_file in os.listdir(folder): #Removes all files in folders
 				file_path = os.path.join(folder, the_file)
 				try:
 					if os.path.isfile(file_path):
@@ -186,24 +188,24 @@ def exportPlots(command, plottype="time"):
 
 		if command == "temp":
 			if i == 0:
-				file = open('Dataset\\temp.txt', 'r')
+				file = open(dir_path+"\\Dataset\\temp.txt", 'r')
 			else:
-				file = open('Dataset\\longtemp.txt', 'r')
+				file = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
 		elif command == "data":
 			if i == 0:
-				file = open('Dataset\\data.txt', 'r')
+				file = open(dir_path+"\\Dataset\\data.txt", 'r')
 			else:
-				file = open('Dataset\\longdata.txt', 'r')
+				file = open(dir_path+"\\Dataset\\longdata.txt", 'r')
 		else:	
 
 			if i == 0:
-				file = open('Dataset\\data.txt', 'r')
+				file = open(dir_path+"\\Dataset\\data.txt", 'r')
 			elif i == 1: 
-				file = open('Dataset\\temp.txt', 'r')
+				file = open(dir_path+"\\Dataset\\temp.txt", 'r')
 			elif i == 2:
-				file = open('Dataset\\longdata.txt', 'r')
+				file = open(dir_path+"\\Dataset\\longdata.txt", 'r')
 			elif i == 3:
-				file = open('Dataset\\longtemp.txt', 'r')
+				file = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
 		
 
 		with filelock:	
@@ -218,16 +220,10 @@ def exportPlots(command, plottype="time"):
 			care = True
 			feature = []
 			feature = DataSet[k].split(',')
-			#print("Feature: \n")
-			#print(feature)
-			#print(len(feature))
+
 			if len(feature) > 10:
 				featuretype = feature[0]
 				feature.pop(0)
-				#print("Feature: \n")
-				#print(feature)
-				print("Featuretype: \n")
-				print(featuretype)
 
 				if featuretype[0] == 'u':
 					title = "Up"
@@ -259,11 +255,10 @@ def exportPlots(command, plottype="time"):
 					
 					plt.figure(figsize=(20,10))
 					plt.suptitle(title)
-					print(title)
-					#print(featuretype1)
+
 					b, a = filterlib.designplotfilter()
 					for l in range(0, numCh):
-						#print("l = %d" %l)
+
 						feature1 = DataSet[k+l].split(',')
 						featuretype1 = feature1[0]
 						feature1.pop(0)
@@ -273,7 +268,7 @@ def exportPlots(command, plottype="time"):
 
 						featureData1 = map(float, feature1)
 						subplotnum = (numCh/2)*100 + 20 + l + 1
-						#print("Subplotnum = %d" %subplotnum)
+	
 						ax1 = plt.subplot(subplotnum)
 						featureData1 = filterlib.plotfilter(featureData1, b, a)
 						featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
@@ -331,9 +326,9 @@ def exportPlots(command, plottype="time"):
 
 
 def deleteShortDataelement(index):
-	global length, numCh
+	global length, numCh, dir_path
 	index = index * numCh
-	file = open('Dataset\\data.txt', 'r')
+	file = open(dir_path+"\\Dataset\\data.txt", 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -342,7 +337,7 @@ def deleteShortDataelement(index):
 	#DataSet.pop(index)
 	#print(DataSet)
 	file.close()
-	file = open('Dataset\\data.txt', 'w')
+	file = open(dir_path+"\\Dataset\\data.txt", 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -351,9 +346,9 @@ def deleteShortDataelement(index):
 	print("Data element %d is deleted" % index)
 
 def deleteLongDataelement(index):
-	global length, numCh
+	global length, numCh, dir_path
 	index = index * numCh
-	file = open('Dataset\\longdata.txt', 'r')
+	file = open(dir_path+"\\Dataset\\longdata.txt", 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -362,7 +357,7 @@ def deleteLongDataelement(index):
 	#DataSet.pop(index)
 	#print(DataSet)
 	file.close()
-	file = open('Dataset\\longdata.txt', 'w')
+	file = open(dir_path+"\\Dataset\\longdata.txt", 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -371,9 +366,9 @@ def deleteLongDataelement(index):
 	print("Data element %d is deleted" % index)
 
 def deleteShortTempelement(index):
-	global length, numCh
+	global length, numCh, dir_path
 	index = index * numCh
-	file = open('Dataset\\temp.txt', 'r')
+	file = open(dir_path+"\\Dataset\\temp.txt", 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -382,7 +377,7 @@ def deleteShortTempelement(index):
 	#DataSet.pop(index)
 	#print(DataSet)
 	file.close()
-	file = open('Dataset\\temp.txt', 'w')
+	file = open(dir_path+"\\Dataset\\temp.txt", 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -391,9 +386,9 @@ def deleteShortTempelement(index):
 	print("Temp element %d is deleted" % index)
 
 def deleteLongTempelement(index):
-	global length, numCh
+	global length, numCh, dir_path
 	index = index * numCh
-	file = open('Dataset\\longtemp.txt', 'r')
+	file = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -402,7 +397,7 @@ def deleteLongTempelement(index):
 	#DataSet.pop(index)
 	#print(DataSet)
 	file.close()
-	file = open('Dataset\\longtemp.txt', 'w')
+	file = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
 	for i in range(len(DataSet)-1):
 		file.write(DataSet[i])
 		file.write(':')
@@ -411,57 +406,63 @@ def deleteLongTempelement(index):
 	print("Temp element %d is deleted" % index)
 
 def saveShortData():
-	tempfile = open('Dataset\\temp.txt', 'r')
+	global dir_path
+	tempfile = open(dir_path+"\\Dataset\\temp.txt", 'r')
 	tempData = tempfile.read()
 	tempfile.close()
-	permfile = open('Dataset\\data.txt', 'a')
+	permfile = open(dir_path+"\\Dataset\\data.txt", 'a')
 	permfile.write(tempData)
 	permfile.close()
-	tempfile = open('Dataset\\temp.txt', 'w')
+	tempfile = open(dir_path+"\\Dataset\\temp.txt", 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Short Data Saved")
 
 def saveLongData():
-	tempfile = open('Dataset\\longtemp.txt', 'r')
+	global dir_path
+	tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
 	tempData = tempfile.read()
 	tempfile.close()
-	permfile = open('Dataset\\longdata.txt', 'a')
+	permfile = open(dir_path+"\\Dataset\\longdata.txt", 'a')
 	permfile.write(tempData)
 	permfile.close()
-	tempfile = open('Dataset\\longtemp.txt', 'w')
+	tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Long Data Saved")
 
 
 def clearShortTemp():
-	tempfile = open('Dataset\\temp.txt', 'w')
+	global dir_path
+	tempfile = open(dir_path+"\\Dataset\\temp.txt", 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Short Temp is cleared")
 
 def clearLongTemp():
-	tempfile = open('Dataset\\longtemp.txt', 'w')
+	global dir_path
+	tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Long Temp is cleared")
 
 
 def clearShortData():
-	tempfile = open('Dataset\\data.txt', 'w')
+	global dir_path
+	tempfile = open(dir_path+"\\Dataset\\data.txt", 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Short Data is deleted")
 	
 def clearLongData():
-	tempfile = open('Dataset\\longdata.txt', 'w')
+	global dir_path
+	tempfile = open(dir_path+"\\Dataset\\longdata.txt", 'w')
 	tempfile.truncate(0)
 	tempfile.close()
 	print("Long Data is deleted")
 
 def loadDataset(filename="data.txt"):
-	global numCh, frontPadding, backPadding, filelock
+	global numCh, frontPadding, backPadding, filelock, dir_path
 	print("Starting to load dataset")
 	x = [[],[],[],[],[],[],[],[]]
 	y = [[],[],[],[],[],[],[],[]]
@@ -469,7 +470,7 @@ def loadDataset(filename="data.txt"):
 	file = None
 
 	with filelock:
-		file = open(("Dataset\\"+filename), 'r')
+		file = open((dir_path+"\\Dataset\\"+filename), 'r')
 		AllData = file.read()
 		file.close()
 		

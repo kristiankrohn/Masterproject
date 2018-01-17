@@ -64,8 +64,8 @@ def exportplot(plotdata,  title="", ax=None):
 
 	length = len(plotdata)
 	x = np.arange(0, length/250.0, 1.0/250.0)
-	ax.set_autoscaley_on(False)
-	ax.set_ylim([-100,100])
+	#ax.set_autoscaley_on(False)
+	#ax.set_ylim([-100,100])
 	plt.plot(x, plotdata, label=title)
 	ax.set_title(title)
 	plt.ylabel('uV')
