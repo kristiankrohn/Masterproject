@@ -64,8 +64,8 @@ def exportplot(plotdata,  title="", ax=None):
 
 	length = len(plotdata)
 	x = np.arange(0, length/250.0, 1.0/250.0)
-	#ax.set_autoscaley_on(False)
-	#ax.set_ylim([-100,100])
+	ax.set_autoscaley_on(False)
+	ax.set_ylim([-100,100])
 	plt.plot(x, plotdata, label=title)
 	ax.set_title(title)
 	plt.ylabel('uV')
@@ -96,3 +96,99 @@ def exportFftPlot(plotdata, title="", ax=None):
 	plt.ylabel('dBuV')
 	plt.xlabel('Frequency (Hz)')
 	#plt.yscale('log')
+
+def plot_filterz(b, a=1):
+	ax=plt.subplot(221)
+	plot_freqz(ax, b, a)
+	ax=plt.subplot(222)
+	plot_phasez(ax, b, a)
+	plt.subplot(223)
+	plot_impz(b, a)
+	plt.subplot(224)
+	plot_stepz(b, a)
+	plt.subplots_adjust(hspace=0.5, wspace = 0.3)
+
+def plot_freqz(ax,b,a=1):
+	#global legends
+	w,h = signal.freqz(b,a)
+	h_dB = 20 * np.log10 (abs(h))
+	if len(b) == 78:
+		label = "N = 50 + 25"
+	elif len(b) == 53:
+		label = "N = 25 + 25"
+	elif len(b) == 103:
+		label = "N = 50 + 50"
+	else:
+		label = "N = %d" %(len(b))
+	#legend, = plt.plot(w*fs/(2*np.pi), h_dB, label=label)
+	plt.plot(w*fs/(2*np.pi), h_dB)
+	#legends.append(legend)
+	#plt.plot(w/np.pi, h_dB)
+	ax.set_xlim([-1, 125])
+	plt.ylim([max(min(h_dB), -100) , 5])
+	plt.ylabel('Magnitude (db)')
+	plt.xlabel("Frequency (Hz)")
+	#plt.xlabel(r'Normalized Frequency (x$\pi$rad/sample)')
+	plt.title(r'Amplitude response')
+
+def plot_phasez(ax, b, a=1):
+	w,h = signal.freqz(b,a)
+	#h_Phase = np.unwrap(np.arctan2(np.imag(h),np.real(h)))
+	h_Phase = np.unwrap(np.angle(h))*180/np.pi
+	plt.plot(w*fs/(2*np.pi), h_Phase)
+	#plt.plot(w/np.pi, h_Phase)
+	ax.set_xlim([-1, 125])
+	plt.ylabel('Phase (Degrees)')
+	plt.xlabel("Frequency (Hz)")
+	#plt.xlabel(r'Normalized Frequency (x$\pi$rad/sample)')
+	plt.title(r'Phase response')
+
+def plot_impz(b, a = 1):
+	if type(a)== int: #FIR
+		l = len(b)
+	else: # IIR
+		l = 250
+	impulse = np.repeat(0.,l); impulse[0] =1.
+	x = np.arange(0,l)
+	response = signal.lfilter(b, a, impulse)
+	#plt.stem(x, response, linefmt='b-', basefmt='b-', markerfmt='bo')
+	plt.plot(x, response)
+	plt.ylabel('Amplitude')
+	plt.xlabel(r'n (samples)')
+	plt.title(r'Impulse response')
+
+def plot_stepz(b, a = 1):
+	if type(a)== int: #FIR
+		l = len(b)
+	else: # IIR
+		l = 250
+	impulse = np.repeat(0.,l); impulse[0] =1.
+	x = np.arange(0,l)
+	response = signal.lfilter(b,a,impulse)
+	step = np.cumsum(response)
+	plt.plot(x, step)
+	plt.ylabel('Amplitude')
+	plt.xlabel(r'n (samples)')
+	plt.title(r'Step response')
+
+def ampandphase(b, a = 1):
+	w, h = signal.freqz(b, a)
+	 # Generate frequency axis
+	freq = w*fs/(2*np.pi)
+	 # Plot
+	fig, ax = plt.subplots(2, 1, figsize=(8, 6))
+	ax[0].plot(freq, 20*np.log10(abs(h)), color='blue')
+	ax[0].set_title("2 Step Average + Lowpass")
+	ax[0].set_ylabel("Amplitude (dB)", color='blue')
+	ax[0].set_xlim([0, 1])
+	ax[0].set_ylim([-100, 10])
+	ax[0].grid()
+	ax[1].plot(freq, np.unwrap(np.angle(h))*180/np.pi, color='green')
+	ax[1].set_ylabel("Angle (degrees)", color='green')
+	ax[1].set_xlabel("Frequency (Hz)")
+	ax[1].set_xlim([0, 100])
+	ax[1].set_yticks([-7560, -6480, -5400, -4320, -3240, -2160, -1080, 0, 1080])
+	ax[1].set_ylim([-8000, 1080])
+	ax[1].grid()
+	plt.show()
+

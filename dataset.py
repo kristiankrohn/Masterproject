@@ -163,7 +163,7 @@ def exportPlots(command, plottype="time"):
 
 
 	for i in range(len(folders)):
-		print("i = %d" %i)
+	
 		for j in range(len(movements)):
 			if plottype == "fft":
 				folder = dir_path + "\\Dataset_fft" + folders[i] + movements[j]
@@ -271,7 +271,7 @@ def exportPlots(command, plottype="time"):
 	
 						ax1 = plt.subplot(subplotnum)
 						featureData1 = filterlib.plotfilter(featureData1, b, a)
-						featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+						#featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
 						if plottype == "fft":
 							plot.exportFftPlot(featureData1, channels[l], ax1)
 						else:
@@ -476,14 +476,14 @@ def loadDataset(filename="data.txt"):
 		
 	DataSet = []
 	DataSet = AllData.split(':')
-
+	#print(DataSet)
 	b, a = filterlib.designplotfilter()
 	for k in range(0, len(DataSet)):
 		#print("k = %d" %k)
 		care = True
 		feature = []
 		feature = DataSet[k].split(',')
-
+		#print("Length of vector: %d\n" %len(feature))
 		if len(feature) > 10:
 			featuretype = feature[0]
 			label = featuretype[0:2]
@@ -517,8 +517,10 @@ def loadDataset(filename="data.txt"):
 				
 			
 			featureData = map(float, feature)
+			#print("Raw data: %0.2f\n" %featureData[0])
 			featureData = filterlib.plotfilter(featureData, b, a)
-			featureData = featureData[frontPadding:-backPadding] #Remove paddings
+			#featureData = featureData[frontPadding:-backPadding] #Remove paddings
+			#print("Filterdata: %0.2f\n" %featureData[0])
 			x[channel].append(featureData)
 		else:
 			print("Invalid datapoint")

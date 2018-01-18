@@ -44,9 +44,11 @@ def dataCatcher():
 	print(user)
 	port = 'COM3'
 	baud = 115200
-	logging.basicConfig(filename="test.log",format='%(asctime)s - %(levelname)s : %(message)s',level=logging.DEBUG)
+	logging.basicConfig(filename="test.log",
+		format='%(asctime)s - %(levelname)s : %(message)s',level=logging.DEBUG)
 	logging.info('---------LOG START-------------')
-	board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, filter_data = False)
+	board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
+		filter_data = False)
 	print("Board Instantiated")
 	board.ser.write('v')
 	#tme.sleep(10)
@@ -171,6 +173,7 @@ def keys():
 				inputval = None
 		else:
 			string = inputString
+			inputval = None
 
 		if string == "notch=true":
 			bandstopFilter = True
@@ -228,6 +231,13 @@ def keys():
 			threadGui = threading.Thread(target=gui, args=())
 			threadGui.setDaemon(True)
 			threadGui.start()
+
+		elif string == "analyzefilter":
+			if inputval != None:
+				filterlib.analyze_filter(inputval)
+			else:
+				filterlib.analyze_filter()
+
 		elif string == "exportdataplots":
 			dataset.exportPlots("data")
 		elif string == "exporttempplots":
@@ -303,6 +313,10 @@ def keys():
 				print(len(x[0][0]))
 		else:
 			print("Unknown command")	
+
+
+
+
 def save():
 	np.savetxt('data.out', data[1][1])
 

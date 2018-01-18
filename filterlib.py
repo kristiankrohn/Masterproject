@@ -4,7 +4,7 @@ import scipy.fftpack
 import numpy as np
 from globalvar import *
 import threading
-
+import matplotlib.pyplot as plt
 #fs = 250.0
 f0 = 50.0
 Q = 50
@@ -142,12 +142,12 @@ def savefiltercoeff():
 	np.savetxt('highpasscoeff.out', highpassB)
 	print("Saved filter coefficients")
 
-def designplotfilter():
+def designplotfilter(Q=5):
 	a = [1 , -0.9] 
 	b = [1,-1]
 	fs = 250.0
 	f0 = 50.0
-	Q = 50
+	#Q = 20
 	w0 = f0/(fs/2)
 	bNotch, aNotch = signal.iirnotch(w0, Q)
 
@@ -178,3 +178,12 @@ def plotfilter(data, b=0, a=0):
 	data, Zi = signal.lfilter(b, a, data, zi=Zi)
 	#data = signal.lfilter(b, a, data)
 	return data
+
+
+def analyze_filter(Q=50):
+	b, a = designplotfilter(Q)
+	plot.plot_filterz(b, a)
+	plt.subplots_adjust(hspace=0.5, wspace = 0.3)
+	plt.show()
+
+
