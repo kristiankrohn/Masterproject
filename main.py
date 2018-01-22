@@ -35,7 +35,29 @@ averageCondition = False
 
 app = QtGui.QApplication([])
 
-
+def housekeeper():
+	global mutex, data, nSamples, rawdata, filterdata, timestamp
+	longsleep = False
+	while True:
+		with(mutex):
+			for i in range(nPlots):
+				if len(data[i][0]) >= nSamples + 100:
+				
+					#while len(data[i][0]) >= nSamples:
+					data[i][rawdata].pop(0)
+					data[i][filterdata].pop(0)
+					data[i][timestamp].pop(0)
+					longsleep = False
+				elif len(data[i][0]) >= nSamples:
+	
+					data[i][rawdata].pop(0)
+					data[i][filterdata].pop(0)
+					data[i][timestamp].pop(0)
+					longsleep = True
+		if longsleep:
+			tme.sleep(0.003)
+		else:
+			tme.sleep(0.002)
 
 def dataCatcher():
 	global board
@@ -72,28 +94,19 @@ def printData(sample):
 	for i in range(nPlots):			
 		newSamples[i].append(sample.channel_data[i])
 		newTimeData[i].append(xt)
+	for j in range(nPlots):
+		if newTimeData[j][0] != newTimeData[j-1][0]:
+			print("Timestamp error")
+	with mutex:
+		for i in range(nPlots):
+			if len(newSamples[i]) >= window:
+				filterlib.filter(newSamples, newTimeData, i)
+				newTimeData[i][:] = []
+				newSamples[i][:] = []
+	
 
-	if len(data[0][0]) >= nSamples:
-		with(mutex):
-			for i in range(nPlots):				
-				data[i][rawdata].pop(0)
-				data[i][filterdata].pop(0)
-				data[i][timestamp].pop(0)
 
 
-	if len(newSamples[0]) >= window:
-		#print("Starting filter\n")
-		#print(newSamples[0])
-						
-		#threadFilter = threading.Thread(target=filterlib.filter,args=(newSamples, newTimeData))
-		#threadFilter.setDaemon(True)
-		#threadFilter.start()
-		#threadFilter.join()
-		#print("Joining thread\n")
-		filterlib.filter(newSamples, newTimeData)
-		#print(len(averagedata[0]))
-		newTimeData = [],[],[],[],[],[],[],[]
-		newSamples = [],[],[],[],[],[],[],[]
 
 
 
@@ -237,6 +250,9 @@ def keys():
 				filterlib.analyze_filter(inputval)
 			else:
 				filterlib.analyze_filter()
+		elif string == "setfilter":
+			if inputval != None:
+				filterlib.set_filter_q(inputval)
 
 		elif string == "exportdataplots":
 			dataset.exportPlots("data")
@@ -304,6 +320,8 @@ def keys():
 				#print("Invalid input")
 		elif string == "exportfft":
 			dataset.exportPlots("temp", "fft")
+		elif string == "exportraw":
+			dataset.exportPlots("temp", "raw")
 		elif string == "fftplot":
 			plotlib.fftplot(0)
 			plt.show()
@@ -329,6 +347,9 @@ def main():
 	global graphVar, exit
 
 	print("Setup finished, starting threads")
+	threadHK = threading.Thread(target=housekeeper,args=())
+	threadHK.setDaemon(True)
+	threadHK.start()
 
 	threadKeys = threading.Thread(target=keys,args=())
 	threadKeys.setDaemon(True)

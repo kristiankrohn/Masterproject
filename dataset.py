@@ -6,7 +6,7 @@ from operator import sub
 import plot
 import matplotlib.pyplot as plt
 import filterlib
-
+import time as tme
 
 
 
@@ -16,7 +16,7 @@ numCh = 8
 longLength = 500
 shortLength = 250
 frontPadding = 750
-backPadding = 25
+backPadding = 125
 
 
 def saveShortTemp(direction):
@@ -51,87 +51,100 @@ def prepSaveData(direction, length):
 	global numCh
 	global frontPadding, backPadding
 	
-	if direction != 5:
-		startTime = tme.time() + 0.6
-	else: 
-		startTime = tme.time()
-	
+	#if direction != (5 || 0):
+		#startTime = tme.time() + 0.4
+	#else: 
+		#startTime = tme.time()
+	startTime = tme.time() + (backPadding/fs)
 	ready = False
 
 	while not ready:
-		if data[1][timestamp][-1] > startTime:
-			ready = True
+		with mutex:
 
-	with(mutex):
-		temp = data
+			if data[0][timestamp][-1] > startTime:
+				ready = True
+				temp = data
+				for i in range(numCh):
+					#print(temp[i][timestamp][-1])	
+					if temp[i][timestamp][-1] != temp[i-1][timestamp][-1]:
+						ready = False
+						print("Timestamp error with index: %d" %i)
+						print(len(temp[i][timestamp]))
+						print(len(temp[i-1][timestamp]))
+						return -1
+		
 
-	if len(temp[1][rawdata]) > (length + frontPadding + backPadding):
+	if len(temp[0][rawdata]) > (length + frontPadding + backPadding): 
+	#Check that buffer is large enough
 
-		stopindex = len(temp[1][rawdata])-5 + backPadding
+		stopindex = len(temp[0][rawdata])
 
-		for i in range(len(temp[timestamp])-1, 0, -1):
-			if temp[1][timestamp][i]<=startTime:
+		for i in range(len(temp[timestamp]), 0, -1):
+			if temp[0][timestamp][i]<=startTime:
 				stopindex = i
+				#print("Found Stop index!")
 				break
+			elif i == 0:
+				print("Index error, could not find stop index")
+				return -1
 
 		stop = stopindex
 		start = stop - (length + frontPadding + backPadding)
-		if stop > len(temp[0][timestamp])-1:
-			print("Index error, aborting save operation")
-		else: 
+
 			
-			abort = False
-			f = ""
-			for j in range(numCh):
-				good = True
-				if direction == 4:
-					f += "lr"
-				elif direction == 1:
-					f +="ld"
-				elif direction == 6:
-					f += "rr"
-				elif direction == 9:
-					f += "rd"
-				elif direction == 8:
-					f += "ur"
-				elif direction == 7:
-					f += "ud"
-				elif direction == 2:
-					f += "dr"
-				elif direction == 3:
-					f += "dd"
-				elif direction == 5:
-					f += "cs"
-				elif direction == 0:
-					f += "cb"
-				else:
-					good = False
-
-				if abort:
-					break
-
-				if good:
-					f += str(j)
-					for i in range(start, stop):
-						f += ","
-						try:
-							num = temp[j][rawdata][i]
-						except IndexError:
-							print("Index error")
-							print("Len buffer = %d" % len(temp[j][rawdata])-1)
-							print("Index = %d" % i)
-							print("Write operation aborted")
-							abort = True
-							break
-
-						f += str(num)
-
-					f += ":"
-
-			if not abort:
-				return f
+		abort = False
+		f = ""
+		for j in range(numCh):
+			good = True
+			if direction == 4:
+				f += "lr"
+			elif direction == 1:
+				f +="ld"
+			elif direction == 6:
+				f += "rr"
+			elif direction == 9:
+				f += "rd"
+			elif direction == 8:
+				f += "ur"
+			elif direction == 7:
+				f += "ud"
+			elif direction == 2:
+				f += "dr"
+			elif direction == 3:
+				f += "dd"
+			elif direction == 5:
+				f += "cs"
+			elif direction == 0:
+				f += "cb"
 			else:
-				return -1
+				good = False
+
+			if good:
+				f += str(j)
+				for i in range(start, stop):
+					f += ","
+					try:
+						num = temp[j][rawdata][i]
+					except IndexError:
+						print("Index error")
+						print("Len buffer = %d" % len(temp[j][rawdata])-1)
+						print("Index = %d" % i)
+						print("Write operation aborted")
+						abort = True
+						return -1
+
+					f += str(num)
+
+				f += ":"
+
+		if not abort:
+			return f
+		else:
+			print("Aborted save operation")
+			return -1
+	else:
+		print("Not enough data in buffer")
+		return -1 
 
 					
 
@@ -169,6 +182,8 @@ def exportPlots(command, plottype="time"):
 				folder = dir_path + "\\Dataset_fft" + folders[i] + movements[j]
 			elif plottype == "time":
 				folder = dir_path + "\\Dataset_exports" + folders[i] + movements[j]
+			elif plottype == "raw":
+				folder = dir_path + "\\Dataset_raw" + folders[i] + movements[j]
 			else:
 				print("Invalid plottype")
 				return
@@ -270,10 +285,13 @@ def exportPlots(command, plottype="time"):
 						subplotnum = (numCh/2)*100 + 20 + l + 1
 	
 						ax1 = plt.subplot(subplotnum)
-						featureData1 = filterlib.plotfilter(featureData1, b, a)
-						#featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+						if plottype != "raw":
+							featureData1 = filterlib.plotfilter(featureData1, b, a)
+							featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
 						if plottype == "fft":
 							plot.exportFftPlot(featureData1, channels[l], ax1)
+						elif plottype == "raw":
+							plot.exportRaw(featureData1, channels[l], ax1)
 						else:
 							plot.exportplot(featureData1, channels[l], ax1)
 
@@ -303,6 +321,10 @@ def exportPlots(command, plottype="time"):
 
 					if plottype == "fft":
 						savestring = (dir_path + "\\Dataset_fft\\"
+										+ tempOrNot +"\\"+title +"\\"
+										+ title+str(k/numCh) + ".png")
+					elif plottype == "raw":
+						savestring = (dir_path + "\\Dataset_raw\\"
 										+ tempOrNot +"\\"+title +"\\"
 										+ title+str(k/numCh) + ".png")
 					else:
@@ -519,7 +541,7 @@ def loadDataset(filename="data.txt"):
 			featureData = map(float, feature)
 			#print("Raw data: %0.2f\n" %featureData[0])
 			featureData = filterlib.plotfilter(featureData, b, a)
-			#featureData = featureData[frontPadding:-backPadding] #Remove paddings
+			featureData = featureData[frontPadding:-backPadding] #Remove paddings
 			#print("Filterdata: %0.2f\n" %featureData[0])
 			x[channel].append(featureData)
 		else:

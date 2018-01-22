@@ -5,6 +5,7 @@ import numpy as np
 from globalvar import *
 import threading
 import matplotlib.pyplot as plt
+import plot
 #fs = 250.0
 f0 = 50.0
 Q = 50
@@ -49,22 +50,18 @@ print("Filtersetup finished")
 
 
 def appendData(y, i, xt, yr):
-	global data, rawdata
+	global data, rawdata, filterdata, timestamp
 	global newTimeData, timeData, mutex
-	#global rtData
-	with mutex:
-		for j in range(len(y)):
-			#data[i].append(y[j])
-			#timeData[i].append(xt[j])
-			#rawdata[i].append(yr[j])
-			#data[i].append(rtData(yr, y, xt))
 
-			data[i][rawdata].append(yr[j])
-			data[i][filterdata].append(y[j])
-			data[i][timestamp].append(xt[j])
+	
+		#print(y)
+	for j in range(len(y)):
+		#print(y[j])
+		data[i][rawdata].append(yr[j])
+		data[i][filterdata].append(y[j])
+		data[i][timestamp].append(xt[j])
+
 			
-			
-			#print(data[i])
 
 def init_filter():
 	global lowpassB, lowpassA, lowpassZi 
@@ -91,7 +88,7 @@ def init_filter():
 		init = False
 
 
-def filter(newSamples, newTimeData):
+def filter(newSamples, newTimeData, i):
 	global lowpassB, lowpassA, lowpassZi 
 	global bandpassB, bandpassA, bandpassZi
 	global notchB, notchA, notchZi, notchZi2, notchZi3 
@@ -100,40 +97,35 @@ def filter(newSamples, newTimeData):
 	global timeData, mutex
 	global DcNotchB, DcNotchA, DCnotchZi, DCnotchZi2
 	global bNotch100, aNotch100, notchZi1001, notchZi1002
-	#global newSamples, newTimeData
-	#print(newSamples)
 
-	#with(mutex):
-		#print("Unfiltered data\n")
-		#print(newSamples)	
 
-	for i in range(nPlots):
-		x = newSamples[i]
-		yr = x
-		xt = newTimeData[i]
-		
-		x, DCnotchZi[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi[i])
-		#x, DCnotchZi2[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi2[i])
 
-		if bandstopFilter: 
-			x, notchZi[i] = signal.lfilter(notchB, notchA, x, zi=notchZi[i])
-			x, notchZi2[i] = signal.lfilter(notchB, notchA, x, zi=notchZi2[i])
-			x, notchZi3[i] = signal.lfilter(notchB, notchA, x, zi=notchZi3[i])
-			x, notchZi4[i] = signal.lfilter(notchB, notchA, x, zi=notchZi4[i])
-			x, notchZi1001[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1001[i])
-			x, notchZi1002[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1002[i])
-		if lowpassFilter:
-			x, lowpassZi[i] = signal.lfilter(lowpassB, lowpassA, x, zi=lowpassZi[i])
-		
-		if bandpassFilter:
-			x, bandpassZi[i] = signal.lfilter(bandpassB, bandpassA, x, zi=bandpassZi[i])
-		#print("Filtered data\n")
-		#print(x)
+	x = newSamples[i]
+	yr = x
+	xt = newTimeData[i]
+	
+	x, DCnotchZi[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi[i])
+	#x, DCnotchZi2[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi2[i])
 
-		appendData(x,i,xt,yr)
+	if bandstopFilter: 
+		x, notchZi[i] = signal.lfilter(notchB, notchA, x, zi=notchZi[i])
+		x, notchZi2[i] = signal.lfilter(notchB, notchA, x, zi=notchZi2[i])
+		x, notchZi3[i] = signal.lfilter(notchB, notchA, x, zi=notchZi3[i])
+		x, notchZi4[i] = signal.lfilter(notchB, notchA, x, zi=notchZi4[i])
+		x, notchZi1001[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1001[i])
+		x, notchZi1002[i] = signal.lfilter(bNotch100, aNotch100, x, zi=notchZi1002[i])
+	if lowpassFilter:
+		x, lowpassZi[i] = signal.lfilter(lowpassB, lowpassA, x, zi=lowpassZi[i])
+	
+	if bandpassFilter:
+		x, bandpassZi[i] = signal.lfilter(bandpassB, bandpassA, x, zi=bandpassZi[i])
+	#print("Filtered data\n")
+	#print(x)
 
-		#newTimeData = [],[],[],[],[],[],[],[]
-		#newSamples = [],[],[],[],[],[],[],[]
+	appendData(x,i,xt,yr)
+
+	#newTimeData = [],[],[],[],[],[],[],[]
+	#newSamples = [],[],[],[],[],[],[],[]
 
 	
 
@@ -142,7 +134,7 @@ def savefiltercoeff():
 	np.savetxt('highpasscoeff.out', highpassB)
 	print("Saved filter coefficients")
 
-def designplotfilter(Q=5):
+def designplotfilter(Q=50):
 	a = [1 , -0.9] 
 	b = [1,-1]
 	fs = 250.0
@@ -171,8 +163,9 @@ def designplotfilter(Q=5):
 	return bTot, aTot
 
 def plotfilter(data, b=0, a=0):
+	global Q
 	if b[0] == 0:
-		b, a = designplotfilter()
+		b, a = designplotfilter(Q)
 
 	Zi = signal.lfilter_zi(b, a) * data[0]
 	data, Zi = signal.lfilter(b, a, data, zi=Zi)
@@ -186,4 +179,6 @@ def analyze_filter(Q=50):
 	plt.subplots_adjust(hspace=0.5, wspace = 0.3)
 	plt.show()
 
-
+def set_filter_q(q):
+	global Q
+	Q = q

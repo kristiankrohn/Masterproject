@@ -49,6 +49,6 @@ bandpassFilter = False
 
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 		
-print(os.listdir(dir_path))  
+#print(os.listdir(dir_path))  
 
 
