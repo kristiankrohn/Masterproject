@@ -26,13 +26,13 @@ data = [[[],[],[]],
 #timeData = [],[],[],[],[],[],[],[]
 newTimeData = [],[],[],[],[],[],[],[]
 newSamples = [],[],[],[],[],[],[],[]
-
+directioncode = ["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
 rawdata = 0
 filterdata = 1
 timestamp = 2
 
 #nSamples = 1000
-nSamples = 1800
+nSamples = 2000
 #avgLength = 1000
 avgLength = 25
 avgShortLength = 50
@@ -45,7 +45,7 @@ init = True
 bandstopFilter = True
 lowpassFilter = False
 bandpassFilter = False
-
+numCh = 8
 
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 		

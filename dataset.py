@@ -7,12 +7,12 @@ import plot
 import matplotlib.pyplot as plt
 import filterlib
 import time as tme
+import copy
 
 
-
-
+printlock = Lock()
 filelock = Lock()
-numCh = 8
+
 longLength = 500
 shortLength = 250
 frontPadding = 750
@@ -20,7 +20,7 @@ backPadding = 125
 
 
 def saveShortTemp(direction):
-	global shortLength, filelock, dir_path
+
 	f = prepSaveData(direction, shortLength)
 	if f != -1:
 		with filelock:
@@ -32,7 +32,7 @@ def saveShortTemp(direction):
 		print("Failed to save short temp")
 
 def saveLongTemp(direction):
-	global longLength, filelock, dir_path	
+
 	f = prepSaveData(direction, longLength)
 	if f != -1:
 		with filelock:
@@ -44,109 +44,127 @@ def saveLongTemp(direction):
 		print("Failed to save long temp")
 
 def prepSaveData(direction, length):
-	global data, nSamples
-	global rawdata, filterdata, timestamp
-	global timeData
+	#global data, nSamples
+	#global rawdata, filterdata, timestamp
+	#global timeData
 	global mutex, filelock
-	global numCh
-	global frontPadding, backPadding
+	#global numCh
+	#global frontPadding, backPadding
+	#global directioncode
+	global printlock
 	
-	#if direction != (5 || 0):
-		#startTime = tme.time() + 0.4
-	#else: 
-		#startTime = tme.time()
 	startTime = tme.time() + (backPadding/fs)
 	ready = False
+	if len(data[0][timestamp]) < (length + frontPadding + backPadding):
+		print("Lenght of data is too small")
+		return -1
+	temp = None
+	temptemp = None
+	with printlock:
+		while not ready:
+			with mutex:
 
-	while not ready:
-		with mutex:
+				if data[0][timestamp][-1] >= startTime:
+					ready = True
+					temp = copy.deepcopy(data)
+					error = False
+					for i in range(numCh):
+						#print(temp[i][timestamp][-1])
 
-			if data[0][timestamp][-1] > startTime:
-				ready = True
-				temp = data
-				for i in range(numCh):
-					#print(temp[i][timestamp][-1])	
-					if temp[i][timestamp][-1] != temp[i-1][timestamp][-1]:
-						ready = False
-						print("Timestamp error with index: %d" %i)
-						print(len(temp[i][timestamp]))
-						print(len(temp[i-1][timestamp]))
-						return -1
-		
+						print("Checking for errors")
 
-	if len(temp[0][rawdata]) > (length + frontPadding + backPadding): 
-	#Check that buffer is large enough
+						if temp[i][timestamp][-1] != temp[i-1][timestamp][-1]:
+							ready = False
+							error = True
+						if len(temp[i][rawdata]) != len(temp[i-1][rawdata]):
+							print("Uneven length of rawdata")
+							error = True
+						if len(temp[i][filterdata]) != len(temp[i-1][filterdata]):
+							print("Uneven length of filterdata")
+							error = True
+						if len(temp[i][timestamp]) != len(temp[i-1][timestamp]):
+							print("Uneven length of timestamp")
+							error = True
+						if len(temp[i][timestamp]) != len(temp[i][rawdata]):
+							error = True
+						if error:
+							return -1	
 
-		stopindex = len(temp[0][rawdata])
+		stopindex = len(temp[0][rawdata])-1
 
-		for i in range(len(temp[timestamp]), 0, -1):
+
+		for i in range((len(temp[0][timestamp])-1), (length + frontPadding + backPadding), -1): #Dette her fungerer ikke
+			#print(i)
 			if temp[0][timestamp][i]<=startTime:
 				stopindex = i
-				#print("Found Stop index!")
+				print("Found Stop index at: %d" %i)
+				print(startTime)
+				print(temp[0][timestamp][i])
 				break
-			elif i == 0:
+			elif i == (length + frontPadding + backPadding):
 				print("Index error, could not find stop index")
 				return -1
 
 		stop = stopindex
 		start = stop - (length + frontPadding + backPadding)
-
+		print("Start index: %d" %start)
+		print("Stop index: %d" %stop)
 			
 		abort = False
 		f = ""
 		for j in range(numCh):
+			
 			good = True
-			if direction == 4:
-				f += "lr"
-			elif direction == 1:
-				f +="ld"
-			elif direction == 6:
-				f += "rr"
-			elif direction == 9:
-				f += "rd"
-			elif direction == 8:
-				f += "ur"
-			elif direction == 7:
-				f += "ud"
-			elif direction == 2:
-				f += "dr"
-			elif direction == 3:
-				f += "dd"
-			elif direction == 5:
-				f += "cs"
-			elif direction == 0:
-				f += "cb"
+
+			if direction < 10:
+				f += directioncode[direction]	
 			else:
 				good = False
 
 			if good:
-				f += str(j)
+				f += str(j) #Kanal
+				
+				'''
+				print("\nLast elements in array:")
+				print(temp[j][rawdata][(stop-10):])
+				print("index start:")
+				print(start)
+				print("index stop:")
+				print(stop)
+				print("Length of array")
+				print(len(temp[j][rawdata]))
+				'''
 				for i in range(start, stop):
 					f += ","
 					try:
 						num = temp[j][rawdata][i]
+
 					except IndexError:
 						print("Index error")
-						print("Len buffer = %d" % len(temp[j][rawdata])-1)
+						print("Len buffer = %d" %(len(temp[j][rawdata])-1))
 						print("Index = %d" % i)
 						print("Write operation aborted")
 						abort = True
 						return -1
-
+					'''
+					if i == (stop-10):
+						print("Last ten elements in savestring")
+					elif i >= (stop - 10):
+						print(str(num)) 
+					'''
 					f += str(num)
 
 				f += ":"
-
+				
 		if not abort:
+
 			return f
 		else:
 			print("Aborted save operation")
 			return -1
-	else:
-		print("Not enough data in buffer")
-		return -1 
 
-					
+
+						
 
 
 
@@ -484,7 +502,7 @@ def clearLongData():
 	print("Long Data is deleted")
 
 def loadDataset(filename="data.txt"):
-	global numCh, frontPadding, backPadding, filelock, dir_path
+	global numCh, frontPadding, backPadding, filelock, dir_path, directioncode
 	print("Starting to load dataset")
 	x = [[],[],[],[],[],[],[],[]]
 	y = [[],[],[],[],[],[],[],[]]
@@ -513,39 +531,17 @@ def loadDataset(filename="data.txt"):
 			channel = channel[0]
 			feature.pop(0)
 			
-			if label == "lr":
-				y[channel].append(4)
-			elif label == "ld":
-				y[channel].append(1)
-			elif label == "rr":
-				y[channel].append(6)
-			elif label == "rd":
-				y[channel].append(9)
-			elif label == "ur":
-				y[channel].append(8)
-			elif label == "ud":
-				y[channel].append(7)
-			elif label == "dr":
-				y[channel].append(2)
-			elif label == "dd":
-				y[channel].append(3)
-			elif label == "cs":
-				y[channel].append(5)
-			elif label == "cb":
-				y[channel].append(0)
-			else:
-				break
-			
-				
+			y[channel].append(directioncode.index(label))							
 			
 			featureData = map(float, feature)
 			#print("Raw data: %0.2f\n" %featureData[0])
-			featureData = filterlib.plotfilter(featureData, b, a)
-			featureData = featureData[frontPadding:-backPadding] #Remove paddings
+			#featureData = filterlib.plotfilter(featureData, b, a)
+			#featureData = featureData[frontPadding:-backPadding] #Remove paddings
 			#print("Filterdata: %0.2f\n" %featureData[0])
 			x[channel].append(featureData)
-		else:
-			print("Invalid datapoint")
+		#else:
+			#print("Invalid datapoint")
+			#print(feature)
 	#plt.close('all')
 	print("Finished loading dataset")
 	return(x,y)

@@ -77,10 +77,10 @@ class Alien(object):
 
 			
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			threadSave.setDaemon(True)
+			#threadSave.setDaemon(True)
 			threadSave.start()
 			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadShortSave.setDaemon(True)
+			#threadShortSave.setDaemon(True)
 			threadShortSave.start()
 			right = False
 			left = False
@@ -103,10 +103,10 @@ class Alien(object):
 				outline='white', fill='red')
 			cmd = 0
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			threadSave.setDaemon(True)
+			#threadSave.setDaemon(True)
 			threadSave.start()
 			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadShortSave.setDaemon(True)
+			#threadShortSave.setDaemon(True)
 			threadShortSave.start()
 
 
@@ -120,10 +120,10 @@ class Alien(object):
 			#print("Movementtime= ")
 			#print(tme.time())
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			threadSave.setDaemon(True)
+			#threadSave.setDaemon(True)
 			threadSave.start()
 			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadShortSave.setDaemon(True)
+			#threadShortSave.setDaemon(True)
 			threadShortSave.start()
 			#z = randint(0,4)
 			if z == 3:
@@ -157,7 +157,7 @@ class Alien(object):
 			center = False
 			cmd = 3
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
+			#threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vx = -speed
@@ -168,7 +168,7 @@ class Alien(object):
 			center = False
 			cmd = 7
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
+			#threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vx = speed
@@ -179,7 +179,7 @@ class Alien(object):
 			center = False
 			cmd = 9
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
+			#threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vy = -speed
@@ -190,7 +190,7 @@ class Alien(object):
 			center = False
 			cmd = 1
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
+			#threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vy = speed

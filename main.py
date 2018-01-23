@@ -36,24 +36,34 @@ averageCondition = False
 app = QtGui.QApplication([])
 
 def housekeeper():
-	global mutex, data, nSamples, rawdata, filterdata, timestamp
-	longsleep = False
-	while True:
-		with(mutex):
-			for i in range(nPlots):
-				if len(data[i][0]) >= nSamples + 100:
-				
-					#while len(data[i][0]) >= nSamples:
-					data[i][rawdata].pop(0)
-					data[i][filterdata].pop(0)
-					data[i][timestamp].pop(0)
-					longsleep = False
-				elif len(data[i][0]) >= nSamples:
+	global mutex, data, nSamples, rawdata, filterdata, timestamp, numCh
 	
+	longsleep = False
+	pop = False
+	while True:
+		with mutex:
+			if len(data[0][0]) >= nSamples + 100:
+				longsleep = False
+				pop = True
+			elif len(data[0][0]) >= nSamples:
+				longsleep = True
+				pop = True
+			else:
+				pop = False
+			if pop == True:
+				for i in range(numCh):
 					data[i][rawdata].pop(0)
 					data[i][filterdata].pop(0)
 					data[i][timestamp].pop(0)
-					longsleep = True
+				for i in range(numCh):
+					if len(data[i][rawdata]) != len(data[i-1][rawdata]):
+						print("Uneven length of rawdata")
+					if len(data[i][filterdata]) != len(data[i-1][filterdata]):
+						print("Uneven length of filterdata")
+					if len(data[i][timestamp]) != len(data[i-1][timestamp]):
+						print("Uneven length of timestamp")
+					if len(data[i][timestamp]) != len(data[i][rawdata]):
+						print("Uneven length between timestamp and raw data")
 		if longsleep:
 			tme.sleep(0.003)
 		else:
@@ -87,25 +97,36 @@ def dataCatcher():
 def printData(sample):	
 	global nSamples, nPlots, data, df, init, newSamples, rawdata, threadFilter 
 	global newTimeData, timeData, timestamp, xt 
-	global mutex, window
+	global mutex, window, numCh
 	
 	xt = tme.time()
 	
-	for i in range(nPlots):			
+	for i in range(numCh):			
 		newSamples[i].append(sample.channel_data[i])
 		newTimeData[i].append(xt)
 	for j in range(nPlots):
 		if newTimeData[j][0] != newTimeData[j-1][0]:
 			print("Timestamp error")
 	with mutex:
-		for i in range(nPlots):
+		for i in range(numCh):
 			if len(newSamples[i]) >= window:
-				filterlib.filter(newSamples, newTimeData, i)
-				newTimeData[i][:] = []
-				newSamples[i][:] = []
-	
-
-
+				if len(newTimeData[i]) != len(newSamples[i]):
+					print("New data error")
+				else:
+					filterlib.filter(newSamples, newTimeData, i)
+					newTimeData[i][:] = []
+					newSamples[i][:] = []
+		'''
+		for i in range(numCh):
+			if len(data[i][rawdata]) != len(data[i-1][rawdata]):
+				print("Uneven length of rawdata")
+			if len(data[i][filterdata]) != len(data[i-1][filterdata]):
+				print("Uneven length of filterdata")
+			if len(data[i][timestamp]) != len(data[i-1][timestamp]):
+				print("Uneven length of timestamp")
+			if len(data[i][timestamp]) != len(data[i][rawdata]):
+				print("Uneven length between timestamp and raw data")
+		'''
 
 
 
@@ -242,9 +263,16 @@ def keys():
 
 		elif string == "gui":
 			threadGui = threading.Thread(target=gui, args=())
-			threadGui.setDaemon(True)
+			#threadGui.setDaemon(True)
 			threadGui.start()
-
+		elif string == "makedata":
+			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
+			#threadDataCatcher.setDaemon(True)
+			threadDataCatcher.start()
+			graphVar = True
+			threadGui = threading.Thread(target=gui, args=())
+			#threadGui.setDaemon(True)
+			threadGui.start()
 		elif string == "analyzefilter":
 			if inputval != None:
 				filterlib.analyze_filter(inputval)
@@ -255,12 +283,20 @@ def keys():
 				filterlib.set_filter_q(inputval)
 
 		elif string == "exportdataplots":
-			dataset.exportPlots("data")
+			exportThread = threading.Thread(target=dataset.exportPlots, 
+												args=("data", "time")) 
+			exportThread.start()
+			#dataset.exportPlots("data")
 		elif string == "exporttempplots":
-			dataset.exportPlots("temp")
+			exportThread = threading.Thread(target=dataset.exportPlots, 
+												args=("temp", "time")) 
+			exportThread.start()
+			#dataset.exportPlots("temp")
 		elif string == "exportallplots":
-			dataset.exportPlots("all")
-
+			exportThread = threading.Thread(target=dataset.exportPlots, 
+												args=("all", "time")) 
+			exportThread.start()
+			#dataset.exportPlots("all")
 		elif string == "saveshortdata":
 			dataset.saveShortData()
 
@@ -319,16 +355,26 @@ def keys():
 			#else:
 				#print("Invalid input")
 		elif string == "exportfft":
-			dataset.exportPlots("temp", "fft")
+			exportThread = threading.Thread(target=dataset.exportPlots, 
+												args=("temp", "fft")) 
+			exportThread.start()
+			#dataset.exportPlots("temp", "fft")
 		elif string == "exportraw":
-			dataset.exportPlots("temp", "raw")
+			exportThread = threading.Thread(target=dataset.exportPlots, 
+												args=("temp", "raw")) 
+			exportThread.start()
+			#dataset.exportPlots("temp", "raw")
 		elif string == "fftplot":
 			plotlib.fftplot(0)
 			plt.show()
 		elif string == "loaddataset":
 			x,y = dataset.loadDataset("temp.txt")
-			for i in range(len(x[0])):
-				print(len(x[0][0]))
+			
+			print(x[7][0])
+
+		elif string == "testsave":
+			dataset.saveLongTemp(0)
+			
 		else:
 			print("Unknown command")	
 
