@@ -12,25 +12,18 @@ global timestamp
 global avgLength
 global mutex
 import os, shutil
+
 #rawdata = [],[],[],[],[],[],[],[]
 #data = [],[],[],[],[],[],[],[]
-data = [[[],[],[]],
-		[[],[],[]],
-		[[],[],[]],
-		[[],[],[]],
-		[[],[],[]],
-		[[],[],[]],
-		[[],[],[]],
-		[[],[],[]]]
-
 #timeData = [],[],[],[],[],[],[],[]
-newTimeData = [],[],[],[],[],[],[],[]
-newSamples = [],[],[],[],[],[],[],[]
+
+newTimeData = [],[],[],[],[],[],[],[],[]
+newSamples = [],[],[],[],[],[],[],[],[]
 directioncode = ["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
 rawdata = 0
 filterdata = 1
 timestamp = 2
-
+numCh = 8
 #nSamples = 1000
 nSamples = 2000
 #avgLength = 1000
@@ -39,13 +32,32 @@ avgShortLength = 50
 xt = tme.time()
 fs = 250
 mutex = Lock()
-nPlots = 8
+nPlots = numCh
 window = 3
 init = True
 bandstopFilter = True
 lowpassFilter = False
 bandpassFilter = False
-numCh = 8
+oldSampleID = 255
+if numCh == 8:
+	data = [[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]]]
+elif numCh == 9:
+	data = [[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]],
+		[[],[],[]]]
 
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 		

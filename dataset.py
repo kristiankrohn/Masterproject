@@ -16,12 +16,13 @@ filelock = Lock()
 longLength = 500
 shortLength = 250
 frontPadding = 750
-backPadding = 125
+backPadding = 250
 
 
 def saveShortTemp(direction):
-
+	global filelock, printlock
 	f = prepSaveData(direction, shortLength)
+
 	if f != -1:
 		with filelock:
 			file = open(dir_path+"\\Dataset\\temp.txt", 'a')
@@ -32,8 +33,9 @@ def saveShortTemp(direction):
 		print("Failed to save short temp")
 
 def saveLongTemp(direction):
-
+	global filelock, printlock
 	f = prepSaveData(direction, longLength)
+
 	if f != -1:
 		with filelock:
 			file = open(dir_path+"\\Dataset\\longtemp.txt", 'a')
@@ -44,128 +46,91 @@ def saveLongTemp(direction):
 		print("Failed to save long temp")
 
 def prepSaveData(direction, length):
-	#global data, nSamples
-	#global rawdata, filterdata, timestamp
-	#global timeData
 	global mutex, filelock
-	#global numCh
-	#global frontPadding, backPadding
-	#global directioncode
-	global printlock
+	#global printlock
 	
-	startTime = tme.time() + (backPadding/fs)
+	startTime = tme.time() + (backPadding/fs) + 0.8
 	ready = False
 	if len(data[0][timestamp]) < (length + frontPadding + backPadding):
 		print("Lenght of data is too small")
 		return -1
 	temp = None
 	temptemp = None
-	with printlock:
-		while not ready:
-			with mutex:
 
-				if data[0][timestamp][-1] >= startTime:
-					ready = True
-					temp = copy.deepcopy(data)
-					error = False
-					for i in range(numCh):
-						#print(temp[i][timestamp][-1])
+	while not ready:
+		with mutex:
 
-						print("Checking for errors")
+			if data[0][timestamp][-1] >= startTime:
+				ready = True
+				temp = copy.deepcopy(data)
+				error = False
+				for i in range(numCh):
 
-						if temp[i][timestamp][-1] != temp[i-1][timestamp][-1]:
-							ready = False
-							error = True
-						if len(temp[i][rawdata]) != len(temp[i-1][rawdata]):
-							print("Uneven length of rawdata")
-							error = True
-						if len(temp[i][filterdata]) != len(temp[i-1][filterdata]):
-							print("Uneven length of filterdata")
-							error = True
-						if len(temp[i][timestamp]) != len(temp[i-1][timestamp]):
-							print("Uneven length of timestamp")
-							error = True
-						if len(temp[i][timestamp]) != len(temp[i][rawdata]):
-							error = True
-						if error:
-							return -1	
-
-		stopindex = len(temp[0][rawdata])-1
-
-
-		for i in range((len(temp[0][timestamp])-1), (length + frontPadding + backPadding), -1): #Dette her fungerer ikke
-			#print(i)
-			if temp[0][timestamp][i]<=startTime:
-				stopindex = i
-				print("Found Stop index at: %d" %i)
-				print(startTime)
-				print(temp[0][timestamp][i])
-				break
-			elif i == (length + frontPadding + backPadding):
-				print("Index error, could not find stop index")
-				return -1
-
-		stop = stopindex
-		start = stop - (length + frontPadding + backPadding)
-		print("Start index: %d" %start)
-		print("Stop index: %d" %stop)
-			
-		abort = False
-		f = ""
-		for j in range(numCh):
-			
-			good = True
-
-			if direction < 10:
-				f += directioncode[direction]	
-			else:
-				good = False
-
-			if good:
-				f += str(j) #Kanal
-				
-				'''
-				print("\nLast elements in array:")
-				print(temp[j][rawdata][(stop-10):])
-				print("index start:")
-				print(start)
-				print("index stop:")
-				print(stop)
-				print("Length of array")
-				print(len(temp[j][rawdata]))
-				'''
-				for i in range(start, stop):
-					f += ","
-					try:
-						num = temp[j][rawdata][i]
-
-					except IndexError:
-						print("Index error")
-						print("Len buffer = %d" %(len(temp[j][rawdata])-1))
-						print("Index = %d" % i)
-						print("Write operation aborted")
-						abort = True
+					if temp[i][timestamp][-1] != temp[i-1][timestamp][-1]:
+						print("Timestamp error, unequal for same index")
 						return -1
-					'''
-					if i == (stop-10):
-						print("Last ten elements in savestring")
-					elif i >= (stop - 10):
-						print(str(num)) 
-					'''
-					f += str(num)
+					if len(temp[i][rawdata]) != len(temp[i-1][rawdata]):
+						print("Uneven length of rawdata")
+						return -1
+					if len(temp[i][filterdata]) != len(temp[i-1][filterdata]):
+						print("Uneven length of filterdata")
+						return -1
+					if len(temp[i][timestamp]) != len(temp[i-1][timestamp]):
+						print("Uneven length of timestamp")
+						return -1
+					if len(temp[i][timestamp]) != len(temp[i][rawdata]):
+						print("Uneven length between timestamp and rawdata")
+						return -1
+					
 
-				f += ":"
-				
-		if not abort:
+	stopindex = len(temp[0][rawdata])-1
 
-			return f
-		else:
-			print("Aborted save operation")
+
+	for i in range((len(temp[0][timestamp])-1), 0, -1): 
+		#print(i)
+		if temp[0][timestamp][i]<=startTime:
+			stopindex = i
+			break
+		elif i == (length + frontPadding + backPadding):
+			print("Index error, could not find stop index")
 			return -1
 
+	stop = stopindex
+	start = stop - (length + frontPadding + backPadding)
 
-						
 
+	f = ""
+	for j in range(numCh):
+		
+		if direction >= 10:
+			print("Unknown direction")
+			return -1
+		else:
+			f += directioncode[direction]	
+			f += str(j) #Kanal
+			
+			for i in range(start, stop):
+				f += ","
+				try:
+					num = temp[j][rawdata][i]
+					
+				except IndexError:
+					print("Index error")
+					print("Len buffer = %d" %(len(temp[j][rawdata])-1))
+					print("Index = %d" % i)
+					print("Write operation aborted")
+
+					return -1
+				'''	
+				else:
+					print("Other error")
+					print(num)
+					return -1
+				'''
+				f += str(num)
+			f += ":"		
+	
+	return f
 
 
 def exportPlots(command, plottype="time"):
@@ -249,7 +214,7 @@ def exportPlots(command, plottype="time"):
 		DataSet = AllData.split(':')
 		#Definer numch skikkelig!!
 		for k in range(0, len(DataSet), numCh):
-			print("k = %d" %k)
+			#print("k = %d" %k)
 			care = True
 			feature = []
 			feature = DataSet[k].split(',')
@@ -305,7 +270,7 @@ def exportPlots(command, plottype="time"):
 						ax1 = plt.subplot(subplotnum)
 						if plottype != "raw":
 							featureData1 = filterlib.plotfilter(featureData1, b, a)
-							featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+							#featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
 						if plottype == "fft":
 							plot.exportFftPlot(featureData1, channels[l], ax1)
 						elif plottype == "raw":

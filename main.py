@@ -20,7 +20,7 @@ import plot as plotlib
 import filterlib 
 import dataset
 from globalvar import *
-
+from serial import SerialException
 #mutex = Lock()
 board = None
 root = None
@@ -72,15 +72,29 @@ def housekeeper():
 def dataCatcher():
 	global board
 	#Helmetsetup
-	user = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-	print(user)
-	port = 'COM3'
+
+	#port = 'COM3'
 	baud = 115200
 	logging.basicConfig(filename="test.log",
 		format='%(asctime)s - %(levelname)s : %(message)s',level=logging.DEBUG)
 	logging.info('---------LOG START-------------')
-	board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
-		filter_data = False)
+	if numCh >= 9:
+		for i in range(10):
+			port = "COM" + str(i)
+			try:
+				board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
+					filter_data = False, daisy=True)
+			except SerialException:
+				pass
+	else:
+		for i in range(10):
+			port = "COM" + str(i)
+			try:
+				board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
+					filter_data = False, daisy=False)
+				break
+			except SerialException:
+				pass
 	print("Board Instantiated")
 	board.ser.write('v')
 	#tme.sleep(10)
@@ -98,36 +112,26 @@ def printData(sample):
 	global nSamples, nPlots, data, df, init, newSamples, rawdata, threadFilter 
 	global newTimeData, timeData, timestamp, xt 
 	global mutex, window, numCh
-	
+	global oldSampleID
+	#print(sample.id)
 	xt = tme.time()
-	
-	for i in range(numCh):			
-		newSamples[i].append(sample.channel_data[i])
-		newTimeData[i].append(xt)
-	for j in range(nPlots):
-		if newTimeData[j][0] != newTimeData[j-1][0]:
-			print("Timestamp error")
-	with mutex:
-		for i in range(numCh):
-			if len(newSamples[i]) >= window:
-				if len(newTimeData[i]) != len(newSamples[i]):
-					print("New data error")
-				else:
-					filterlib.filter(newSamples, newTimeData, i)
-					newTimeData[i][:] = []
-					newSamples[i][:] = []
-		'''
-		for i in range(numCh):
-			if len(data[i][rawdata]) != len(data[i-1][rawdata]):
-				print("Uneven length of rawdata")
-			if len(data[i][filterdata]) != len(data[i-1][filterdata]):
-				print("Uneven length of filterdata")
-			if len(data[i][timestamp]) != len(data[i-1][timestamp]):
-				print("Uneven length of timestamp")
-			if len(data[i][timestamp]) != len(data[i][rawdata]):
-				print("Uneven length between timestamp and raw data")
-		'''
-
+	if ((sample.id - 1) == oldSampleID) or (oldSampleID == 255 and sample.id == 0): 
+		for i in range(numCh):			
+			newSamples[i].append(sample.channel_data[i])
+			newTimeData[i].append(xt)
+		oldSampleID = sample.id
+	else:
+		print("Lost packet")
+		print("Old packet ID = %d" %oldSampleID)
+		print("Incomming packet ID = %d" %sample.id)
+		oldSampleID = sample.id
+		
+	if len(newSamples[0]) >= window:
+		with mutex:
+			for i in range(numCh):
+				filterlib.filter(newSamples, newTimeData, i)
+				newTimeData[i][:] = []
+				newSamples[i][:] = []
 
 
 
@@ -374,7 +378,7 @@ def keys():
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
-			
+
 		else:
 			print("Unknown command")	
 

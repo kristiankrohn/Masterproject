@@ -18,12 +18,12 @@ bNotch100, aNotch100 = signal.iirnotch(w100, Q)
 DcNotchA = [1 , -0.9] 
 DcNotchB = [1,-1]
 
-notchZi = np.zeros([8,2])
-notchZi2 = np.zeros([8,2])
-notchZi3 = np.zeros([8,2])
-notchZi4 = np.zeros([8,2])
-notchZi1001 = np.zeros([8,2])
-notchZi1002 = np.zeros([8,2])
+notchZi = np.zeros([numCh,2])
+notchZi2 = np.zeros([numCh,2])
+notchZi3 = np.zeros([numCh,2])
+notchZi4 = np.zeros([numCh,2])
+notchZi1001 = np.zeros([numCh,2])
+notchZi1002 = np.zeros([numCh,2])
 #print(notchB)
 #print(notchA)
 #Butterworth lowpass filter
@@ -31,9 +31,9 @@ N  = 4    # Filter order
 fk = 30.0
 Wn = fk/(fs/2) # Cutoff frequency
 lowpassB, lowpassA = signal.butter(N, Wn, output='ba')
-lowpassZi = np.zeros([8,N])
-DCnotchZi = np.zeros([8,1])
-DCnotchZi2 = np.zeros([8,1])
+lowpassZi = np.zeros([numCh,N])
+DCnotchZi = np.zeros([numCh,1])
+DCnotchZi2 = np.zeros([numCh,1])
 
 #FIR bandpass filter
 hcc = 56.0/(fs/2) #highest cut, only used if multibandpass
@@ -43,23 +43,11 @@ lc = 5.0/(fs/2)	#Low cut
 bandpassB = signal.firwin(window, hc, pass_zero=True, window = 'hann') #Bandpass
 #bandpassB = signal.firwin(window, [lc, hc], pass_zero=False, window = 'hann') #Bandpass
 bandpassA = 1.0 #np.ones(len(bandpassA))
-bandpassZi = np.zeros([8, window-1])
+bandpassZi = np.zeros([numCh, window-1])
 #print(bandpassB)
 highpassB = signal.firwin(window, lc, pass_zero=False, window = 'hann') #Bandpass
 print("Filtersetup finished")
 
-
-def appendData(y, i, xt, yr):
-	global data, rawdata, filterdata, timestamp
-	global newTimeData, timeData, mutex
-
-	
-		#print(y)
-	for j in range(len(y)):
-		#print(y[j])
-		data[i][rawdata].append(yr[j])
-		data[i][filterdata].append(y[j])
-		data[i][timestamp].append(xt[j])
 
 			
 
@@ -101,7 +89,7 @@ def filter(newSamples, newTimeData, i):
 
 
 	x = newSamples[i]
-	yr = x
+	xr = x
 	xt = newTimeData[i]
 	
 	x, DCnotchZi[i] = signal.lfilter(DcNotchB,DcNotchA,x,zi=DCnotchZi[i])
@@ -119,13 +107,14 @@ def filter(newSamples, newTimeData, i):
 	
 	if bandpassFilter:
 		x, bandpassZi[i] = signal.lfilter(bandpassB, bandpassA, x, zi=bandpassZi[i])
-	#print("Filtered data\n")
-	#print(x)
 
-	appendData(x,i,xt,yr)
+	
+	for j in range(len(x)):
 
-	#newTimeData = [],[],[],[],[],[],[],[]
-	#newSamples = [],[],[],[],[],[],[],[]
+		data[i][rawdata].append(xr[j])
+		data[i][filterdata].append(x[j])
+		data[i][timestamp].append(xt[j])
+
 
 	
 
