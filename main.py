@@ -387,7 +387,7 @@ def keys():
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
 		elif string == "learn":
-			learning.startlearn()
+			learning.startLearning()
 		else:
 			print("Unknown command")	
 

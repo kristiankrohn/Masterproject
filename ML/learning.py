@@ -11,8 +11,8 @@ from sklearn.metrics import accuracy_score
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
-import Dataset
-
+import dataset
+import globalvar
 
 
 
@@ -37,14 +37,28 @@ eyesOpen = [] #dataset A
 eyesClosed = [] #dataset B
 
 def main():
-    startLearning()
-
-def startLearning():
     partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
     partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
 
     extractFeatures(partialPathZ, partialPathO)
-#To read and extract features from eyes open
+
+ 
+
+
+def startLearning():
+    XL = [[]]
+    X, y = dataset.loadDataset("longtemp.txt")
+    #X[channel][index][vector]
+    print(list(X[0][0]))
+    for i in range(len(X[0])-1):
+        print(i)
+        #Calculate feature and append 
+        XL[i].append(pyeeg.dfa(list(X[0][i])))
+        XL[i].append(pyeeg.pfd(list(X[0][i])))
+        XL[i].append(np.std(list(X[0][i])))
+    XL.pop(0)
+    print(XL)
+    clf, clfPlot = createAndTrain(XL, y[0])
 
 def extractFeatures(partialPathZ, partialPathO):
     for i in range(100):
@@ -79,7 +93,7 @@ def extractFeatures(partialPathZ, partialPathO):
     createDataset()
     #exportplot(dataSetOpen, dataSetClosed, "Eyes Open", "Eyes Closed") # Uncomment this to export plots into folder
     #print(labels)
-    clf, clfPlot = createAndTrain()
+    clf, clfPlot = createAndTrain(dataPoints, labels)
     #saveMachinestate(clf)   #Uncomment this to save the machine state
     #plotClassifier(clfPlot) #uncomment this to plot the classifier
 
@@ -117,8 +131,8 @@ def exportplot(eyesOpenData, eyesClosedData,  titleOpen="", titleClosed = "", ax
     plt.xlabel('Seconds')
     plt.show()
 
-def createAndTrain():
-    global dataPoints, labels
+def createAndTrain(dataPoints, labels):
+
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
     Xscaled = (np.array(dataPoints))
     Xtrain, Xtest, yTrain, yTest = train_test_split(Xscaled, labels, test_size = 0.1)
