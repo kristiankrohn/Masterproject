@@ -13,7 +13,7 @@ import copy
 printlock = Lock()
 filelock = Lock()
 
-longLength = 500
+longLength = 625
 shortLength = 250
 frontPadding = 750
 backPadding = 250
@@ -48,14 +48,17 @@ def saveLongTemp(direction):
 def prepSaveData(direction, length):
 	global mutex, filelock
 	#global printlock
-	
-	startTime = tme.time() + (backPadding/fs) + 0.8
+	if length == shortLength:
+		delayconstant = 0.8
+	elif lenght == longLength:
+		delayconstant = 0.6
+	startTime = tme.time() + (backPadding/fs) + delayconstant
 	ready = False
 	if len(data[0][timestamp]) < (length + frontPadding + backPadding):
 		print("Lenght of data is too small")
 		return -1
 	temp = None
-	temptemp = None
+	
 
 	while not ready:
 		with mutex:
@@ -121,12 +124,7 @@ def prepSaveData(direction, length):
 					print("Write operation aborted")
 
 					return -1
-				'''	
-				else:
-					print("Other error")
-					print(num)
-					return -1
-				'''
+
 				f += str(num)
 			f += ":"		
 	

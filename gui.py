@@ -88,7 +88,7 @@ class Alien(object):
 			down = False
 			wait=True
 			startWait = tme.time()
-		if wait and (tme.time()>startWait+1):
+		if wait and (tme.time()>startWait+2):
 			wait=False
 			removeBall = True
 			startRemoveBall = tme.time()
@@ -96,7 +96,7 @@ class Alien(object):
 				(size/2) + ballsize, (size/2) + ballsize, 
 				outline='white', fill='white')
 
-		if removeBall and (tme.time()>startRemoveBall+2):
+		if removeBall and (tme.time()>startRemoveBall+1):
 			removeBall = False
 			self.id = self.canvas.create_oval((size/2) - ballsize, (size/2) - ballsize, 
 				(size/2) + ballsize, (size/2) + ballsize, 

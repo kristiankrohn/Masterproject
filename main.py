@@ -70,7 +70,7 @@ def housekeeper():
 			tme.sleep(0.002)
 
 def dataCatcher():
-	global board
+	global board, fs
 	#Helmetsetup
 
 	#port = 'COM3'
@@ -95,17 +95,21 @@ def dataCatcher():
 				break
 			except SerialException:
 				pass
-	print("Board Instantiated")
-	board.ser.write('v')
-	#tme.sleep(10)
 
-	if not board.streaming:
-		board.ser.write(b'b')
-		board.streaming = True
+	if board != None:
+		print("Board Instantiated")
+		board.ser.write('v')
+		#tme.sleep(10)
 
-	print("Samplerate: %0.2fHz" %board.getSampleRate())
+		if not board.streaming:
+			board.ser.write(b'b')
+			board.streaming = True
 
-	board.start_streaming(printData)
+		print("Samplerate: %0.2fHz" %board.getSampleRate())
+		fs = board.getSampleRate()
+		board.start_streaming(printData)
+	else:
+		print("Board initialization failed, exit and reconnect dongle")
 
 
 def printData(sample):	
@@ -121,10 +125,14 @@ def printData(sample):
 			newTimeData[i].append(xt)
 		oldSampleID = sample.id
 	else:
-		print("Lost packet")
+		print("Lost packet, flushing databuffer")
 		print("Old packet ID = %d" %oldSampleID)
 		print("Incomming packet ID = %d" %sample.id)
 		oldSampleID = sample.id
+		with mutex:
+			for i in range(numCh):
+				for j in range(3):
+					del data[i][j][:]
 		
 	if len(newSamples[0]) >= window:
 		with mutex:
@@ -132,7 +140,6 @@ def printData(sample):
 				filterlib.filter(newSamples, newTimeData, i)
 				newTimeData[i][:] = []
 				newSamples[i][:] = []
-
 
 
 def update():
