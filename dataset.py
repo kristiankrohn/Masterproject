@@ -498,8 +498,8 @@ def loadDataset(filename="data.txt"):
 			
 			featureData = map(float, feature)
 			#print("Raw data: %0.2f\n" %featureData[0])
-			#featureData = filterlib.plotfilter(featureData, b, a)
-			#featureData = featureData[frontPadding:-backPadding] #Remove paddings
+			featureData = filterlib.plotfilter(featureData, b, a)
+			featureData = featureData[frontPadding:-backPadding] #Remove paddings
 			#print("Filterdata: %0.2f\n" %featureData[0])
 			x[channel].append(featureData)
 		#else:
