@@ -21,6 +21,7 @@ import filterlib
 import dataset
 from globalvar import *
 from serial import SerialException
+import ML.learning as learning
 #mutex = Lock()
 board = None
 root = None
@@ -385,7 +386,8 @@ def keys():
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
-
+		elif string == "learn":
+			learning.startlearn()
 		else:
 			print("Unknown command")	
 
