@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn import tree
+from sklearn.ensemble import ExtraTreesClassifier
 import graphviz
 
 dataPoints = [[]]
@@ -35,7 +36,10 @@ def main():
     partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
     partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
 
+    extractFeatures(partialPathZ, partialPathO)
 #To read and extract features from eyes open
+
+def extractFeatures(partialPathZ, partialPathO):
     for i in range(100):
         index = "{:03}".format(i + 1)
         filepath = partialPathZ + str(index) + ".txt"
@@ -64,22 +68,23 @@ def main():
         pfdClosed.append(pyeeg.pfd(dataPoint))
         stdClosed.append(np.std(dataPoint))
         #specEntropyClosed.append(pyeeg.spectral_entropy(dataPoint))
+
     createDataset()
-    #exportplot(dataSetOpen, dataSetClosed, "Eyes Open", "Eyes Closed")
+    #exportplot(dataSetOpen, dataSetClosed, "Eyes Open", "Eyes Closed") # Uncomment this to export plots into folder
     #print(labels)
     clf, clfPlot = createAndTrain()
-    #saveMachinestate(clf)
-    plotClassifier(clfPlot)
+    #saveMachinestate(clf)   #Uncomment this to save the machine state
+    #plotClassifier(clfPlot) #uncomment this to plot the classifier
 
 def createDataset():
     global dfaOpen, dfaClosed, pfdOpen, pfdClosed, labels, dataPoints
     featureVector = []
 
     for i in range(len(dfaOpen)):
-        featureVector = [dfaOpen[i], stdOpen[i]]
+        featureVector = [dfaOpen[i], stdOpen[i], pfdOpen[i]]
         dataPoints.append(featureVector)
         labels.append(0)
-        featureVector = [dfaClosed[i], stdClosed[i]]
+        featureVector = [dfaClosed[i], stdClosed[i], pfdOpen[i]]
         dataPoints.append(featureVector)
         labels.append(1)
     dataPoints.pop(0) #remove empty list at start position
@@ -111,6 +116,8 @@ def createAndTrain():
     Xscaled = (np.array(dataPoints))
     Xtrain, Xtest, yTrain, yTest = train_test_split(Xscaled, labels, test_size = 0.1)
 
+    evaluateFeatures(Xtrain, yTrain)
+
 
     C = 102 #SVM regulation parameter, 100 gives good results
     clf = svm.SVC(kernel='rbf', gamma=0.12, C=C, decision_function_shape='ovr')
@@ -122,8 +129,32 @@ def createAndTrain():
     clfPlot = clf
     clfPlot.fit(Xtrain,yTrain)
 
-    predict(Xtest, clf, yTest)
-    return clf, clfPlot
+    #predict(Xtest, clf, yTest) #uncomment this to predict the input
+    #return clf, clfPlot #Uncomment this to be able to plot the classifier
+
+def evaluateFeatures(X, y):
+    forest = ExtraTreesClassifier(n_estimators = 250, random_state = 0)
+    forest.fit(X,y)
+
+    importances = forest.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in forest.estimators_], axis=0)
+    indices = np.argsort(importances)[::-1]
+
+    # Print the feature ranking
+    print("Feature ranking:")
+
+    for f in range(X.shape[1]):
+        print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+
+    # Plot the feature importances of the forest
+    plt.figure()
+    plt.title("Feature importances")
+    plt.bar(range(X.shape[1]), importances[indices],
+           color="r", yerr=std[indices], align="center")
+    plt.xticks(range(X.shape[1]), indices)
+    plt.xlim([-1, X.shape[1]])
+    plt.show()
+
 
 def predict(Xtest, clf, yTest):
     global dataPoints
