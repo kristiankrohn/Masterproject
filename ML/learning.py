@@ -10,7 +10,11 @@ from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
-import graphviz
+from sklearn.feature_selection import SelectFromModel
+import Dataset
+
+
+
 
 dataPoints = [[]]
 
@@ -33,6 +37,9 @@ eyesOpen = [] #dataset A
 eyesClosed = [] #dataset B
 
 def main():
+    startLearning()
+
+def startLearning():
     partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
     partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
 
@@ -130,12 +137,12 @@ def createAndTrain():
     clfPlot.fit(Xtrain,yTrain)
 
     #predict(Xtest, clf, yTest) #uncomment this to predict the input
-    #return clf, clfPlot #Uncomment this to be able to plot the classifier
+    return clf, clfPlot #Uncomment this to be able to plot the classifier
 
 def evaluateFeatures(X, y):
     forest = ExtraTreesClassifier(n_estimators = 250, random_state = 0)
     forest.fit(X,y)
-
+    print(X.shape)
     importances = forest.feature_importances_
     std = np.std([tree.feature_importances_ for tree in forest.estimators_], axis=0)
     indices = np.argsort(importances)[::-1]
@@ -154,6 +161,10 @@ def evaluateFeatures(X, y):
     plt.xticks(range(X.shape[1]), indices)
     plt.xlim([-1, X.shape[1]])
     plt.show()
+
+    model = SelectFromModel(forest, prefit=True) #This removes the worst features.
+    Xnew = model.transform(X)
+    print(Xnew.shape)
 
 
 def predict(Xtest, clf, yTest):
