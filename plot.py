@@ -1,4 +1,5 @@
-from globalvar import *
+from globalconst import*
+import globalvar as glb
 import dataset
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,17 +10,16 @@ import scipy.fftpack
 def plot():
 	global mutex
 	with(mutex):
-		while len(data[0][filterdata]) > nSamples:
+		while len(glb.data[0][filterdata]) > nSamples:
 			for i in range(nPlots):
-				#data[i].pop(0)
 				dataset.databufferPop()
-		x = np.arange(0, len(data[1][filterdata])/fs, 1/fs)
+		x = np.arange(0, len(glb.data[1][filterdata])/glb.fs, 1/glb.fs)
 		legends = []
 		for i in range(2):
 			label = "Fp %d" %(i+1)
 			#print(label)
 			#label = tuple([label])
-			legend, = plt.plot(x, data[i][filterdata], label=label)
+			legend, = plt.plot(x, glb.data[i][filterdata], label=label)
 			legends.append(legend)
 	plt.ylabel('uV')
 	plt.xlabel('Seconds')
@@ -33,7 +33,7 @@ def plotAll():
 		label = "Channel %d" %(i+1)
 		#print(label)
 		#label = tuple([label])
-		legend, = plt.plot(data[i][filterdata], label=label)
+		legend, = plt.plot(glb.data[i][filterdata], label=label)
 		legends.append(legend)
 	plt.ylabel('uV')
 	plt.xlabel('Sample')
@@ -42,12 +42,12 @@ def plotAll():
 	plt.show()
 
 def fftplot(channel, title=""):
-	global fs
-	y = data[channel][filterdata]
+	#global fs
+	y = glb.data[channel][filterdata]
 	# Number of samplepoints
 	N = len(y)
-	# sample spacing
-	T = 1.0 / fs
+	print(glb.fs)
+	T = 1.0 / glb.fs
 	x = np.linspace(0.0, N*T, N)
 	yf = scipy.fftpack.fft(y)
 	xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
@@ -63,7 +63,7 @@ def exportplot(plotdata,  title="", ax=None):
 		fig, ax = plt.subplots()
 
 	length = len(plotdata)
-	x = np.arange(0, length/250.0, 1.0/250.0)
+	x = np.arange(0, length/glb.fs, 1.0/glb.fs)
 	ax.set_autoscaley_on(False)
 	ax.set_ylim([-100,100])
 	plt.plot(x, plotdata, label=title)
@@ -76,7 +76,7 @@ def exportRaw(plotdata,  title="", ax=None):
 		fig, ax = plt.subplots()
 
 	length = len(plotdata)
-	x = np.arange(0, length/250.0, 1.0/250.0)
+	x = np.arange(0, length/glb.fs, 1.0/glb.fs)
 	#ax.set_autoscaley_on(False)
 	#ax.set_ylim([-100,100])
 	plt.plot(x, plotdata, label=title)
@@ -85,12 +85,11 @@ def exportRaw(plotdata,  title="", ax=None):
 	plt.xlabel('Seconds')
 
 def exportFftPlot(plotdata, title="", ax=None):
-	global fs
 
 	# Number of samplepoints
 	N = len(plotdata)
 	# sample spacing
-	T = 1.0 / fs
+	T = 1.0 / glb.fs
 	x = np.linspace(0.0, N*T, N)
 	
 	w = blackman(N)
@@ -133,8 +132,8 @@ def plot_freqz(ax,b,a=1):
 		label = "N = 50 + 50"
 	else:
 		label = "N = %d" %(len(b))
-	#legend, = plt.plot(w*fs/(2*np.pi), h_dB, label=label)
-	plt.plot(w*fs/(2*np.pi), h_dB)
+	#legend, = plt.plot(w*glb.fs/(2*np.pi), h_dB, label=label)
+	plt.plot(w*glb.fs/(2*np.pi), h_dB)
 	#legends.append(legend)
 	#plt.plot(w/np.pi, h_dB)
 	ax.set_xlim([-1, 125])
@@ -148,7 +147,7 @@ def plot_phasez(ax, b, a=1):
 	w,h = signal.freqz(b,a)
 	#h_Phase = np.unwrap(np.arctan2(np.imag(h),np.real(h)))
 	h_Phase = np.unwrap(np.angle(h))*180/np.pi
-	plt.plot(w*fs/(2*np.pi), h_Phase)
+	plt.plot(w*glb.fs/(2*np.pi), h_Phase)
 	#plt.plot(w/np.pi, h_Phase)
 	ax.set_xlim([-1, 125])
 	plt.ylabel('Phase (Degrees)')
@@ -171,7 +170,7 @@ def plot_impz(b, a = 1):
 	plt.title(r'Impulse response')
 
 def plot_stepz(b, a = 1):
-	if type(a)== int: #FIR
+	if type(a) == int: #FIR
 		l = len(b)
 	else: # IIR
 		l = 250
@@ -187,7 +186,7 @@ def plot_stepz(b, a = 1):
 def ampandphase(b, a = 1):
 	w, h = signal.freqz(b, a)
 	 # Generate frequency axis
-	freq = w*fs/(2*np.pi)
+	freq = w*glb.fs/(2*np.pi)
 	 # Plot
 	fig, ax = plt.subplots(2, 1, figsize=(8, 6))
 	ax[0].plot(freq, 20*np.log10(abs(h)), color='blue')

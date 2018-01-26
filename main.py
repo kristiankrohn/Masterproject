@@ -14,15 +14,21 @@ from scipy import signal
 import scipy.fftpack
 import matplotlib.pyplot as plt
 #from numpy.random import randint
+from globalconst import *
+import globalvar as glb
+
 import Tkinter as tk
 import gui as ttk
 import plot as plotlib
 import filterlib 
 import dataset
-from globalvar import *
+
 from serial import SerialException
-import ML.learning as learning
+
 #mutex = Lock()
+
+
+
 board = None
 root = None
 graphVar = False
@@ -37,44 +43,48 @@ averageCondition = False
 app = QtGui.QApplication([])
 
 def housekeeper():
-	global mutex, data, nSamples, rawdata, filterdata, timestamp, numCh
+	#global mutex, data, nSamples, rawdata, filterdata, timestamp, numCh
 	
 	longsleep = False
 	pop = False
 	while True:
-		with mutex:
-			if len(data[0][0]) >= nSamples + 100:
+		with glb.mutex:
+			if len(glb.data[0][0]) >= nSamples + 100:
 				longsleep = False
 				pop = True
-			elif len(data[0][0]) >= nSamples:
+			elif len(glb.data[0][0]) >= nSamples:
 				longsleep = True
 				pop = True
 			else:
 				pop = False
 			if pop == True:
 				for i in range(numCh):
-					data[i][rawdata].pop(0)
-					data[i][filterdata].pop(0)
-					data[i][timestamp].pop(0)
+					glb.data[i][rawdata].pop(0)
+					glb.data[i][filterdata].pop(0)
+					glb.data[i][timestamp].pop(0)
 				for i in range(numCh):
-					if len(data[i][rawdata]) != len(data[i-1][rawdata]):
+					if len(glb.data[i][rawdata]) != len(glb.data[i-1][rawdata]):
 						print("Uneven length of rawdata")
-					if len(data[i][filterdata]) != len(data[i-1][filterdata]):
+					if len(glb.data[i][filterdata]) != len(glb.data[i-1][filterdata]):
 						print("Uneven length of filterdata")
-					if len(data[i][timestamp]) != len(data[i-1][timestamp]):
+					if len(glb.data[i][timestamp]) != len(glb.data[i-1][timestamp]):
 						print("Uneven length of timestamp")
-					if len(data[i][timestamp]) != len(data[i][rawdata]):
+					if len(glb.data[i][timestamp]) != len(glb.data[i][rawdata]):
 						print("Uneven length between timestamp and raw data")
 		if longsleep:
-			tme.sleep(0.003)
+			if glb.fs == 250.0:
+				tme.sleep(0.003)
+			else:
+				tme.sleep(0.007)
 		else:
-			tme.sleep(0.002)
+			if glb.fs == 250.0:
+				tme.sleep(0.002)
+			else:
+				tme.sleep(0.004)
 
 def dataCatcher():
-	global board, fs
-	#Helmetsetup
+	global board
 
-	#port = 'COM3'
 	baud = 115200
 	logging.basicConfig(filename="test.log",
 		format='%(asctime)s - %(levelname)s : %(message)s',level=logging.DEBUG)
@@ -107,60 +117,63 @@ def dataCatcher():
 			board.streaming = True
 
 		print("Samplerate: %0.2fHz" %board.getSampleRate())
-		fs = board.getSampleRate()
+		glb.fs = board.getSampleRate()
+		glb.b, glb.a = filterlib.designfilter(filtertype="notch", Q=20)
+		#print(glb.b)
+		#print(glb.a)
+		
+		#print(glb.window)
+		#print(glb.Zi)
 		board.start_streaming(printData)
 	else:
 		print("Board initialization failed, exit and reconnect dongle")
 
 
 def printData(sample):	
-	global nSamples, nPlots, data, df, init, newSamples, rawdata, threadFilter 
-	global newTimeData, timeData, timestamp, xt 
-	global mutex, window, numCh
-	global oldSampleID
-	#print(sample.id)
+
 	xt = tme.time()
-	if ((sample.id - 1) == oldSampleID) or (oldSampleID == 255 and sample.id == 0): 
+	if glb.fs == 125.0:
+		offset = 2
+		start = 1
+	else:
+		offset = 1
+		start = 0
+
+	if ((sample.id - offset) == glb.oldSampleID) or (glb.oldSampleID == 255 and sample.id == start): 
 		for i in range(numCh):			
-			newSamples[i].append(sample.channel_data[i])
-			newTimeData[i].append(xt)
-		oldSampleID = sample.id
+			glb.newSamples[i].append(sample.channel_data[i])
+			glb.newTimeData[i].append(xt)
+		glb.oldSampleID = sample.id
 	else:
 		print("Lost packet, flushing databuffer")
-		print("Old packet ID = %d" %oldSampleID)
+		print("Old packet ID = %d" %glb.oldSampleID)
 		print("Incomming packet ID = %d" %sample.id)
-		oldSampleID = sample.id
-		with mutex:
+		glb.oldSampleID = sample.id
+		with glb.mutex:
 			for i in range(numCh):
 				for j in range(3):
-					del data[i][j][:]
+					del glb.data[i][j][:]
 		
-	if len(newSamples[0]) >= window:
-		with mutex:
+	if len(glb.newSamples[0]) >= glb.window:
+		with glb.mutex:
 			for i in range(numCh):
-				filterlib.filter(newSamples, newTimeData, i)
-				newTimeData[i][:] = []
-				newSamples[i][:] = []
+				filterlib.filter(glb.newSamples, glb.newTimeData, i, glb.b, glb.a)
+				glb.newTimeData[i][:] = []
+				glb.newSamples[i][:] = []
 
 
 def update():
-	global curves, data, ptr, p, lastTime, fps, nPlots, count, board
-	count += 1
-	string = ""
-	with(mutex):
-		for i in range(nPlots):
-			curves[i].setData(data[i][filterdata])
-			if len(data[i][filterdata])>100:
-				string += '   Ch: %d ' % i
-				string += ' = %0.2f uV ' % data[i][filterdata][-1]
+	global curves, p
 
-	ptr += nPlots
-	#now = time()
-	#dt = now - lastTime	
-	#lastTime = now
+	string = ""
+	with glb.mutex:
+		for i in range(nPlots):
+			curves[i].setData(glb.data[i][filterdata])
+			if len(glb.data[i][filterdata])>100:
+				string += '   Ch: %d ' % i
+				string += ' = %0.2f uV ' % glb.data[i][filterdata][-1]
 
 	p.setTitle(string)
-    #app.processEvents()  ## force complete redraw for every plot
 
 def graph():
 	#Graph setup
@@ -185,7 +198,7 @@ def graph():
 	for i in range(nPlots):
 		c = pg.PlotCurveItem(pen=(i,nPlots*1.3))
 		p.addItem(c)
-		c.setPos(0,i*100+200)
+		c.setPos(0,i*100+100)
 		curves.append(c)
 
 	#p.setYRange(0, nPlots*6)
@@ -220,7 +233,7 @@ def keys():
 		else:
 			string = inputString
 			inputval = None
-
+		'''
 		if string == "notch=true":
 			bandstopFilter = True
 		elif string == "notch=false":
@@ -239,7 +252,8 @@ def keys():
 			bandpassFilter = True
 		elif string == "bandpass=false":
 			bandpassFilter = False
-		elif string == "exit":
+		'''
+		if string == "exit":
 			print("Initiating exit sequence")
 			exit = True
 			if root != None:
@@ -270,11 +284,12 @@ def keys():
 			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 			#threadDataCatcher.setDaemon(True)
 			threadDataCatcher.start()
+
 		elif string == "graph":
 			graphVar = True
 
 		elif string == "gui":
-			threadGui = threading.Thread(target=gui, args=())
+			threadGui = threading.Thread(target=ttk.guiloop, args=())
 			#threadGui.setDaemon(True)
 			threadGui.start()
 		elif string == "makedata":
@@ -387,6 +402,7 @@ def keys():
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
 		elif string == "learn":
+			import ML.learning as learningx
 			learning.startLearning()
 		else:
 			print("Unknown command")	
