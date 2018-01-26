@@ -11,9 +11,6 @@ from sklearn.metrics import accuracy_score
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
-import dataset
-import globalvar
-
 
 
 dataPoints = [[]]
@@ -37,75 +34,108 @@ eyesOpen = [] #dataset A
 eyesClosed = [] #dataset B
 
 def main():
-    partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
-    partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
+    partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\ML\Z\Z"
+    partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\ML\O\O"
 
     extractFeatures(partialPathZ, partialPathO)
 
+def extractFeatures(partialPathZ, partialPathO):
+    for i in range(100):
+        index = "{:03}".format(i + 1)
+        filepath = partialPathZ + str(index) + ".txt"
+        i+= 1
+        file = open(filepath, 'r')
+        tmp = file.readlines()
+        dataPoint = [float(k) for k in tmp]
+        dataSetOpen.append(dataPoint)
+        dfaOpen.append(pyeeg.dfa(dataPoint))
+        #hurstOpen.append(pyeeg.hurst(dataPoint))
+        pfdOpen.append(pyeeg.pfd(dataPoint))
+        stdOpen.append(np.std(dataPoint))
+        #specEntropyOpen.append(pyeeg.spectral_entropy(dataPoint))
 
+#To read and extract features from eyes closed
+    for i in range(100):
+        index = "{:03}".format(i + 1)
+        filepath = partialPathO + str(index) + ".txt"
+        i+= 1
+        file = open(filepath, 'r')
+        tmp = file.readlines()
+        dataPoint = [float(k) for k in tmp]
+        dataSetClosed.append(dataPoint)
+        dfaClosed.append(pyeeg.dfa(dataPoint))
+        #hurstClosed.append(pyeeg.hurst(dataPoint))
+        pfdClosed.append(pyeeg.pfd(dataPoint))
+        stdClosed.append(np.std(dataPoint))
+        #specEntropyClosed.append(pyeeg.spectral_entropy(dataPoint))
 
-
-
-def startLearning():
-    XL = [[]]
-    featureVector = []
-
-    X, y = dataset.loadDataset("longtemp.txt")
-
-    for i in range(len(X[0])):
-        featureVector = [pyeeg.pfd(list(X[0][i])), np.std(list(X[0][i]))] #pyeeg.dfa(list(Xint[0][i])
-        XL.append(featureVector)
-    XL.pop(0)
-
-    #Scale the data if needed and split dataset into training and testing
-    XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
-
-    #Create the classifier and train it on the test data.
-    clf, clfPlot = createAndTrain(XLtrain, yTrain) #uncomment this if state should be loaded
-
-    #Load state of the classifier
-    #clf = loadMachineState() #Uncomment this to load the machine state
-
-    #Evaluate the features on the training data.
-    evaluateFeatures(XLtrain, yTrain)
-
-    #Predict the classes
-    predict(XLtest, clf, yTest)
+    createDataset()
+    #exportplot(dataSetOpen, dataSetClosed, "Eyes Open", "Eyes Closed") # Uncomment this to export plots into folder
+    #print(labels)
+    clf, clfPlot = createAndTrain(dataPoints, labels)
     #saveMachinestate(clf)   #Uncomment this to save the machine state
     #plotClassifier(clfPlot) #uncomment this to plot the classifier
 
-def scaleAndSplit(dataPoints, labels):
-    XLscaled = (np.array(dataPoints))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1)
+def createDataset():
+    global dfaOpen, dfaClosed, pfdOpen, pfdClosed, labels, dataPoints
+    featureVector = []
 
-    return XLscaled, XLtrain, XLtest, yTrain, yTest
+    for i in range(len(dfaOpen)):
+        featureVector = [dfaOpen[i], stdOpen[i], pfdOpen[i]]
+        dataPoints.append(featureVector)
+        labels.append(0)
+        featureVector = [dfaClosed[i], stdClosed[i], pfdOpen[i]]
+        dataPoints.append(featureVector)
+        labels.append(1)
+    dataPoints.pop(0) #remove empty list at start position
+
+
+
+def exportplot(eyesOpenData, eyesClosedData,  titleOpen="", titleClosed = "", ax=None):
+    if ax == None:
+        fig, (ax, ax1) = plt.subplots(2)
+
+    length = len(eyesOpenData)
+    x = np.arange(0, length/250.0, 1.0/250.0)
+    ax.set_autoscaley_on(False)
+    ax.set_ylim([-200,200])
+    ax1.set_autoscaley_on(False)
+    ax1.set_ylim([-200,200])
+
+    ax.plot(x, eyesOpenData, label=titleOpen)
+    ax.set_title(titleOpen)
+    ax1.plot(x, eyesClosedData, label =titleClosed  )
+    ax1.set_title(titleClosed)
+    plt.ylabel('uV')
+    plt.xlabel('Seconds')
+    plt.show()
 
 def createAndTrain(dataPoints, labels):
-    #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
 
-    #Scale if needed, then divide dataset into training and testing data
+    #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
     Xscaled = (np.array(dataPoints))
     Xtrain, Xtest, yTrain, yTest = train_test_split(Xscaled, labels, test_size = 0.1)
 
-    #SVM classification, regulation parameter C = 102 gives good results
-    #C = 102
+    print(yTest)
+    evaluateFeatures(Xtrain, yTrain)
+
+
+    #C = 102 #SVM regulation parameter, 100 gives good results
     #clf = svm.SVC(kernel='rbf', gamma=0.12, C=C, decision_function_shape='ovr')
 
-    #Decision tree classification. max_depth 8 and min_leaf = 5 gives good results, but varying.
-    clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
+    clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5) #max_depth 8 and min_leaf = 5 gives good results, but varying.
     clf.fit(Xtrain,yTrain)#skaler???
 
-    #Create classifier to be able to visualize it
+    #clfPlot = svm.SVC(kernel='rbf', gamma=0.1, C=C, decision_function_shape='ovr')#for plotting purposes
     clfPlot = clf
     clfPlot.fit(Xtrain,yTrain)
+
+    predict(Xtest, clf, yTest) #uncomment this to predict the input
     return clf, clfPlot #Uncomment this to be able to plot the classifier
 
 def evaluateFeatures(X, y):
-
-    #Make all the different models and train them to find the importance of the features
     forest = ExtraTreesClassifier(n_estimators = 250, random_state = 0)
     forest.fit(X,y)
-    #Print to see what the shape looks like before features are removed
     print(X.shape)
     importances = forest.feature_importances_
     std = np.std([tree.feature_importances_ for tree in forest.estimators_], axis=0)
@@ -126,30 +156,23 @@ def evaluateFeatures(X, y):
     plt.xlim([-1, X.shape[1]])
     plt.show()
 
-    #If this is used, the worst performing feature will be removed
     model = SelectFromModel(forest, prefit=True) #This removes the worst features.
     Xnew = model.transform(X)
-    #Print to check that feature has been removed
     print(Xnew.shape)
-    #return Xnew
 
 
 def predict(Xtest, clf, yTest):
+    global dataPoints
     predictions = clf.predict(Xtest)
-
-    #Print the test data to see how well it performs.
-    print(yTest)
+    #clf = joblib.load('testMachineState.pkl')#loads the machine-learning state
     print(predictions)
     print(accuracy_score(yTest, predictions))
 
 
 
 def saveMachinestate(clf):
-    joblib.dump(clf, 'learningState.pkl')
+    joblib.dump(clf, 'testMachineState.pkl')
 
-def loadMachineState():
-    clf = joblib.load('learningState.pkl')
-    return clf
 
 def plotClassifier(clf):
     global dataPoints
