@@ -13,6 +13,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 import dataset
 import globalvar
+import copy
 
 
 
@@ -48,12 +49,26 @@ def main():
 
 def startLearning():
     XL = [[]]
+    XLnew = [[]]
+    accuracyScore = []
     featureVector = []
 
     X, y = dataset.loadDataset("longtemp.txt")
-
     for i in range(len(X[0])):
-        featureVector = [pyeeg.pfd(list(X[0][i])), np.std(list(X[0][i]))] #pyeeg.dfa(list(Xint[0][i])
+        featureVector = [pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        #, np.var(list(X[0][i])),
+        #, np.max(list(X[0][i]))
+        #, np.min(list(X[0][i]))
+
+        #Suggested doing the below if a vector should be added as feature
+        #cov = np.cov(list(X[0][i]), list(X[6][i]))
+        #cov = np.ravel(cov)
+        #featureVector = np.concatenate((featureVector, cov))
+        #print(cov)
+        #pyeeg.dfa(list(X[0][i]))] #pyeeg.dfa(list(X[0][i])
+        #pyeeg.pfd(list(X[0][i])) denne gjor det sykt daarlig med resten
+
+
         XL.append(featureVector)
     XL.pop(0)
 
@@ -61,31 +76,36 @@ def startLearning():
     XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
 
     #Create the classifier and train it on the test data.
-    clf, clfPlot = createAndTrain(XLtrain, yTrain) #uncomment this if state should be loaded
 
-    #Load state of the classifier
-    #clf = loadMachineState() #Uncomment this to load the machine state
+    ####FIX THIS SHIT
+    for i in range(len(XL[0])):
+        print(i)
+        #XLnew[0].append(XLtrain[0][0:(i + 1)])
+        XLnew[0] = list(XLtrain[0][0:(i + 1)])
+        print(XLnew)
+        clf, clfPlot = createAndTrain(XLnew, yTrain) #uncomment this if state should be loaded
+
+        #Load state of the classifier
+        #clf = loadMachineState() #Uncomment this to load the machine state
+
+        #Predict the classes
+    accuracyScore.append(predict(XLtest, clf, yTest))
 
     #Evaluate the features on the training data.
     evaluateFeatures(XLtrain, yTrain)
-
-    #Predict the classes
-    predict(XLtest, clf, yTest)
+    print(accuracyScore)
     #saveMachinestate(clf)   #Uncomment this to save the machine state
     #plotClassifier(clfPlot) #uncomment this to plot the classifier
 
 def scaleAndSplit(dataPoints, labels):
+
     XLscaled = (np.array(dataPoints))
     XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1)
 
     return XLscaled, XLtrain, XLtest, yTrain, yTest
 
-def createAndTrain(dataPoints, labels):
+def createAndTrain(XLtrain, yTrain):
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
-
-    #Scale if needed, then divide dataset into training and testing data
-    Xscaled = (np.array(dataPoints))
-    Xtrain, Xtest, yTrain, yTest = train_test_split(Xscaled, labels, test_size = 0.1)
 
     #SVM classification, regulation parameter C = 102 gives good results
     #C = 102
@@ -93,11 +113,11 @@ def createAndTrain(dataPoints, labels):
 
     #Decision tree classification. max_depth 8 and min_leaf = 5 gives good results, but varying.
     clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
-    clf.fit(Xtrain,yTrain)#skaler???
+    clf.fit(XLtrain,yTrain)#skaler???
 
     #Create classifier to be able to visualize it
     clfPlot = clf
-    clfPlot.fit(Xtrain,yTrain)
+    clfPlot.fit(XLtrain,yTrain)
     return clf, clfPlot #Uncomment this to be able to plot the classifier
 
 def evaluateFeatures(X, y):
@@ -136,12 +156,12 @@ def evaluateFeatures(X, y):
 
 def predict(Xtest, clf, yTest):
     predictions = clf.predict(Xtest)
-
     #Print the test data to see how well it performs.
     print(yTest)
     print(predictions)
     print(accuracy_score(yTest, predictions))
 
+    return(accuracy_score)
 
 
 def saveMachinestate(clf):
