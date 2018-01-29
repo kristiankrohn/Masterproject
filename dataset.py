@@ -13,11 +13,11 @@ import copy
 printlock = Lock()
 filelock = Lock()
 
-longLength = 2.5 * glb.fs
-shortLength = glb.fs
+longLength = 625
+shortLength = 250
 
-frontPadding = 3 * glb.fs
-backPadding = glb.fs
+frontPadding = 750
+backPadding = 250
 
 
 def saveShortTemp(direction):
