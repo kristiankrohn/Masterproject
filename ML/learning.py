@@ -56,10 +56,31 @@ def startLearning():
 
     X, y = dataset.loadDataset("longtemp.txt")
     for i in range(len(X[0])):
-        featureVector = [pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        power, powerRatio = pyeeg.bin_power(X[0][i], [0.1, 4, 7, 12,30], 250)
+        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        featureVector = [powerRatio[0],
+                        pyeeg.hurst(list(X[0][i])),
+                        #powerRatio[1],
+                        #powerRatio[2],
+                        #powerRatio[3],
+                        #power[0],
+                        #power[1],
+                        #power[2],
+                        #power[3],
+                        #pyeeg.pfd(list(X[0][i])),
+                        np.std(list(X[0][i])),
+                        pyeeg.hfd(list(X[0][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
+                        #pyeeg.hjorth(list(X[0][i])),
+                        pyeeg.spectral_entropy(list(X[0][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        pyeeg.dfa(list(X[0][i]), None, None),
+                        #np.ptp(list(X[0][i])),
+                        #np.amax(list(X[0][i])),
+                        #np.amin(list(X[0][i]))
+                        ]
         #, np.var(list(X[0][i])),
         #, np.max(list(X[0][i]))
         #, np.min(list(X[0][i]))
+
 
         #Suggested doing the below if a vector should be added as feature
         #cov = np.cov(list(X[0][i]), list(X[6][i]))
