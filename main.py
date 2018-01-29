@@ -22,7 +22,7 @@ import gui as ttk
 import plot as plotlib
 import filterlib 
 import dataset
-import learning as learn
+#import ML.learning #this moved to keys() 
 from serial import SerialException
 
 #mutex = Lock()
@@ -396,7 +396,7 @@ def keys():
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
 		elif string == "learn":
-			import ML.learning as learningx
+			import ML.learning as learning
 			learning.startLearning()
 		else:
 			print("Unknown command")	
