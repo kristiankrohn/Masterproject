@@ -39,22 +39,22 @@ import time
 def hurst(X):
 	""" Compute the Hurst exponent of X. If the output H=0.5,the behavior
 	of the time-series is similar to random walk. If H<0.5, the time-series
-	cover less "distance" than a random walk, vice verse. 
+	cover less "distance" than a random walk, vice verse.
 
 	Parameters
 	----------
 
 	X
 
-		list    
-		
+		list
+
 		a time series
 
 	Returns
 	-------
 	H
-        
-		float    
+
+		float
 
 		Hurst exponent
 
@@ -66,22 +66,22 @@ def hurst(X):
 	>>> a = randn(4096)
 	>>> pyeeg.hurst(a)
 	>>> 0.5057444
-	
+
 	"""
-	
+
 	N = len(X)
-    
+
 	T = array([float(i) for i in xrange(1,N+1)])
 	Y = cumsum(X)
 	Ave_T = Y/T
-	
+
 	S_T = zeros((N))
 	R_T = zeros((N))
 	for i in xrange(N):
 		S_T[i] = std(X[:i+1])
 		X_T = Y - T * Ave_T[i]
 		R_T[i] = max(X_T[:i + 1]) - min(X_T[:i + 1])
-    
+
 	R_S = R_T / S_T
 	R_S = log(R_S)
 	n = log(T).reshape(N, 1)
@@ -95,21 +95,21 @@ def embed_seq(X,Tau,D):
 	"""Build a set of embedding sequences from given time series X with lag Tau
 	and embedding dimension DE. Let X = [x(1), x(2), ... , x(N)], then for each
 	i such that 1 < i <  N - (D - 1) * Tau, we build an embedding sequence,
-	Y(i) = [x(i), x(i + Tau), ... , x(i + (D - 1) * Tau)]. All embedding 
+	Y(i) = [x(i), x(i + Tau), ... , x(i + (D - 1) * Tau)]. All embedding
 	sequence are placed in a matrix Y.
 
 	Parameters
 	----------
 
 	X
-		list	
+		list
 
 		a time series
-		
+
 	Tau
 		integer
 
-		the lag or delay when building embedding sequence 
+		the lag or delay when building embedding sequence
 
 	D
 		integer
@@ -152,13 +152,13 @@ def embed_seq(X,Tau,D):
 	       [ 7.],
 	       [ 8.]])
 
-	
+
 
 	"""
 	N =len(X)
 
 	if D * Tau > N:
-		print "Cannot build such a matrix, because D * Tau > N" 
+		print "Cannot build such a matrix, because D * Tau > N"
 		exit()
 
 	if Tau<1:
@@ -173,9 +173,9 @@ def embed_seq(X,Tau,D):
 
 def in_range(Template, Scroll, Distance):
 	"""Determines whether one vector is the the range of another vector.
-	
+
 	The two vectors should have equal length.
-	
+
 	Parameters
 	-----------------
 	Template
@@ -185,36 +185,36 @@ def in_range(Template, Scroll, Distance):
 	Scroll
 		list
 		The scroll vector, one of the two vectors being compared
-		
+
 	D
 		float
 		Two vectors match if their distance is less than D
-		
+
 	Bit
-		
-	
+
+
 	Notes
 	-------
 	The distance between two vectors can be defined as Euclidean distance
 	according to some publications.
-	
+
 	The two vector should of equal length
-	
+
 	"""
-	
+
 	for i in range(0,  len(Template)):
 			if abs(Template[i] - Scroll[i]) > Distance:
 			     return False
 	return True
 	""" Desperate code, but do not delete
-	def bit_in_range(Index): 
-		if abs(Scroll[Index] - Template[Bit]) <=  Distance : 
+	def bit_in_range(Index):
+		if abs(Scroll[Index] - Template[Bit]) <=  Distance :
 			print "Bit=", Bit, "Scroll[Index]", Scroll[Index], "Template[Bit]",\
 			 Template[Bit], "abs(Scroll[Index] - Template[Bit])",\
 			 abs(Scroll[Index] - Template[Bit])
-			return Index + 1 # move 
+			return Index + 1 # move
 
-	Match_No_Tail = range(0, len(Scroll) - 1) # except the last one 
+	Match_No_Tail = range(0, len(Scroll) - 1) # except the last one
 #	print Match_No_Tail
 
 	# first compare Template[:-2] and Scroll[:-2]
@@ -222,27 +222,27 @@ def in_range(Template, Scroll, Distance):
 	for Bit in xrange(0, len(Template) - 1): # every bit of Template is in range of Scroll
 		Match_No_Tail = filter(bit_in_range, Match_No_Tail)
 		print Match_No_Tail
-		
-	# second and last, check whether Template[-1] is in range of Scroll and 
+
+	# second and last, check whether Template[-1] is in range of Scroll and
 	#	Scroll[-1] in range of Template
 
 	# 2.1 Check whether Template[-1] is in the range of Scroll
 	Bit = - 1
 	Match_All =  filter(bit_in_range, Match_No_Tail)
-	
+
 	# 2.2 Check whether Scroll[-1] is in the range of Template
-	# I just write a  loop for this. 
+	# I just write a  loop for this.
 	for i in Match_All:
 		if abs(Scroll[-1] - Template[i] ) <= Distance:
 			Match_All.remove(i)
-	
-	
+
+
 	return len(Match_All), len(Match_No_Tail)
 	"""
 
 def bin_power(X,Band,Fs):
-	"""Compute power in each frequency bin specified by Band from FFT result of 
-	X. By default, X is a real signal. 
+	"""Compute power in each frequency bin specified by Band from FFT result of
+	X. By default, X is a real signal.
 
 	Note
 	-----
@@ -253,23 +253,23 @@ def bin_power(X,Band,Fs):
 
 	Band
 		list
-	
-		boundary frequencies (in Hz) of bins. They can be unequal bins, e.g. 
-		[0.5,4,7,12,30] which are delta, theta, alpha and beta respectively. 
-		You can also use range() function of Python to generate equal bins and 
+
+		boundary frequencies (in Hz) of bins. They can be unequal bins, e.g.
+		[0.5,4,7,12,30] which are delta, theta, alpha and beta respectively.
+		You can also use range() function of Python to generate equal bins and
 		pass the generated list to this function.
 
-		Each element of Band is a physical frequency and shall not exceed the 
-		Nyquist frequency, i.e., half of sampling frequency. 
+		Each element of Band is a physical frequency and shall not exceed the
+		Nyquist frequency, i.e., half of sampling frequency.
 
  	X
 		list
-	
+
 		a 1-D real time series.
 
 	Fs
 		integer
-	
+
 		the sampling rate in physical frequency
 
 	Returns
@@ -277,13 +277,13 @@ def bin_power(X,Band,Fs):
 
 	Power
 		list
-	
+
 		spectral power in each frequency bin.
 
 	Power_ratio
 		list
 
-		spectral power in each frequency bin normalized by total power in ALL 
+		spectral power in each frequency bin normalized by total power in ALL
 		frequency bins.
 
 	"""
@@ -294,36 +294,37 @@ def bin_power(X,Band,Fs):
 	for Freq_Index in xrange(0,len(Band)-1):
 		Freq = float(Band[Freq_Index])										## Xin Liu
 		Next_Freq = float(Band[Freq_Index+1])
-		Power[Freq_Index] = sum(C[floor(Freq/Fs*len(X)):floor(Next_Freq/Fs*len(X))])
+		#Endret til Int for aa faa det til aa gaa igjennom
+		Power[Freq_Index] = sum(C[int(floor(Freq/Fs*len(X))):int(floor(Next_Freq/Fs*len(X)))])
 	Power_Ratio = Power/sum(Power)
-	return Power, Power_Ratio	
+	return Power, Power_Ratio
 
 def first_order_diff(X):
 	""" Compute the first order difference of a time series.
 
-		For a time series X = [x(1), x(2), ... , x(N)], its	first order 
+		For a time series X = [x(1), x(2), ... , x(N)], its	first order
 		difference is:
 		Y = [x(2) - x(1) , x(3) - x(2), ..., x(N) - x(N-1)]
-		
+
 	"""
 	D=[]
-	
+
 	for i in xrange(1,len(X)):
 		D.append(X[i]-X[i-1])
 
 	return D
 
 def pfd(X, D=None):
-	"""Compute Petrosian Fractal Dimension of a time series from either two 
+	"""Compute Petrosian Fractal Dimension of a time series from either two
 	cases below:
 		1. X, the time series of type list (default)
-		2. D, the first order differential sequence of X (if D is provided, 
+		2. D, the first order differential sequence of X (if D is provided,
 		   recommended to speed up)
 
 	In case 1, D is computed by first_order_diff(X) function of pyeeg
 
-	To speed up, it is recommended to compute D before calling this function 
-	because D may also be used by other functions whereas computing it here 
+	To speed up, it is recommended to compute D before calling this function
+	because D may also be used by other functions whereas computing it here
 	again will slow down.
 	"""
 	if D is None:																						## Xin Liu
@@ -353,23 +354,23 @@ def hfd(X, Kmax):
 			Lk.append(Lmk)
 		L.append(log(mean(Lk)))
 		x.append([log(float(1) / k), 1])
-	
+
 	(p, r1, r2, s)=lstsq(x, L)
 	return p[0]
 
 def hjorth(X, D = None):
-	""" Compute Hjorth mobility and complexity of a time series from either two 
+	""" Compute Hjorth mobility and complexity of a time series from either two
 	cases below:
 		1. X, the time series of type list (default)
-		2. D, a first order differential sequence of X (if D is provided, 
+		2. D, a first order differential sequence of X (if D is provided,
 		   recommended to speed up)
 
 	In case 1, D is computed by first_order_diff(X) function of pyeeg
 
 	Notes
 	-----
-	To speed up, it is recommended to compute D before calling this function 
-	because D may also be used by other functions whereas computing it here 
+	To speed up, it is recommended to compute D before calling this function
+	because D may also be used by other functions whereas computing it here
 	again will slow down.
 
 	Parameters
@@ -377,12 +378,12 @@ def hjorth(X, D = None):
 
 	X
 		list
-		
+
 		a time series
-	
+
 	D
 		list
-	
+
 		first order differential sequence of a time series
 
 	Returns
@@ -393,7 +394,7 @@ def hjorth(X, D = None):
 	Hjorth mobility and complexity
 
 	"""
-	
+
 	if D is None:
 		D = first_order_diff(X)
 
@@ -408,21 +409,21 @@ def hjorth(X, D = None):
 	for i in xrange(1, len(D)):
 		M4 += (D[i] - D[i - 1]) ** 2
 	M4 = M4 / n
-	
+
 	return sqrt(M2 / TP), sqrt(float(M4) * TP / M2 / M2)	# Hjorth Mobility and Complexity
 
 def spectral_entropy(X, Band, Fs, Power_Ratio = None):
 	"""Compute spectral entropy of a time series from either two cases below:
 	1. X, the time series (default)
-	2. Power_Ratio, a list of normalized signal power in a set of frequency 
+	2. Power_Ratio, a list of normalized signal power in a set of frequency
 	bins defined in Band (if Power_Ratio is provided, recommended to speed up)
 
 	In case 1, Power_Ratio is computed by bin_power() function.
 
 	Notes
 	-----
-	To speed up, it is recommended to compute Power_Ratio before calling this 
-	function because it may also be used by other functions whereas computing 
+	To speed up, it is recommended to compute Power_Ratio before calling this
+	function because it may also be used by other functions whereas computing
 	it here again will slow down.
 
 	Parameters
@@ -431,13 +432,13 @@ def spectral_entropy(X, Band, Fs, Power_Ratio = None):
 	Band
 		list
 
-		boundary frequencies (in Hz) of bins. They can be unequal bins, e.g. 
-		[0.5,4,7,12,30] which are delta, theta, alpha and beta respectively. 
-		You can also use range() function of Python to generate equal bins and 
+		boundary frequencies (in Hz) of bins. They can be unequal bins, e.g.
+		[0.5,4,7,12,30] which are delta, theta, alpha and beta respectively.
+		You can also use range() function of Python to generate equal bins and
 		pass the generated list to this function.
 
-		Each element of Band is a physical frequency and shall not exceed the 
-		Nyquist frequency, i.e., half of sampling frequency. 
+		Each element of Band is a physical frequency and shall not exceed the
+		Nyquist frequency, i.e., half of sampling frequency.
 
  	X
 		list
@@ -452,14 +453,14 @@ def spectral_entropy(X, Band, Fs, Power_Ratio = None):
 	Returns
 	-------
 
-	As indicated in return line	
+	As indicated in return line
 
 	See Also
 	--------
 	bin_power: pyeeg function that computes spectral power in frequency bins
 
 	"""
-	
+
 	if Power_Ratio is None:
 		Power, Power_Ratio = bin_power(X, Band, Fs)
 
@@ -477,22 +478,22 @@ def svd_entropy(X, Tau, DE, W = None):
 
 	If W is None, the function will do as follows to prepare singular spectrum:
 
-		First, computer an embedding matrix from X, Tau and DE using pyeeg 
-		function embed_seq(): 
+		First, computer an embedding matrix from X, Tau and DE using pyeeg
+		function embed_seq():
 					M = embed_seq(X, Tau, DE)
 
-		Second, use scipy.linalg function svd to decompose the embedding matrix 
+		Second, use scipy.linalg function svd to decompose the embedding matrix
 		M and obtain a list of singular values:
 					W = svd(M, compute_uv=0)
 
 		At last, normalize W:
 					W /= sum(W)
-	
+
 	Notes
 	-------------
 
-	To speed up, it is recommended to compute W before calling this function 
-	because W may also be used by other functions whereas computing	it here 
+	To speed up, it is recommended to compute W before calling this function
+	because W may also be used by other functions whereas computing	it here
 	again will slow down.
 	"""
 
@@ -511,36 +512,36 @@ def fisher_info(X, Tau, DE, W = None):
 
 	If W is None, the function will do as follows to prepare singular spectrum:
 
-		First, computer an embedding matrix from X, Tau and DE using pyeeg 
+		First, computer an embedding matrix from X, Tau and DE using pyeeg
 		function embed_seq():
 			M = embed_seq(X, Tau, DE)
 
-		Second, use scipy.linalg function svd to decompose the embedding matrix 
+		Second, use scipy.linalg function svd to decompose the embedding matrix
 		M and obtain a list of singular values:
 			W = svd(M, compute_uv=0)
 
 		At last, normalize W:
 			W /= sum(W)
-	
+
 	Parameters
 	----------
 
 	X
 		list
 
-		a time series. X will be used to build embedding matrix and compute 
+		a time series. X will be used to build embedding matrix and compute
 		singular values if W or M is not provided.
 	Tau
 		integer
 
-		the lag or delay when building a embedding sequence. Tau will be used 
+		the lag or delay when building a embedding sequence. Tau will be used
 		to build embedding matrix and compute singular values if W or M is not
 		provided.
 	DE
 		integer
 
-		the embedding dimension to build an embedding matrix from a given 
-		series. DE will be used to build embedding matrix and compute 
+		the embedding dimension to build an embedding matrix from a given
+		series. DE will be used to build embedding matrix and compute
 		singular values if W or M is not provided.
 	W
 		list or array
@@ -557,8 +558,8 @@ def fisher_info(X, Tau, DE, W = None):
 
 	Notes
 	-----
-	To speed up, it is recommended to compute W before calling this function 
-	because W may also be used by other functions whereas computing	it here 
+	To speed up, it is recommended to compute W before calling this function
+	because W may also be used by other functions whereas computing	it here
 	again will slow down.
 
 	See Also
@@ -569,43 +570,43 @@ def fisher_info(X, Tau, DE, W = None):
 	if W is None:
 		M = embed_seq(X, Tau, DE)
 		W = svd(M, compute_uv = 0)
-		W /= sum(W)	
-	
+		W /= sum(W)
+
 	FI = 0
 	for i in xrange(0, len(W) - 1):	# from 1 to M
 		FI += ((W[i +1] - W[i]) ** 2) / (W[i])
-	
+
 	return FI
 
 def ap_entropy(X, M, R):
 	"""Computer approximate entropy (ApEN) of series X, specified by M and R.
 
 	Suppose given time series is X = [x(1), x(2), ... , x(N)]. We first build
-	embedding matrix Em, of dimension (N-M+1)-by-M, such that the i-th row of Em 
+	embedding matrix Em, of dimension (N-M+1)-by-M, such that the i-th row of Em
 	is x(i),x(i+1), ... , x(i+M-1). Hence, the embedding lag and dimension are
-	1 and M-1 respectively. Such a matrix can be built by calling pyeeg function 
-	as Em = embed_seq(X, 1, M). Then we build matrix Emp, whose only 
+	1 and M-1 respectively. Such a matrix can be built by calling pyeeg function
+	as Em = embed_seq(X, 1, M). Then we build matrix Emp, whose only
 	difference with Em is that the length of each embedding sequence is M + 1
 
-	Denote the i-th and j-th row of Em as Em[i] and Em[j]. Their k-th elments 
+	Denote the i-th and j-th row of Em as Em[i] and Em[j]. Their k-th elments
 	are	Em[i][k] and Em[j][k] respectively. The distance between Em[i] and Em[j]
-	is defined as 1) the maximum difference of their corresponding scalar 
+	is defined as 1) the maximum difference of their corresponding scalar
 	components, thus, max(Em[i]-Em[j]), or 2) Euclidean distance. We say two 1-D
-	vectors Em[i] and Em[j] *match* in *tolerance* R, if the distance between them 
+	vectors Em[i] and Em[j] *match* in *tolerance* R, if the distance between them
 	is no greater than R, thus, max(Em[i]-Em[j]) <= R. Mostly, the value of R is
-	defined as 20% - 30% of standard deviation of X. 
+	defined as 20% - 30% of standard deviation of X.
 
-	Pick Em[i] as a template, for all j such that 0 < j < N - M + 1, we can 
-	check whether Em[j] matches with Em[i]. Denote the number of Em[j],  
-	which is in the range of Em[i], as k[i], which is the i-th element of the 
-	vector k. The probability that a random row in Em matches Em[i] is 
-	\simga_1^{N-M+1} k[i] / (N - M + 1), thus sum(k)/ (N - M + 1), 
+	Pick Em[i] as a template, for all j such that 0 < j < N - M + 1, we can
+	check whether Em[j] matches with Em[i]. Denote the number of Em[j],
+	which is in the range of Em[i], as k[i], which is the i-th element of the
+	vector k. The probability that a random row in Em matches Em[i] is
+	\simga_1^{N-M+1} k[i] / (N - M + 1), thus sum(k)/ (N - M + 1),
 	denoted as Cm[i].
 
-	We repeat the same process on Emp and obtained Cmp[i], but here 0<i<N-M 
+	We repeat the same process on Emp and obtained Cmp[i], but here 0<i<N-M
 	since the length of each sequence in Emp is M + 1.
 
-	The probability that any two embedding sequences in Em match is then 
+	The probability that any two embedding sequences in Em match is then
 	sum(Cm)/ (N - M +1 ). We define Phi_m = sum(log(Cm)) / (N - M + 1) and
 	Phi_mp = sum(log(Cmp)) / (N - M ).
 
@@ -614,8 +615,8 @@ def ap_entropy(X, M, R):
 
 	Notes
 	-----
-	
-	#. Please be aware that self-match is also counted in ApEn. 
+
+	#. Please be aware that self-match is also counted in ApEn.
 	#. This function now runs very slow. We are still trying to speed it up.
 
 	References
@@ -627,7 +628,7 @@ def ap_entropy(X, M, R):
 	See also
 	--------
 	samp_entropy: sample entropy of a time series
-	
+
 	Notes
 	-----
 	Extremely slow implementation. Do NOT use if your dataset is not small.
@@ -635,7 +636,7 @@ def ap_entropy(X, M, R):
 	"""
 	N = len(X)
 
-	Em = embed_seq(X, 1, M)	
+	Em = embed_seq(X, 1, M)
 	Emp = embed_seq(X, 1, M + 1) #	try to only build Emp to save time
 
 	Cm, Cmp = zeros(N - M + 1), zeros(N - M)
@@ -655,11 +656,11 @@ def ap_entropy(X, M, R):
 			Cm[i] += 1
 			Cm[N-M] += 1
 		# try to count Cm[j] and Cmp[j] as well here
-	
+
 #		if max(abs(Em[N-M]-Em[N-M])) <= R: # index from 0, so N-M+1 is N-M  v 0.01b_r1
 #	if in_range(Em[i], Em[N - M], R):  # for Cm, there is one more iteration than Cmp
 #			Cm[N - M] += 1 # cross-matches on Cm[N - M]
-	
+
 	Cm[N - M] += 1 # Cm[N - M] self-matches
 #	import code;code.interact(local=locals())
 	Cm /= (N - M +1 )
@@ -674,26 +675,26 @@ def ap_entropy(X, M, R):
 def samp_entropy(X, M, R):
 	"""Computer sample entropy (SampEn) of series X, specified by M and R.
 
-	SampEn is very close to ApEn. 
+	SampEn is very close to ApEn.
 
 	Suppose given time series is X = [x(1), x(2), ... , x(N)]. We first build
-	embedding matrix Em, of dimension (N-M+1)-by-M, such that the i-th row of Em 
+	embedding matrix Em, of dimension (N-M+1)-by-M, such that the i-th row of Em
 	is x(i),x(i+1), ... , x(i+M-1). Hence, the embedding lag and dimension are
-	1 and M-1 respectively. Such a matrix can be built by calling pyeeg function 
-	as Em = embed_seq(X, 1, M). Then we build matrix Emp, whose only 
+	1 and M-1 respectively. Such a matrix can be built by calling pyeeg function
+	as Em = embed_seq(X, 1, M). Then we build matrix Emp, whose only
 	difference with Em is that the length of each embedding sequence is M + 1
 
-	Denote the i-th and j-th row of Em as Em[i] and Em[j]. Their k-th elments 
+	Denote the i-th and j-th row of Em as Em[i] and Em[j]. Their k-th elments
 	are	Em[i][k] and Em[j][k] respectively. The distance between Em[i] and Em[j]
-	is defined as 1) the maximum difference of their corresponding scalar 
+	is defined as 1) the maximum difference of their corresponding scalar
 	components, thus, max(Em[i]-Em[j]), or 2) Euclidean distance. We say two 1-D
-	vectors Em[i] and Em[j] *match* in *tolerance* R, if the distance between them 
+	vectors Em[i] and Em[j] *match* in *tolerance* R, if the distance between them
 	is no greater than R, thus, max(Em[i]-Em[j]) <= R. Mostly, the value of R is
-	defined as 20% - 30% of standard deviation of X. 
+	defined as 20% - 30% of standard deviation of X.
 
-	Pick Em[i] as a template, for all j such that 0 < j < N - M , we can 
-	check whether Em[j] matches with Em[i]. Denote the number of Em[j],  
-	which is in the range of Em[i], as k[i], which is the i-th element of the 
+	Pick Em[i] as a template, for all j such that 0 < j < N - M , we can
+	check whether Em[j] matches with Em[i]. Denote the number of Em[j],
+	which is in the range of Em[i], as k[i], which is the i-th element of the
 	vector k.
 
 	We repeat the same process on Emp and obtained Cmp[i], 0 < i < N - M.
@@ -720,7 +721,7 @@ def samp_entropy(X, M, R):
 
 	N = len(X)
 
-	Em = embed_seq(X, 1, M)	
+	Em = embed_seq(X, 1, M)
 	Emp = embed_seq(X, 1, M + 1)
 
 	Cm, Cmp = zeros(N - M - 1) + 1e-100, zeros(N - M - 1) + 1e-100
@@ -728,7 +729,7 @@ def samp_entropy(X, M, R):
 
 	for i in xrange(0, N - M):
 		for j in xrange(i + 1, N - M): # no self-match
-#			if max(abs(Em[i]-Em[j])) <= R:  # v 0.01_b_r1 
+#			if max(abs(Em[i]-Em[j])) <= R:  # v 0.01_b_r1
 			if in_range(Em[i], Em[j], R):
 				Cm[i] += 1
 #			if max(abs(Emp[i] - Emp[j])) <= R: # v 0.01_b_r1
@@ -742,40 +743,40 @@ def samp_entropy(X, M, R):
 def dfa(X, Ave = None, L = None):
 	"""Compute Detrended Fluctuation Analysis from a time series X and length of
 	boxes L.
-	
+
 	The first step to compute DFA is to integrate the signal. Let original seres
-	be X= [x(1), x(2), ..., x(N)]. 
+	be X= [x(1), x(2), ..., x(N)].
 
 	The integrated signal Y = [y(1), y(2), ..., y(N)] is otained as follows
-	y(k) = \sum_{i=1}^{k}{x(i)-Ave} where Ave is the mean of X. 
+	y(k) = \sum_{i=1}^{k}{x(i)-Ave} where Ave is the mean of X.
 
 	The second step is to partition/slice/segment the integrated sequence Y into
 	boxes. At least two boxes are needed for computing DFA. Box sizes are
 	specified by the L argument of this function. By default, it is from 1/5 of
-	signal length to one (x-5)-th of the signal length, where x is the nearest 
+	signal length to one (x-5)-th of the signal length, where x is the nearest
 	power of 2 from the length of the signal, i.e., 1/16, 1/32, 1/64, 1/128, ...
 
-	In each box, a linear least square fitting is employed on data in the box. 
-	Denote the series on fitted line as Yn. Its k-th elements, yn(k), 
+	In each box, a linear least square fitting is employed on data in the box.
+	Denote the series on fitted line as Yn. Its k-th elements, yn(k),
 	corresponds to y(k).
-	
-	For fitting in each box, there is a residue, the sum of squares of all 
-	offsets, difference between actual points and points on fitted line. 
+
+	For fitting in each box, there is a residue, the sum of squares of all
+	offsets, difference between actual points and points on fitted line.
 
 	F(n) denotes the square root of average total residue in all boxes when box
 	length is n, thus
 	Total_Residue = \sum_{k=1}^{N}{(y(k)-yn(k))}
 	F(n) = \sqrt(Total_Residue/N)
 
-	The computing to F(n) is carried out for every box length n. Therefore, a 
+	The computing to F(n) is carried out for every box length n. Therefore, a
 	relationship between n and F(n) can be obtained. In general, F(n) increases
 	when n increases.
 
-	Finally, the relationship between F(n) and n is analyzed. A least square 
-	fitting is performed between log(F(n)) and log(n). The slope of the fitting 
-	line is the DFA value, denoted as Alpha. To white noise, Alpha should be 
+	Finally, the relationship between F(n) and n is analyzed. A least square
+	fitting is performed between log(F(n)) and log(n). The slope of the fitting
+	line is the DFA value, denoted as Alpha. To white noise, Alpha should be
 	0.5. Higher level of signal complexity is related to higher Alpha.
-	
+
 	Parameters
 	----------
 
@@ -793,11 +794,11 @@ def dfa(X, Ave = None, L = None):
 
 	Returns
 	-------
-	
+
 	Alpha:
 		integer
-		the result of DFA analysis, thus the slope of fitting line of log(F(n)) 
-		vs. log(n). where n is the 
+		the result of DFA analysis, thus the slope of fitting line of log(F(n))
+		vs. log(n). where n is the
 
 	Examples
 	--------
@@ -808,8 +809,8 @@ def dfa(X, Ave = None, L = None):
 
 	Reference
 	---------
-	Peng C-K, Havlin S, Stanley HE, Goldberger AL. Quantification of scaling 
-	exponents and 	crossover phenomena in nonstationary heartbeat time series. 
+	Peng C-K, Havlin S, Stanley HE, Goldberger AL. Quantification of scaling
+	exponents and 	crossover phenomena in nonstationary heartbeat time series.
 	_Chaos_ 1995;5:82-87
 
 	Notes
@@ -817,10 +818,10 @@ def dfa(X, Ave = None, L = None):
 
 	This value depends on the box sizes very much. When the input is a white
 	noise, this value should be 0.5. But, some choices on box sizes can lead to
-	the value lower or higher than 0.5, e.g. 0.38 or 0.58. 
+	the value lower or higher than 0.5, e.g. 0.38 or 0.58.
 
-	Based on many test, I set the box sizes from 1/5 of	signal length to one 
-	(x-5)-th of the signal length, where x is the nearest power of 2 from the 
+	Based on many test, I set the box sizes from 1/5 of	signal length to one
+	(x-5)-th of the signal length, where x is the nearest power of 2 from the
 	length of the signal, i.e., 1/16, 1/32, 1/64, 1/128, ...
 
 	You may generate a list of box sizes and pass in such a list as a parameter.
@@ -837,6 +838,8 @@ def dfa(X, Ave = None, L = None):
 
 	if L is None:
 		L = floor(len(X)*1/(2**array(range(4,int(log2(len(X)))-4))))
+		#This doesn't work, returns nothing
+		#Try numpy floor function?
 
 	F = zeros(len(L)) # F(n) of different given box length n
 
@@ -854,7 +857,6 @@ def dfa(X, Ave = None, L = None):
 				F[i] += lstsq(c,y)[1]	# add residue in this box
 		F[i] /= ((len(X)/n)*n)
 	F = sqrt(F)
-	
 	Alpha = lstsq(vstack([log(L), ones(len(L))]).T,log(F))[0][0]
-	
+
 	return Alpha

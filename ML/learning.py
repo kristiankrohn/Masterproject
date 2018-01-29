@@ -50,16 +50,37 @@ def main():
 
 def startLearning():
     XL = [[]]
-    XLnew = [[]]
+
     accuracyScore = []
     featureVector = []
 
     X, y = dataset.loadDataset("longtemp.txt")
     for i in range(len(X[0])):
-        featureVector = [pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        power, powerRatio = pyeeg.bin_power(X[0][i], [0.1, 4, 7, 12,30], 250)
+        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        featureVector = [powerRatio[0],
+                        pyeeg.hurst(list(X[0][i])),
+                        #powerRatio[1],
+                        #powerRatio[2],
+                        #powerRatio[3],
+                        #power[0],
+                        #power[1],
+                        #power[2],
+                        #power[3],
+                        #pyeeg.pfd(list(X[0][i])),
+                        np.std(list(X[0][i])),
+                        pyeeg.hfd(list(X[0][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
+                        #pyeeg.hjorth(list(X[0][i])),
+                        pyeeg.spectral_entropy(list(X[0][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        pyeeg.dfa(list(X[0][i]), None, None),
+                        #np.ptp(list(X[0][i])),
+                        #np.amax(list(X[0][i])),
+                        #np.amin(list(X[0][i]))
+                        ]
         #, np.var(list(X[0][i])),
         #, np.max(list(X[0][i]))
         #, np.min(list(X[0][i]))
+
 
         #Suggested doing the below if a vector should be added as feature
         #cov = np.cov(list(X[0][i]), list(X[6][i]))
@@ -76,21 +97,18 @@ def startLearning():
     #Scale the data if needed and split dataset into training and testing
     XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
 
-    #Create the classifier and train it on the test data.
 
-    ####FIX THIS SHIT
+    #Nested loops to compare accuracy when varying number of features are used.
     for i in range(len(XL[0])):
-        print(i)
-        #XLnew[0].append(XLtrain[0][0:(i + 1)])
-        XLnew[0] = list(XLtrain[0][0:(i + 1)])
-        print(XLnew)
-        clf, clfPlot = createAndTrain(XLnew, yTrain) #uncomment this if state should be loaded
+        compFeaturesTraining, compFeaturesTest = compareFeatures(i, XL, XLtrain, XLtest)
+        #Create the classifier and train it on the test data.
+        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain) #uncomment this if state should be loaded
 
         #Load state of the classifier
         #clf = loadMachineState() #Uncomment this to load the machine state
 
         #Predict the classes
-    accuracyScore.append(predict(XLtest, clf, yTest))
+        accuracyScore.append(predict(compFeaturesTest, clf, yTest))
 
     #Evaluate the features on the training data.
     evaluateFeatures(XLtrain, yTrain)
@@ -104,6 +122,16 @@ def scaleAndSplit(dataPoints, labels):
     XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1)
 
     return XLscaled, XLtrain, XLtest, yTrain, yTest
+
+def compareFeatures(i, XL, XLtrain, XLtest):
+
+    compareFeaturesTraining = []
+    compareFeaturesTesting = []
+    for j in range(len(XLtrain)):
+        compareFeaturesTraining.append(list(XLtrain[j][0:(i + 1)]))
+    for j in range(len(XLtest)):
+        compareFeaturesTesting.append(list(XLtest[j][0:(i + 1)]))
+    return compareFeaturesTraining, compareFeaturesTesting
 
 def createAndTrain(XLtrain, yTrain):
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
@@ -162,7 +190,7 @@ def predict(Xtest, clf, yTest):
     print(predictions)
     print(accuracy_score(yTest, predictions))
 
-    return(accuracy_score)
+    return(accuracy_score(yTest, predictions))
 
 
 def saveMachinestate(clf):
