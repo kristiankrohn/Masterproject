@@ -8,7 +8,7 @@ directioncode = ["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
 rawdata = 0
 filterdata = 1
 timestamp = 2
-numCh = 9
+numCh = 8
 nPlots = numCh
 nSamples = 2000
 

@@ -33,8 +33,8 @@ def savefiltercoeff():
 def designfilter(Q=50, filtertype="notch"):
 	a = [1 , -0.9] 
 	b = [1,-1]
-	print("Designing filter")
-	print(glb.fs)
+	#print("Designing filter")
+	#print(glb.fs)
 	if filtertype == "notch": 
 		f50 = 50.0
 		w50 = f50/(glb.fs/2)

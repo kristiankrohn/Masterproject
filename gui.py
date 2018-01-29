@@ -96,7 +96,7 @@ class Alien(object):
 				(size/2) + ballsize, (size/2) + ballsize, 
 				outline='white', fill='white')
 
-		if removeBall and (tme.time()>startRemoveBall+1):
+		if removeBall and (tme.time()>startRemoveBall+0.5):
 			removeBall = False
 			self.id = self.canvas.create_oval((size/2) - ballsize, (size/2) - ballsize, 
 				(size/2) + ballsize, (size/2) + ballsize, 
@@ -114,7 +114,7 @@ class Alien(object):
 			sleeping = True
 			#tme.sleep(4)
 
-		if sleeping and (tme.time() > startSleep + 2):
+		if sleeping and (tme.time() > startSleep + 2.5):
 			cmd = 5
 			endMove = tme.time()
 			#print("Movementtime= ")

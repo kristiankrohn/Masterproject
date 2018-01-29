@@ -109,7 +109,7 @@ def dataCatcher():
 	if board != None:
 		print("Board Instantiated")
 		board.ser.write('v')
-		tme.sleep(10)
+		#tme.sleep(10)
 
 		if not board.streaming:
 			board.ser.write(b'b')
