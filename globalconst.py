@@ -11,5 +11,5 @@ timestamp = 2
 numCh = 9
 nPlots = numCh
 nSamples = 2000
-oldSampleID = 255
+
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

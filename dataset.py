@@ -372,7 +372,7 @@ def deleteShortTempelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in numCh:
+	for i in range(numCh):
 		DataSet.pop(index)
 	#DataSet.pop(index)
 	#print(DataSet)
@@ -392,7 +392,7 @@ def deleteLongTempelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in numCh:
+	for i in range(numCh):
 		DataSet.pop(index)
 	#DataSet.pop(index)
 	#print(DataSet)

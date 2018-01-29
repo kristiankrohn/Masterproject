@@ -22,7 +22,7 @@ import gui as ttk
 import plot as plotlib
 import filterlib 
 import dataset
-
+import learning as learn
 from serial import SerialException
 
 #mutex = Lock()
@@ -43,7 +43,6 @@ averageCondition = False
 app = QtGui.QApplication([])
 
 def housekeeper():
-	#global mutex, data, nSamples, rawdata, filterdata, timestamp, numCh
 	
 	longsleep = False
 	pop = False
@@ -110,7 +109,7 @@ def dataCatcher():
 	if board != None:
 		print("Board Instantiated")
 		board.ser.write('v')
-		#tme.sleep(10)
+		tme.sleep(10)
 
 		if not board.streaming:
 			board.ser.write(b'b')
@@ -119,11 +118,6 @@ def dataCatcher():
 		print("Samplerate: %0.2fHz" %board.getSampleRate())
 		glb.fs = board.getSampleRate()
 		glb.b, glb.a = filterlib.designfilter(filtertype="notch", Q=20)
-		#print(glb.b)
-		#print(glb.a)
-		
-		#print(glb.window)
-		#print(glb.Zi)
 		board.start_streaming(printData)
 	else:
 		print("Board initialization failed, exit and reconnect dongle")

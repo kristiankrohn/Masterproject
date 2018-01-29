@@ -1,4 +1,3 @@
-
 from scipy import signal
 import scipy.fftpack
 import numpy as np
@@ -27,8 +26,8 @@ def filter(newSamples, newTimeData, i, b, a):
 		glb.data[i][timestamp].append(xt[j])
 
 def savefiltercoeff():
-	np.savetxt('bandpasscoeff.out', bandpassB)
-	np.savetxt('highpasscoeff.out', highpassB)
+	np.savetxt('bcoeff.out', glb.b)
+	np.savetxt('acoeff.out', glb.a)
 	print("Saved filter coefficients")
 
 def designfilter(Q=50, filtertype="notch"):
@@ -91,7 +90,7 @@ def plotfilter(data, b=0, a=0):
 
 	Zi = signal.lfilter_zi(b, a) * data[0]
 	data, Zi = signal.lfilter(b, a, data, zi=Zi)
-	#data = signal.lfilter(b, a, data)
+	data = signal.lfilter(b, a, data)
 	return data
 
 
