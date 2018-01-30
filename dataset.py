@@ -49,10 +49,14 @@ def saveLongTemp(direction):
 def prepSaveData(direction, length):
 	global mutex, filelock
 	#global printlock
-	if length == shortLength:
-		delayconstant = 0.8
-	elif length == longLength:
-		delayconstant = 0.6
+	if direction == 5:
+		delayconstant = 0.2
+	else:
+		if length == shortLength:
+			delayconstant = 0.8
+		elif length == longLength:
+			delayconstant = 0.6
+
 	startTime = tme.time() + (backPadding/glb.fs) + delayconstant
 	ready = False
 	with glb.mutex:
@@ -133,7 +137,7 @@ def prepSaveData(direction, length):
 	return f
 
 
-def exportPlots(command, plottype="time"):
+def exportPlots(command, plottype="time", speed="slow"):
 	global filelock
 	global DataSet
 	
@@ -149,14 +153,8 @@ def exportPlots(command, plottype="time"):
 		folders = ["\\figures", "\\tempfigures", 
 				"\\longfigures", "\\longtempfigures"]
 	
-	movements = ["\\Center_blink", "\\Center_still", 
-				"\\Down_direction", "\\Down_return", 
-				"\\Up_direction", "\\Up_return",
-				"\\Left_direction", "\\Left_return", 
-				"\\Right_direction", "\\Right_return", "\\Garbage"]
-
-	channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
-
+	if speed != "slow":			
+		multiprocessing.freeze_support()
 
 	for i in range(len(folders)):
 	
@@ -214,188 +212,175 @@ def exportPlots(command, plottype="time"):
 		DataSet = AllData.split(':')
 		
 
-		multiprocessing.freeze_support()
-		num_cpu = multiprocessing.cpu_count()
-		threadexport = multiprocessing.Pool()
+
+		if speed == "fast":
+			
+			num_cpu = multiprocessing.cpu_count()
+			
+			pool = multiprocessing.Pool(len(DataSet)/numCh)
+			variables = [None]*4
+			#variables[0] = 0
+			variables[0] = i
+			variables[1] = command
+			variables[2] = plottype
+			variables[3] = 0
+			#variables[4] = DataSet
+			#variables[5] = 0
+			indexlist = range(len(DataSet)/numCh)
+			Datalist = [None]*(len(DataSet)/numCh)
+			#print(Datalist)
+			for g in range(len(DataSet)/numCh):
+				start = g*numCh
+				stop = (g+1)*numCh
+				#print("Start: %d"%start)
+				#print("Stop: %d"%stop)
+				#print("g: %d"%g)
+				#if len(DataSet) <= stop:
+					#break
+				#Datalist.append(DataSet[start:stop])
+				variables[3] = DataSet[start:stop]
+				
+				#variables[4] = str(g)
+				Datalist[g]=copy.deepcopy(variables)
+				#indexlist.append(g)	
+			#Datalist = [None]*(len(DataSet)/numCh)
+			#for i in range(len(Datalist)):
+				#print(Datalist[i])
+				#tme.sleep(1)
+			#Dataset = None
+			print("Spawning %d threads" %(len(DataSet)/numCh))
+			#threadexport = [None]*(len(DataSet)/numCh)
+			#print("Thread index up to: %d" %len(DataSet))
+			#print(i)
+			
+			#res = pool.map(func_star, itertools.izip(indexlist,itertools.repeat(variables)), num_cpu)
+			iterator = itertools.izip(indexlist,Datalist)
+			#Datalist = None
+			#indexlist = None
+			res = pool.map(func_star, iterator, num_cpu)
+			res = [r for r in res if r is not None]
+			#iterator = None
+			#print(p)
+			pool.close()
+			#print("Waiting to join")
+			pool.join()
+			#print("Has joined")
+			
+
+		else:
 		
-		#for k in range(0, len(DataSet), numCh):
+			for k in range(0, len(DataSet), numCh):
+				care = True
+				feature = []
+				feature = DataSet[k].split(',')
+
+				if len(feature) > 10:
+					featuretype = feature[0]
+					feature.pop(0)
+
+					if featuretype[0] == 'u':
+						title = "Up"
+					elif featuretype[0] == 'd':
+						title = "Down"
+					elif featuretype[0] == 'l':
+						title = "Left"
+					elif featuretype[0] == 'r':
+						title = "Right"
+					elif featuretype[0] == 'c':
+						title = "Center"
+						#care = False
+					else:
+						care = False
+
+					if featuretype[1] == 'd':
+						title += "_direction"
+					elif featuretype[1] == 'r':
+						title += "_return"
+					elif featuretype[1] == 's':
+						title += "_still"
+					elif featuretype[1] == 'b':
+						title += "_blink"
+					else:
+						title = "Garbage"
+						#care = False
+
+					if care:
+
+						plt.figure(figsize=(20,10))
+						plt.suptitle(title)
+
+						b, a = filterlib.designfilter()
+						for l in range(0, numCh):
+
+							feature1 = DataSet[k+l].split(',')
+							featuretype1 = feature1[0]
+							feature1.pop(0)
+
+							if not(featuretype[0] == featuretype1[0]):
+								break
+
+							featureData1 = map(float, feature1)
+							subplotnum = (numCh/2)*100 + 20 + l + 1
 		
+							ax1 = plt.subplot(subplotnum)
+							if plottype != "raw":
+								featureData1 = filterlib.plotfilter(featureData1, b, a)
+								featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+							if plottype == "fft":
+								plot.exportFftPlot(featureData1, channels[l], ax1)
+							elif plottype == "raw":
+								plot.exportRaw(featureData1, channels[l], ax1)
+							else:
+								plot.exportplot(featureData1, channels[l], ax1)
 
 
+						tempOrNot = None
+						#print("i = %d" %i)
+						#print("Command" + command)
+						if command == "temp":
+							if i == 0:
+								tempOrNot = "tempfigures"
+							else:
+								tempOrNot = "longtempfigures"
+						elif command == "data":
+							if i == 0:
+								tempOrNot = "figures"
+							else:
+								tempOrNot = "longfigures"		
+						else:
+							if i == 0:
+								tempOrNot = "figures"
+							elif i == 1:
+								tempOrNot = "tempfigures"
+							elif i == 2:
+								tempOrNot = "longfigures"
+							elif i == 3:
+								tempOrNot = "longtempfigures"
 
-		pool = multiprocessing.Pool(len(DataSet)/numCh)
-		#for k in range(0, len(DataSet)-, (num_cpu*numCh)):
-		#print("k = %d" %(k/numCh))
-		#threadexport = multiprocessing.Pool(num_cpu*numCh)
-		#threadexport[k/numCh] = threading.Thread(target=threadplots, args=(k, DataSet, numCh, command, plottype))
-		#threadexport[k/numCh].setDaemon(True)
-		#threadexport[k/numCh].start()
-		#index = copy.copy(k)
-		#p = multiprocessing.Process(target=threadplots, args=(index, DataSet, numCh, command, plottype))
-		#threadexport.append(p)
-		#p.start()
-		variables = [None]*6
-		variables[0] = channels
-		variables[1] = i
-		variables[2] = command
-		variables[3] = plottype
-		#variables[4] = 0
-		variables[4] = DataSet
-		variables[5] = 0
-		indexlist = range(len(DataSet)/numCh)
-		#Datalist = [None]*(len(DataSet)/numCh)
-		print("Spawning %d threads" %(len(DataSet)/numCh))
-		#threadexport = [None]*(len(DataSet)/numCh)
-		print("Thread index up to: %d" %len(DataSet))
-		print(i)
-		'''
-		indexlist = []
-		for g in range(len(DataSet)/numCh):
-			start = g*numCh
-			stop = (g+1)*numCh
-			#print("Start: %d"%start)
-			#print("Stop: %d"%stop)
-			#print("g: %d"%g)
-			if len(DataSet) <= stop:
-				break
-			Datalist.append(DataSet[start:stop])
-			indexlist.append(g)
-		print(len(Datalist))
-		print(len(indexlist))
-		'''
-		#print(Datalist[93][7])
-		#iterable = izip(indexlist, Datalist) 
-		#print(len(variables)) 
-		#threadexport.map(func_star, itertools.izip(range(0, len(DataSet)/numCh),itertools.repeat(variables)))
-		#print(range(0, num_cpu),itertools.repeat(variables))
-		
-		res = pool.map(func_star, itertools.izip(indexlist,itertools.repeat(variables)), num_cpu)
-		res = [r for r in res if r is not None]
-		#print(p)
-		pool.close()
-		#print("Waiting to join")
-		pool.join()
-		#print("Has joined")
-		
-
-
-		'''
-			care = True
-			feature = []
-			feature = DataSet[k].split(',')
-
-			if len(feature) > 10:
-				featuretype = feature[0]
-				feature.pop(0)
-
-				if featuretype[0] == 'u':
-					title = "Up"
-				elif featuretype[0] == 'd':
-					title = "Down"
-				elif featuretype[0] == 'l':
-					title = "Left"
-				elif featuretype[0] == 'r':
-					title = "Right"
-				elif featuretype[0] == 'c':
-					title = "Center"
-					#care = False
-				else:
-					care = False
-
-				if featuretype[1] == 'd':
-					title += "_direction"
-				elif featuretype[1] == 'r':
-					title += "_return"
-				elif featuretype[1] == 's':
-					title += "_still"
-				elif featuretype[1] == 'b':
-					title += "_blink"
-				else:
-					title = "Garbage"
-					#care = False
-
-				if care:
-
-
-
-
-
-					
-					plt.figure(figsize=(20,10))
-					plt.suptitle(title)
-
-					b, a = filterlib.designfilter()
-					for l in range(0, numCh):
-
-						feature1 = DataSet[k+l].split(',')
-						featuretype1 = feature1[0]
-						feature1.pop(0)
-
-						if not(featuretype[0] == featuretype1[0]):
-							break
-
-						featureData1 = map(float, feature1)
-						subplotnum = (numCh/2)*100 + 20 + l + 1
-	
-						ax1 = plt.subplot(subplotnum)
-						if plottype != "raw":
-							featureData1 = filterlib.plotfilter(featureData1, b, a)
-							featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
 						if plottype == "fft":
-							plot.exportFftPlot(featureData1, channels[l], ax1)
+							savestring = (dir_path + "\\Dataset_fft\\"
+											+ tempOrNot +"\\"+title +"\\"
+											+ title+str(k/numCh) + ".png")
 						elif plottype == "raw":
-							plot.exportRaw(featureData1, channels[l], ax1)
+							savestring = (dir_path + "\\Dataset_raw\\"
+											+ tempOrNot +"\\"+title +"\\"
+											+ title+str(k/numCh) + ".png")
 						else:
-							plot.exportplot(featureData1, channels[l], ax1)
+							savestring = (dir_path + "\\Dataset_exports\\"
+											+ tempOrNot +"\\"+title +"\\"
+											+ title+str(k/numCh) + ".png")
+						print(savestring)
 
-
-					tempOrNot = None
-					#print("i = %d" %i)
-					#print("Command" + command)
-					if command == "temp":
-						if i == 0:
-							tempOrNot = "tempfigures"
-						else:
-							tempOrNot = "longtempfigures"
-					elif command == "data":
-						if i == 0:
-							tempOrNot = "figures"
-						else:
-							tempOrNot = "longfigures"		
-					else:
-						if i == 0:
-							tempOrNot = "figures"
-						elif i == 1:
-							tempOrNot = "tempfigures"
-						elif i == 2:
-							tempOrNot = "longfigures"
-						elif i == 3:
-							tempOrNot = "longtempfigures"
-
-					if plottype == "fft":
-						savestring = (dir_path + "\\Dataset_fft\\"
-										+ tempOrNot +"\\"+title +"\\"
-										+ title+str(k/numCh) + ".png")
-					elif plottype == "raw":
-						savestring = (dir_path + "\\Dataset_raw\\"
-										+ tempOrNot +"\\"+title +"\\"
-										+ title+str(k/numCh) + ".png")
-					else:
-						savestring = (dir_path + "\\Dataset_exports\\"
-										+ tempOrNot +"\\"+title +"\\"
-										+ title+str(k/numCh) + ".png")
-					print(savestring)
-
-					plt.subplots_adjust(hspace=0.6)
-					with filelock:
-						plt.savefig(savestring, bbox_inches='tight')
-					
-					#plt.show()
-					plt.close()
-					
-			else:
-				print("Empty file")
-		'''
+						plt.subplots_adjust(hspace=0.6)
+						with filelock:
+							plt.savefig(savestring, bbox_inches='tight')
+						
+						#plt.show()
+						plt.close()
+						
+				else:
+					print("Empty file")
+		
 	#plt.close('all')
 	print("Finished exporting plots")
 
@@ -410,12 +395,12 @@ def threadplots(k, variables):
 	import matplotlib.pyplot as plt
 	#print(len(variables))
 	
-	channels = variables[0]
-	i = variables[1]
-	command	= variables[2]
-	plottype = variables[3]
-	DataSet = variables[4]
-	p = variables[5]
+	#channels = variables[0]
+	i = variables[0]
+	command	= variables[1]
+	plottype = variables[2]
+	DataSet = variables[3]
+	#p = variables[5]
 	#k = p
 	#k = 6
 	#print("Thread %d" %k)
@@ -423,7 +408,8 @@ def threadplots(k, variables):
 	#print(Datalist[k][0])
 	care = True
 	feature = []
-	feature = DataSet[k*numCh].split(',')
+	#feature = DataSet[k*numCh].split(',')
+	feature = DataSet[0].split(',')
 	#print("First index error")
 	if len(feature) > 10:
 		featuretype = feature[0]
@@ -464,7 +450,8 @@ def threadplots(k, variables):
 			b, a = filterlib.designfilter()
 			for l in range(0, numCh):
 
-				feature1 = DataSet[k*numCh+l].split(',')
+				#feature1 = DataSet[k*numCh+l].split(',')
+				feature1 = DataSet[l].split(',')
 				#print("Second indexerror")
 				featuretype1 = feature1[0]
 				feature1.pop(0)

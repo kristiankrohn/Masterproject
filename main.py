@@ -16,13 +16,12 @@ import matplotlib.pyplot as plt
 #from numpy.random import randint
 from globalconst import *
 import globalvar as glb
-
 import Tkinter as tk
 import gui as ttk
 import plot as plotlib
 import filterlib 
 import dataset
-#import ML.learning #this moved to keys() 
+#import ML.learning #this is moved to keys() -> "learn"
 from serial import SerialException
 
 #mutex = Lock()
@@ -310,7 +309,7 @@ def keys():
 			#dataset.exportPlots("data")
 		elif string == "exporttempplots":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("temp", "time")) 
+												args=("temp", "time","fast")) 
 			exportThread.start()
 			#dataset.exportPlots("temp")
 		elif string == "exportallplots":
@@ -336,6 +335,9 @@ def keys():
 		elif string == "deletelongtemp":
 			dataset.clearLongTemp()
 
+		elif string == "deletetemp":
+			dataset.clearShortTemp()
+			dataset.clearLongTemp()
 
 		elif string == "savefilter":
 			savefiltercoeff()
@@ -377,12 +379,12 @@ def keys():
 				#print("Invalid input")
 		elif string == "exportfft":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("temp", "fft")) 
+												args=("temp", "fft","fast")) 
 			exportThread.start()
 			#dataset.exportPlots("temp", "fft")
 		elif string == "exportraw":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("temp", "raw")) 
+												args=("temp", "raw","fast")) 
 			exportThread.start()
 			#dataset.exportPlots("temp", "raw")
 		elif string == "fftplot":

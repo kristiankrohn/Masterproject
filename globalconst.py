@@ -13,3 +13,11 @@ nPlots = numCh
 nSamples = 2000
 
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+movements = ["\\Center_blink", "\\Center_still", 
+			"\\Down_direction", "\\Down_return", 
+			"\\Up_direction", "\\Up_return",
+			"\\Left_direction", "\\Left_return", 
+			"\\Right_direction", "\\Right_return", "\\Garbage"]
+
+channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
