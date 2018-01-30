@@ -214,59 +214,59 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 
 		if speed == "fast":
-			
-			num_cpu = multiprocessing.cpu_count()
-			
-			pool = multiprocessing.Pool(len(DataSet)/numCh)
-			variables = [None]*4
-			#variables[0] = 0
-			variables[0] = i
-			variables[1] = command
-			variables[2] = plottype
-			variables[3] = 0
-			#variables[4] = DataSet
-			#variables[5] = 0
-			indexlist = range(len(DataSet)/numCh)
-			Datalist = [None]*(len(DataSet)/numCh)
-			#print(Datalist)
-			for g in range(len(DataSet)/numCh):
-				start = g*numCh
-				stop = (g+1)*numCh
-				#print("Start: %d"%start)
-				#print("Stop: %d"%stop)
-				#print("g: %d"%g)
-				#if len(DataSet) <= stop:
-					#break
-				#Datalist.append(DataSet[start:stop])
-				variables[3] = DataSet[start:stop]
+			if len(DataSet) > numCh:
+				num_cpu = multiprocessing.cpu_count()
 				
-				#variables[4] = str(g)
-				Datalist[g]=copy.deepcopy(variables)
-				#indexlist.append(g)	
-			#Datalist = [None]*(len(DataSet)/numCh)
-			#for i in range(len(Datalist)):
-				#print(Datalist[i])
-				#tme.sleep(1)
-			#Dataset = None
-			print("Spawning %d threads" %(len(DataSet)/numCh))
-			#threadexport = [None]*(len(DataSet)/numCh)
-			#print("Thread index up to: %d" %len(DataSet))
-			#print(i)
-			
-			#res = pool.map(func_star, itertools.izip(indexlist,itertools.repeat(variables)), num_cpu)
-			iterator = itertools.izip(indexlist,Datalist)
-			#Datalist = None
-			#indexlist = None
-			res = pool.map(func_star, iterator, num_cpu)
-			res = [r for r in res if r is not None]
-			#iterator = None
-			#print(p)
-			pool.close()
-			#print("Waiting to join")
-			pool.join()
-			#print("Has joined")
-			
-
+				pool = multiprocessing.Pool(len(DataSet)/numCh)
+				variables = [None]*4
+				#variables[0] = 0
+				variables[0] = i
+				variables[1] = command
+				variables[2] = plottype
+				variables[3] = 0
+				#variables[4] = DataSet
+				#variables[5] = 0
+				indexlist = range(len(DataSet)/numCh)
+				Datalist = [None]*(len(DataSet)/numCh)
+				#print(Datalist)
+				for g in range(len(DataSet)/numCh):
+					start = g*numCh
+					stop = (g+1)*numCh
+					#print("Start: %d"%start)
+					#print("Stop: %d"%stop)
+					#print("g: %d"%g)
+					#if len(DataSet) <= stop:
+						#break
+					#Datalist.append(DataSet[start:stop])
+					variables[3] = DataSet[start:stop]
+					
+					#variables[4] = str(g)
+					Datalist[g]=copy.deepcopy(variables)
+					#indexlist.append(g)	
+				#Datalist = [None]*(len(DataSet)/numCh)
+				#for i in range(len(Datalist)):
+					#print(Datalist[i])
+					#tme.sleep(1)
+				#Dataset = None
+				print("Spawning %d threads" %(len(DataSet)/numCh))
+				#threadexport = [None]*(len(DataSet)/numCh)
+				#print("Thread index up to: %d" %len(DataSet))
+				#print(i)
+				
+				#res = pool.map(func_star, itertools.izip(indexlist,itertools.repeat(variables)), num_cpu)
+				iterator = itertools.izip(indexlist,Datalist)
+				#Datalist = None
+				#indexlist = None
+				res = pool.map(func_star, iterator, num_cpu)
+				res = [r for r in res if r is not None]
+				#iterator = None
+				#print(p)
+				pool.close()
+				#print("Waiting to join")
+				pool.join()
+				#print("Has joined")
+			else:	
+				print("Empty file")
 		else:
 		
 			for k in range(0, len(DataSet), numCh):
@@ -529,16 +529,19 @@ def deleteShortDataelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in numCh:
-		DataSet.pop(index)
-	file.close()
-	file = open(dir_path+"\\Dataset\\data.txt", 'w')
-	for i in range(len(DataSet)-1):
-		file.write(DataSet[i])
-		file.write(':')
-	file.close()
-	index = index / numCh
-	print("Data element %d is deleted" % index)
+	if index > len(DataSet):
+		print("Index error")
+	else:	
+		for i in numCh:
+			DataSet.pop(index)
+		file.close()
+		file = open(dir_path+"\\Dataset\\data.txt", 'w')
+		for i in range(len(DataSet)-1):
+			file.write(DataSet[i])
+			file.write(':')
+		file.close()
+		index = index / numCh
+		print("Data element %d is deleted" % index)
 
 def deleteLongDataelement(index):
 
@@ -547,16 +550,19 @@ def deleteLongDataelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in numCh:
-		DataSet.pop(index)
-	file.close()
-	file = open(dir_path+"\\Dataset\\longdata.txt", 'w')
-	for i in range(len(DataSet)-1):
-		file.write(DataSet[i])
-		file.write(':')
-	file.close()
-	index = index / numCh
-	print("Data element %d is deleted" % index)
+	if index > len(DataSet):
+		print("Index error")
+	else:
+		for i in numCh:
+			DataSet.pop(index)
+		file.close()
+		file = open(dir_path+"\\Dataset\\longdata.txt", 'w')
+		for i in range(len(DataSet)-1):
+			file.write(DataSet[i])
+			file.write(':')
+		file.close()
+		index = index / numCh
+		print("Data element %d is deleted" % index)
 
 def deleteShortTempelement(index):
 
@@ -565,18 +571,21 @@ def deleteShortTempelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in range(numCh):
-		DataSet.pop(index)
-	#DataSet.pop(index)
-	#print(DataSet)
-	file.close()
-	file = open(dir_path+"\\Dataset\\temp.txt", 'w')
-	for i in range(len(DataSet)-1):
-		file.write(DataSet[i])
-		file.write(':')
-	file.close()
-	index = index / numCh
-	print("Temp element %d is deleted" % index)
+	if index > len(DataSet):
+		print("Index error")
+	else:
+		for i in range(numCh):
+			DataSet.pop(index)
+		#DataSet.pop(index)
+		#print(DataSet)
+		file.close()
+		file = open(dir_path+"\\Dataset\\temp.txt", 'w')
+		for i in range(len(DataSet)-1):
+			file.write(DataSet[i])
+			file.write(':')
+		file.close()
+		index = index / numCh
+		print("Temp element %d is deleted" % index)
 
 def deleteLongTempelement(index):
 
@@ -585,18 +594,21 @@ def deleteLongTempelement(index):
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
-	for i in range(numCh):
-		DataSet.pop(index)
-	#DataSet.pop(index)
-	#print(DataSet)
-	file.close()
-	file = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
-	for i in range(len(DataSet)-1):
-		file.write(DataSet[i])
-		file.write(':')
-	file.close()
-	index = index / numCh
-	print("Temp element %d is deleted" % index)
+	if index > len(DataSet):
+		print("Index error")
+	else:
+		for i in range(numCh):
+			DataSet.pop(index)
+		#DataSet.pop(index)
+		#print(DataSet)
+		file.close()
+		file = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
+		for i in range(len(DataSet)-1):
+			file.write(DataSet[i])
+			file.write(':')
+		file.close()
+		index = index / numCh
+		print("Temp element %d is deleted" % index)
 
 def saveShortData():
 
@@ -699,4 +711,65 @@ def loadDataset(filename="data.txt"):
 	print("Finished loading dataset")
 	return(x,y)
 
+def deletesystem(elementtype="shorttemp"):
+	#Some system for setting variables according to file
+	if elementtype == "shorttemp": 
+		targetfile = "temp.txt"
+		file = "deletetemp.txt"
+	elif elementtype == "longtemp":
+		targetfile = "longtemp.txt"
+		file = "deletelongtemp.txt"
+	elif elementtype == "shortdata":
+		targetfile = "data.txt"
+		file = "deletedata.txt"
+	elif elementtype == "longdata":
+		targetfile = "longdata.txt"
+		file = "deletelongdata.txt"
+	else:
+		print("Error: wrong elementtype")
+		return
 
+	tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'r')
+	tempData = tempfile.read()
+	tempfile.close()
+	tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'w')
+	tempfile.truncate(0)
+	tempfile.close()
+	indexlist = []
+	indexlist = AllData.split(',')
+	indexlist.sort(reverse=True)
+	print("Data to delete: ")
+	print(indexlist)
+	for i in range(indexlist):
+		#Delete data
+		deleteelement(index = indexlist[i], file=targetfile)
+	print("Sucessfully deleted elements")
+
+def deleteelement(index, file):
+
+	index = index * numCh
+	file = open(dir_path+"\\Dataset\\"+file, 'r')
+	AllData = file.read()
+	DataSet = []
+	DataSet = AllData.split(':')
+	if index > len(DataSet):
+		print("Index error")
+	else:
+		for i in range(numCh):
+			DataSet.pop(index)
+		#DataSet.pop(index)
+		#print(DataSet)
+		file.close()
+		file = open(dir_path+"\\Dataset\\"file, 'w')
+		for i in range(len(DataSet)-1):
+			file.write(DataSet[i])
+			file.write(':')
+		file.close()
+		index = index / numCh
+		print(file +" element %d is deleted" % index)
+
+def appenddelete(index, file):
+	file = open(dir_path+"\\Dataset_delete\\"+file, 'a')
+	file.write(index)
+	file.write(",")
+	file.close()

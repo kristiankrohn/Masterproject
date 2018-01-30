@@ -114,7 +114,7 @@ class Alien(object):
 			sleeping = True
 			#tme.sleep(4)
 
-		if sleeping and (tme.time() > startSleep + 2.5):
+		if sleeping and (tme.time() > startSleep + 3):
 			cmd = 5
 			endMove = tme.time()
 			#print("Movementtime= ")
