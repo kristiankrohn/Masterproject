@@ -33,6 +33,7 @@ from numpy import zeros, floor, log10, log, mean, array, sqrt, vstack, cumsum, \
 				  ones, log2, std
 from numpy.linalg import svd, lstsq
 import time
+import math
 
 ######################## Functions contributed by Xin Liu #################
 
@@ -838,6 +839,7 @@ def dfa(X, Ave = None, L = None):
 
 	if L is None:
 		L = floor(len(X)*1/(2**array(range(4,int(log2(len(X)))-4))))
+		#print(L)
 		#This doesn't work, returns nothing
 		#Try numpy floor function?
 

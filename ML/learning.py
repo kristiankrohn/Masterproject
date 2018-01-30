@@ -8,9 +8,12 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import classification_report
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
+
 import dataset
 from globalconst import  *
 import globalvar
@@ -52,6 +55,7 @@ def startLearning():
     XL = [[]]
 
     accuracyScore = []
+    classificationReport = []
     featureVector = []
 
     X, y = dataset.loadDataset("longtemp.txt")
@@ -72,7 +76,7 @@ def startLearning():
                         pyeeg.hfd(list(X[0][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
                         #pyeeg.hjorth(list(X[0][i])),
                         pyeeg.spectral_entropy(list(X[0][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        pyeeg.dfa(list(X[0][i]), None, None),
+                        #pyeeg.dfa(list(X[0][i]), None, None),
                         #np.ptp(list(X[0][i])),
                         #np.amax(list(X[0][i])),
                         #np.amin(list(X[0][i]))
@@ -108,11 +112,20 @@ def startLearning():
         #clf = loadMachineState() #Uncomment this to load the machine state
 
         #Predict the classes
-        accuracyScore.append(predict(compFeaturesTest, clf, yTest))
+        tempAccuracy, tempClassReport = predict(compFeaturesTest, clf, yTest)
 
+        accuracyScore.append(tempAccuracy)
+        classificationReport.append(tempClassReport)
     #Evaluate the features on the training data.
     evaluateFeatures(XLtrain, yTrain)
     print(accuracyScore)
+
+    #prints the classification report
+
+    #for i in range(len(classificationReport)):
+        #print "Number of features :", i + 1
+        #print(classificationReport[i])
+
     #saveMachinestate(clf)   #Uncomment this to save the machine state
     #plotClassifier(clfPlot) #uncomment this to plot the classifier
 
@@ -188,9 +201,14 @@ def predict(Xtest, clf, yTest):
     #Print the test data to see how well it performs.
     print(yTest)
     print(predictions)
-    print(accuracy_score(yTest, predictions))
+    accuracyScore = accuracy_score(yTest, predictions)
+    print(accuracyScore)
+    #meanSquaredScore = mean_squared_error(yTest, predictions)
+    classificationReport = classification_report(yTest, predictions)
+    #print(classificationReport)
+    #print(meanSquaredScore)
 
-    return(accuracy_score(yTest, predictions))
+    return accuracyScore, classificationReport
 
 
 def saveMachinestate(clf):
