@@ -2,6 +2,7 @@ import pyeeg
 import numpy as np
 from sklearn import svm
 from sklearn import preprocessing
+from sklearn.model_selection import GridSearchCV
 from sklearn.externals import joblib
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
@@ -101,12 +102,13 @@ def startLearning():
     #Scale the data if needed and split dataset into training and testing
     XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
 
+    bestParams = tuneSvmParameters(XLtrain, yTrain, XLtest, yTest)
 
     #Nested loops to compare accuracy when varying number of features are used.
     for i in range(len(XL[0])):
         compFeaturesTraining, compFeaturesTest = compareFeatures(i, XL, XLtrain, XLtest)
         #Create the classifier and train it on the test data.
-        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain) #uncomment this if state should be loaded
+        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, bestParams) #uncomment this if state should be loaded
 
         #Load state of the classifier
         #clf = loadMachineState() #Uncomment this to load the machine state
@@ -146,21 +148,60 @@ def compareFeatures(i, XL, XLtrain, XLtest):
         compareFeaturesTesting.append(list(XLtest[j][0:(i + 1)]))
     return compareFeaturesTraining, compareFeaturesTesting
 
-def createAndTrain(XLtrain, yTrain):
+def createAndTrain(XLtrain, yTrain, bestParams):
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
 
     #SVM classification, regulation parameter C = 102 gives good results
+    #This fits with the tested best parameters. Might want to manually write this to not
+
+    clf = svm.SVC(kernel=bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
     #C = 102
-    #clf = svm.SVC(kernel='rbf', gamma=0.12, C=C, decision_function_shape='ovr')
+    #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
 
     #Decision tree classification. max_depth 8 and min_leaf = 5 gives good results, but varying.
-    clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
+    #clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
     clf.fit(XLtrain,yTrain)#skaler???
 
     #Create classifier to be able to visualize it
     clfPlot = clf
     clfPlot.fit(XLtrain,yTrain)
     return clf, clfPlot #Uncomment this to be able to plot the classifier
+
+def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
+    bestParams = []
+    tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
+                        'C': [1, 10, 100, 1000, 10000, 100000]},
+                        {'kernel': ['linear'], 'C': [1, 10, 100, 1000, 10000, 100000]}]
+
+    scores = ['precision', 'recall']
+
+    for score in scores:
+
+        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=5, scoring='%s_macro' % score)
+        clf.fit(XLtrain, yTrain)
+        bestParams.append(clf.best_params_)
+        print("Best parameters set found on development set:")
+        print()
+        print(bestParams)
+        print()
+        print("Grid scores on development set:")
+        print()
+        means = clf.cv_results_['mean_test_score']
+        stds = clf.cv_results_['std_test_score']
+        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean, std * 2, params))
+        print()
+
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        yPred = clf.predict(XLtest)
+        print(classification_report(yTest, yPred))
+        print()
+    return bestParams[0]
 
 def evaluateFeatures(X, y):
 
