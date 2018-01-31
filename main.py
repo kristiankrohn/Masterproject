@@ -345,27 +345,90 @@ def keys():
 
 		elif string == "deleteshortdataelement":
 			if inputval != None:
-				dataset.deleteShortDataelement(inputval)
+				dataset.deleteelement(inputval, "data.txt")
 			else:
 				print("Invalid input")
 
 		elif string == "deleteshorttempelement":
 			if inputval != None:
-				dataset.deleteShortTempelement(inputval)
+				dataset.deleteelement(inputval, "temp.txt")
 			else:
 				print("Invalid input")
 
 		elif string == "deletelongdataelement":
 			if inputval != None:
-				dataset.deleteLongDataelement(inputval)
+				dataset.deleteelement(inputval, "longdata.txt")
 			else:
 				print("Invalid input")
 
 		elif string == "deletelongtempelement":
 			if inputval != None:
-				dataset.deleteLongTempelement(inputval)
+				dataset.deleteelement(inputval, "longtemp.txt")
 			else:
 				print("Invalid input")
+
+		elif string == "deleteappendedtemp":
+			dataset.deletesystem("shorttemp")
+			dataset.deletesystem("longtemp")
+
+		elif string == "appenddelshorttemp":
+			if inputval != None:
+				dataset.appenddelete(inputval, "shorttemp")
+			else:
+				print("Invalid input")
+
+		elif string == "appenddellongtemp":
+			if inputval != None:
+				dataset.appenddelete(inputval, "longtemp")
+			else:
+				print("Invalid input")
+
+		elif string == "appenddelshortdata":
+			if inputval != None:
+				dataset.appenddelete(inputval, "shortdata")
+			else:
+				print("Invalid input")
+
+		elif string == "appenddellongdata":
+			if inputval != None:
+				dataset.appenddelete(inputval, "longdata")
+			else:
+				print("Invalid input")
+		elif string == "printappenddelshorttemp":
+			dataset.print_appenddelete("shorttemp")
+
+		elif string == "printappenddelshortdata":
+			dataset.print_appenddelete("shortdata")
+
+		elif string == "printappenddellongtemp":
+			dataset.print_appenddelete("longtemp")
+
+		elif string == "printappenddellongdata":
+			dataset.print_appenddelete("longdata")
+
+		elif string == "removeappenddelshorttemp":
+			if inputval != None:
+				dataset.remove_appenddelete(inputval, "shorttemp")
+			else:
+				print("Invalid input")
+
+		elif string == "removeappenddelshortdata":
+			if inputval != None:
+				dataset.remove_appenddelete(inputval, "shortdata")
+			else:
+				print("Invalid input")	
+
+		elif string == "removeappenddellongtemp":
+			if inputval != None:
+				dataset.remove_appenddelete(inputval, "longtemp")
+			else:
+				print("Invalid input")	
+
+		elif string == "removeappenddellongdata":
+			if inputval != None:
+				dataset.remove_appenddelete(inputval, "longdata")
+			else:
+				print("Invalid input")				
 		#elif string == "viewdataelement":
 			#if inputval != None:
 				#dataset.viewdataelement(inputval)
@@ -400,6 +463,22 @@ def keys():
 		elif string == "learn":
 			import ML.learning as learning
 			learning.startLearning()
+		elif string == "help":
+			print("This is a list over essential commands, those ending with = need input values")
+			print("exit - exits the system")
+			print("start - starts the serial communication with the EEG helmet")
+			print("graph - realtime graph with filtered data")
+			print("gui - start the training gui")
+			print("learn - train the system")
+			print("analyzefilter - makes a plot of amplitude, phase, impule and step response for the current filter")
+			print("exportdataplots - exports time domain plots for dataset, files can be found in Dataset_exports folder")
+			print("exporttempplots - export timedomain plots for temp dataset, files can be found in Dataset_exports folder")
+			print("exportraw - export unfiltered timedomain plots for both temp set and data set")
+			print("exportfft - export fft plots for both temp set and data set")
+
+
+			print("+ many more, look in the code in the keys() function in main.py file for more...")
+
 		else:
 			print("Unknown command")	
 

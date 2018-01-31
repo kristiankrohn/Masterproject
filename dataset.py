@@ -147,7 +147,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 		folders = ["\\tempfigures", "\\longtempfigures"]
 
 	elif command == "data":
-		folders == ["\\figures", "\\longfigures"]
+		folders = ["\\figures", "\\longfigures"]
 
 	else:
 		folders = ["\\figures", "\\tempfigures", 
@@ -522,93 +522,6 @@ def threadplots(k, variables):
 		print("Empty file")
 	print("Returning %d" %k)
 
-def deleteShortDataelement(index):
-
-	index = index * numCh
-	file = open(dir_path+"\\Dataset\\data.txt", 'r')
-	AllData = file.read()
-	DataSet = []
-	DataSet = AllData.split(':')
-	if index > len(DataSet):
-		print("Index error")
-	else:	
-		for i in numCh:
-			DataSet.pop(index)
-		file.close()
-		file = open(dir_path+"\\Dataset\\data.txt", 'w')
-		for i in range(len(DataSet)-1):
-			file.write(DataSet[i])
-			file.write(':')
-		file.close()
-		index = index / numCh
-		print("Data element %d is deleted" % index)
-
-def deleteLongDataelement(index):
-
-	index = index * numCh
-	file = open(dir_path+"\\Dataset\\longdata.txt", 'r')
-	AllData = file.read()
-	DataSet = []
-	DataSet = AllData.split(':')
-	if index > len(DataSet):
-		print("Index error")
-	else:
-		for i in numCh:
-			DataSet.pop(index)
-		file.close()
-		file = open(dir_path+"\\Dataset\\longdata.txt", 'w')
-		for i in range(len(DataSet)-1):
-			file.write(DataSet[i])
-			file.write(':')
-		file.close()
-		index = index / numCh
-		print("Data element %d is deleted" % index)
-
-def deleteShortTempelement(index):
-
-	index = index * numCh
-	file = open(dir_path+"\\Dataset\\temp.txt", 'r')
-	AllData = file.read()
-	DataSet = []
-	DataSet = AllData.split(':')
-	if index > len(DataSet):
-		print("Index error")
-	else:
-		for i in range(numCh):
-			DataSet.pop(index)
-		#DataSet.pop(index)
-		#print(DataSet)
-		file.close()
-		file = open(dir_path+"\\Dataset\\temp.txt", 'w')
-		for i in range(len(DataSet)-1):
-			file.write(DataSet[i])
-			file.write(':')
-		file.close()
-		index = index / numCh
-		print("Temp element %d is deleted" % index)
-
-def deleteLongTempelement(index):
-
-	index = index * numCh
-	file = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
-	AllData = file.read()
-	DataSet = []
-	DataSet = AllData.split(':')
-	if index > len(DataSet):
-		print("Index error")
-	else:
-		for i in range(numCh):
-			DataSet.pop(index)
-		#DataSet.pop(index)
-		#print(DataSet)
-		file.close()
-		file = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
-		for i in range(len(DataSet)-1):
-			file.write(DataSet[i])
-			file.write(':')
-		file.close()
-		index = index / numCh
-		print("Temp element %d is deleted" % index)
 
 def saveShortData():
 
@@ -732,23 +645,39 @@ def deletesystem(elementtype="shorttemp"):
 	tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'r')
 	tempData = tempfile.read()
 	tempfile.close()
-	tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'w')
-	tempfile.truncate(0)
-	tempfile.close()
-	indexlist = []
-	indexlist = AllData.split(',')
-	indexlist.sort(reverse=True)
-	print("Data to delete: ")
-	print(indexlist)
-	for i in range(indexlist):
-		#Delete data
-		deleteelement(index = indexlist[i], file=targetfile)
-	print("Sucessfully deleted elements")
 
-def deleteelement(index, file):
+	tempindexlist = []
+	tempindexlist = tempData.split(',')
+	tempindexlist.pop(-1)
+	#print(tempindexlist)
+	if len(tempindexlist) > 0:
+		indexlist = map(int, tempindexlist)
+		#print(indexlist)
+		indexlist = np.unique(indexlist).tolist()
+		#print(indexlist)
+		indexlist.sort(reverse=True)
+		print("Data to delete in " + elementtype + ": ")
+		print(indexlist)
+		print("Continue? [Y/n]")
+		inputString = raw_input()
+		if inputString == "Y":
+			for i in range(len(indexlist)):
+				#Delete data
+				deleteelement(index = indexlist[i], filename=targetfile)
+				#print(indexlist[i])
+			print("Sucessfully deleted elements")
+			tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'w')
+			tempfile.truncate(0)
+			tempfile.close()
+		else:
+			print("Del operation aborted")
+	else:
+		print(elementtype + " list is empty")
+
+def deleteelement(index, filename):
 
 	index = index * numCh
-	file = open(dir_path+"\\Dataset\\"+file, 'r')
+	file = open(dir_path+"\\Dataset\\"+filename, 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -760,16 +689,97 @@ def deleteelement(index, file):
 		#DataSet.pop(index)
 		#print(DataSet)
 		file.close()
-		file = open(dir_path+"\\Dataset\\"file, 'w')
+		file = open(dir_path+"\\Dataset\\"+filename, 'w')
 		for i in range(len(DataSet)-1):
 			file.write(DataSet[i])
 			file.write(':')
 		file.close()
 		index = index / numCh
-		print(file +" element %d is deleted" % index)
+		print(filename +" element %d is deleted" % index)
 
-def appenddelete(index, file):
-	file = open(dir_path+"\\Dataset_delete\\"+file, 'a')
-	file.write(index)
+def appenddelete(index, elementtype):
+	if elementtype == "shorttemp": 
+		filename = "deletetemp.txt"
+	elif elementtype == "longtemp":
+		filename = "deletelongtemp.txt"
+	elif elementtype == "shortdata":
+		filename = "deletedata.txt"
+	elif elementtype == "longdata":
+		filename = "deletelongdata.txt"
+	else:
+		print("Error: wrong elementtype")
+		return
+
+	file = open(dir_path+"\\Dataset_delete\\"+filename, 'a')
+	file.write(str(index))
 	file.write(",")
 	file.close()
+	print("Appended %d to "%index + elementtype)
+
+def remove_appenddelete(index, elementtype):
+	if elementtype == "shorttemp": 
+		filename = "deletetemp.txt"
+	elif elementtype == "longtemp":
+		filename = "deletelongtemp.txt"
+	elif elementtype == "shortdata":
+		filename = "deletedata.txt"
+	elif elementtype == "longdata":
+		filename = "deletelongdata.txt"
+	else:
+		print("Error: wrong elementtype")
+		return
+
+	tempfile = open(dir_path+"\\Dataset_delete\\"+filename, 'r')
+	tempData = tempfile.read()
+	tempfile.close()
+
+	tempindexlist = []
+	tempindexlist = tempData.split(',')
+	tempindexlist.pop(-1)
+	if len(tempindexlist) > 0:
+		indexlist = map(int, tempindexlist)
+		indexlist = np.unique(indexlist).tolist()
+		if index in indexlist:
+			indexlist.remove(index)
+			file = open(dir_path+"\\Dataset_delete\\"+filename, 'w')
+			for i in range(len(indexlist)):		
+				file.write(str(indexlist[i]))
+				file.write(",")
+			file.close()
+			print("Removed index %d  "%index + "from " + elementtype)
+		else:
+			print("Index does not exist in " + elementtype) 
+	else:
+		print(elementtype + " list is empty!")
+
+def print_appenddelete(elementtype):
+	if elementtype == "shorttemp": 
+		filename = "deletetemp.txt"
+	elif elementtype == "longtemp":
+		filename = "deletelongtemp.txt"
+	elif elementtype == "shortdata":
+		filename = "deletedata.txt"
+	elif elementtype == "longdata":
+		filename = "deletelongdata.txt"
+	else:
+		print("Error: wrong elementtype")
+		return
+
+	tempfile = open(dir_path+"\\Dataset_delete\\"+filename, 'r')
+	tempData = tempfile.read()
+	tempfile.close()
+
+	tempindexlist = []
+	tempindexlist = tempData.split(',')
+	tempindexlist.pop(-1)
+	#print(tempindexlist)
+	if len(tempindexlist) > 0:
+		indexlist = map(int, tempindexlist)
+		#print(indexlist)
+		indexlist = np.unique(indexlist).tolist()
+		#print(indexlist)
+		indexlist.sort(reverse=True)
+		print("Data to delete in " + elementtype + ": ")
+		print(indexlist)
+	else:
+		print(elementtype + " list is empty")
