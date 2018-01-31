@@ -154,7 +154,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     #SVM classification, regulation parameter C = 102 gives good results
     #This fits with the tested best parameters. Might want to manually write this to not
-    if bestParams['kernel'] == 'Linear':
+    if bestParams['kernel'] == 'linear':
         clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     else:
         clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
