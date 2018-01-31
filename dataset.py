@@ -59,17 +59,16 @@ def prepSaveData(direction, length):
 
 	startTime = tme.time() + (backPadding/glb.fs) + delayconstant
 	ready = False
-	with glb.mutex:
-		if len(glb.data[0][timestamp]) < (length + frontPadding + backPadding):
-			print("Lenght of data is too small")
-			return -1
+
 	temp = None
 	
 
 	while not ready:
 		with glb.mutex:
-
-			if glb.data[0][timestamp][-1] >= startTime: #Gaar out of range
+			if len(glb.data[0][timestamp]) < (length + frontPadding + backPadding):
+				print("Lenght of data is too small")
+				return -1
+			elif glb.data[0][timestamp][-1] >= startTime: #Gaar out of range
 				ready = True
 				temp = copy.deepcopy(glb.data)
 				error = False
