@@ -154,8 +154,10 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     #SVM classification, regulation parameter C = 102 gives good results
     #This fits with the tested best parameters. Might want to manually write this to not
-
-    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+    if bestParams['kernel'] == 'Linear':
+        clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
+    else:
+        clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
     #C = 102
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
 
@@ -178,7 +180,8 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
 
     for score in scores:
 
-        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=5, scoring='%s_macro' % score)
+        #CV = ?????
+        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=2, scoring='%s_macro' % score)
         clf.fit(XLtrain, yTrain)
         bestParams.append(clf.best_params_)
         print("Best parameters set found on development set:")
