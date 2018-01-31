@@ -59,7 +59,8 @@ def startLearning():
     classificationReport = []
     featureVector = []
 
-    X, y = dataset.loadDataset("longtemp.txt")
+    X, y = dataset.loadDataset("longdata.txt")
+    #Add system to support all channels, double lokke. for i in range (len(X[0])) and len(X[0][0])
     for i in range(len(X[0])):
         power, powerRatio = pyeeg.bin_power(X[0][i], [0.1, 4, 7, 12,30], 250)
         #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
@@ -154,7 +155,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #SVM classification, regulation parameter C = 102 gives good results
     #This fits with the tested best parameters. Might want to manually write this to not
 
-    clf = svm.SVC(kernel=bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
     #C = 102
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
 
