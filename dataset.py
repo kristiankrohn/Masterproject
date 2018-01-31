@@ -523,60 +523,69 @@ def threadplots(k, variables):
 
 
 def saveShortData():
+	print("Are you sure you want to append all elements in shorttemp to shortdata?")
+	print("Continue? [Y/n]")
+	inputString = raw_input()
+	if inputString == "Y":
+		tempfile = open(dir_path+"\\Dataset\\temp.txt", 'r')
+		tempData = tempfile.read()
+		tempfile.close()
+		permfile = open(dir_path+"\\Dataset\\data.txt", 'a')
+		permfile.write(tempData)
+		permfile.close()
+		tempfile = open(dir_path+"\\Dataset\\temp.txt", 'w')
+		tempfile.truncate(0)
+		tempfile.close()
+		print("Short Data Saved")
+	else:
+		print("Append operation aborted")
 
-	tempfile = open(dir_path+"\\Dataset\\temp.txt", 'r')
-	tempData = tempfile.read()
-	tempfile.close()
-	permfile = open(dir_path+"\\Dataset\\data.txt", 'a')
-	permfile.write(tempData)
-	permfile.close()
-	tempfile = open(dir_path+"\\Dataset\\temp.txt", 'w')
-	tempfile.truncate(0)
-	tempfile.close()
-	print("Short Data Saved")
 
 def saveLongData():
-
-	tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
-	tempData = tempfile.read()
-	tempfile.close()
-	permfile = open(dir_path+"\\Dataset\\longdata.txt", 'a')
-	permfile.write(tempData)
-	permfile.close()
-	tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
-	tempfile.truncate(0)
-	tempfile.close()
-	print("Long Data Saved")
-
-
-def clearShortTemp():
-
-	tempfile = open(dir_path+"\\Dataset\\temp.txt", 'w')
-	tempfile.truncate(0)
-	tempfile.close()
-	print("Short Temp is cleared")
-
-def clearLongTemp():
-
-	tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
-	tempfile.truncate(0)
-	tempfile.close()
-	print("Long Temp is cleared")
+	print("Are you sure you want to append all elements in longtemp to longdata?")
+	print("Continue? [Y/n]")
+	inputString = raw_input()
+	if inputString == "Y":
+		tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
+		tempData = tempfile.read()
+		tempfile.close()
+		permfile = open(dir_path+"\\Dataset\\longdata.txt", 'a')
+		permfile.write(tempData)
+		permfile.close()
+		tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
+		tempfile.truncate(0)
+		tempfile.close()
+		print("Long Data Saved")
+	else:
+		print("Append operation aborted")
 
 
-def clearShortData():
 
-	tempfile = open(dir_path+"\\Dataset\\data.txt", 'w')
-	tempfile.truncate(0)
-	tempfile.close()
-	print("Short Data is deleted")
-	
-def clearLongData():
 
-	tempfile = open(dir_path+"\\Dataset\\longdata.txt", 'w')
-	tempfile.truncate(0)
-	tempfile.close()
-	print("Long Data is deleted")
+def clear(elementtype):
+	if elementtype == "shorttemp": 
+		targetfile = "temp.txt"
+	elif elementtype == "longtemp":
+		targetfile = "longtemp.txt"
+	elif elementtype == "shortdata":
+		targetfile = "data.txt"
+	elif elementtype == "longdata":
+		targetfile = "longdata.txt"
+	else:
+		print("Error: wrong elementtype")
+		return
+	print("Are you sure you want to delete all elements in: " + elementtype)
+	print("Continue? [Y/n]")
+	inputString = raw_input()
+	if inputString == "Y":
+		tempfile = open(dir_path+"\\Dataset\\"+targetfile, 'w')
+		tempfile.truncate(0)
+		tempfile.close()
+		print("All data in " + elementtype + " are deleted")
+	else:
+		print("Delete operation aborted")	
+
+
 
 def loadDataset(filename="data.txt"):
 	global filelock
@@ -622,6 +631,8 @@ def loadDataset(filename="data.txt"):
 	#plt.close('all')
 	print("Finished loading dataset")
 	return(x,y)
+
+
 
 def deletesystem(elementtype="shorttemp"):
 	#Some system for setting variables according to file
@@ -673,6 +684,8 @@ def deletesystem(elementtype="shorttemp"):
 	else:
 		print(elementtype + " list is empty")
 
+
+
 def deleteelement(index, filename):
 
 	index = index * numCh
@@ -696,6 +709,8 @@ def deleteelement(index, filename):
 		index = index / numCh
 		print(filename +" element %d is deleted" % index)
 
+
+
 def appenddelete(index, elementtype):
 	if elementtype == "shorttemp": 
 		filename = "deletetemp.txt"
@@ -714,6 +729,8 @@ def appenddelete(index, elementtype):
 	file.write(",")
 	file.close()
 	print("Appended %d to "%index + elementtype)
+
+
 
 def remove_appenddelete(index, elementtype):
 	if elementtype == "shorttemp": 
@@ -751,6 +768,8 @@ def remove_appenddelete(index, elementtype):
 	else:
 		print(elementtype + " list is empty!")
 
+
+
 def print_appenddelete(elementtype):
 	if elementtype == "shorttemp": 
 		filename = "deletetemp.txt"
@@ -782,3 +801,4 @@ def print_appenddelete(elementtype):
 		print(indexlist)
 	else:
 		print(elementtype + " list is empty")
+

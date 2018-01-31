@@ -324,20 +324,20 @@ def keys():
 			dataset.saveLongData()
 
 		elif string == "deleteshortdata":
-			dataset.clearShortData()
+			dataset.clear("shortdata")
 
 		elif string == "deletelongdata":
-			dataset.clearLongData()
+			dataset.clear("longdata")
 
 		elif string == "deleteshorttemp":
-			dataset.clearShortTemp()
+			dataset.clear("shorttemp")
 
 		elif string == "deletelongtemp":
-			dataset.clearLongTemp()
+			dataset.clear("longtemp")
 
 		elif string == "deletetemp":
-			dataset.clearShortTemp()
-			dataset.clearLongTemp()
+			dataset.clear("shorttemp")
+			dataset.clear("longtemp")
 
 		elif string == "savefilter":
 			savefiltercoeff()
@@ -475,10 +475,11 @@ def keys():
 			print("exporttempplots - export timedomain plots for temp dataset, files can be found in Dataset_exports folder")
 			print("exportraw - export unfiltered timedomain plots for both temp set and data set")
 			print("exportfft - export fft plots for both temp set and data set")
-
+			print("helpdataset - print out the dataset handling commands")
 
 			print("+ many more, look in the code in the keys() function in main.py file for more...")
-
+		elif string == "helpdataset":
+			print("This is a list over essential dataset commands")
 		else:
 			print("Unknown command")	
 
