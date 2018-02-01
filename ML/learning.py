@@ -3,6 +3,7 @@ import numpy as np
 from sklearn import svm
 from sklearn import preprocessing
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import cross_val_score
 from sklearn.externals import joblib
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
@@ -11,6 +12,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
@@ -55,6 +57,8 @@ def main():
 def startLearning():
     bestParams = []
     accuracyScore = []
+    f1Score = []
+    #crossValScore = []
     X, y = dataset.loadDataset("longdata.txt")
     for channel in range(len(X)):
         XL = extractFeatures(X, channel)
@@ -72,15 +76,22 @@ def startLearning():
 
         clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
     #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams)
-        tempAccuracyScore, classificationReport = predict(XLtest, clf, yTest)
+        tempAccuracyScore, tempClassificationReport, tempf1Score = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
+        f1Score.append(tempf1Score)
+        #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
     print()
     print("The best parameters for the different channels are:")
     print()
     print(bestParams)
-    print("The prediction accuracy for the different channels are:")
+    print("The prediction accuracy for the different channels is:")
     print(accuracyScore)
+    print("The f1 score which include false negatives etc is:")
+    print(f1Score)#This score says something about the correctness of the prediction.
+
+    #print("The cross-validation score is:")
+    #print(crossValScore)
     #prints the classification report
 
     #for i in range(len(classificationReport)):
@@ -131,6 +142,7 @@ def extractFeatures(X, channel):
 def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams):
     accuracyScore = []
     classificationReport = []
+    crossValScore = []
     #Nested loops to compare accuracy when varying number of features are used.
     for i in range(len(XL[0])):
         compFeaturesTraining, compFeaturesTest = appendFeaturesForComparison(i, XL, XLtrain, XLtest)
@@ -141,10 +153,11 @@ def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams):
         #clf = loadMachineState() #Uncomment this to load the machine state
 
         #Predict the classes
-        tempAccuracy, tempClassReport = predict(compFeaturesTest, clf, yTest)
+        tempAccuracy, tempClassReport, tempCrossValScore = predict(compFeaturesTest, clf, yTest)
 
         accuracyScore.append(tempAccuracy)
         classificationReport.append(tempClassReport)
+        #crossValScore.append(tempCrossValScore)
 
     return accuracyScore, classificationReport
 
@@ -261,10 +274,12 @@ def predict(Xtest, clf, yTest):
     #print(accuracyScore)
     #meanSquaredScore = mean_squared_error(yTest, predictions)
     classificationReport = classification_report(yTest, predictions)
+    f1Score = f1_score(yTest, predictions, average='macro')
+    #crossValScore = cross_val_score(clf, Xtest, yTest, cv=2)
     #print(classificationReport)
     #print(meanSquaredScore)
 
-    return accuracyScore, classificationReport
+    return accuracyScore, classificationReport, f1Score
 
 
 def saveMachinestate(clf):
