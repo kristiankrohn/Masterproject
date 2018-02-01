@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
@@ -58,6 +59,7 @@ def startLearning():
     bestParams = []
     accuracyScore = []
     f1Score = []
+    precision = []
     #crossValScore = []
     X, y = dataset.loadDataset("longdata.txt")
     for channel in range(len(X)):
@@ -76,19 +78,24 @@ def startLearning():
 
         clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
     #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams)
-        tempAccuracyScore, tempClassificationReport, tempf1Score = predict(XLtest, clf, yTest)
+        tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
         f1Score.append(tempf1Score)
+        precision.append(tempPrecision)
         #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
     print()
     print("The best parameters for the different channels are:")
     print()
     print(bestParams)
+    print()
     print("The prediction accuracy for the different channels is:")
     print(accuracyScore)
     print("The f1 score which include false negatives etc is:")
     print(f1Score)#This score says something about the correctness of the prediction.
+    print("The precision score:")
+    print(precision)#This score says something about the correctness of the prediction.
+
 
     #print("The cross-validation score is:")
     #print(crossValScore)
@@ -270,7 +277,13 @@ def predict(Xtest, clf, yTest):
     #Print the test data to see how well it performs.
     print(yTest)
     print(predictions)
+
     accuracyScore = accuracy_score(yTest, predictions)
+    precision = precision_score(yTest, predictions, average = 'macro')
+    print("Accuracy score:")
+    print(accuracyScore)
+    print("Precision score:")
+    print(precision)
     #print(accuracyScore)
     #meanSquaredScore = mean_squared_error(yTest, predictions)
     classificationReport = classification_report(yTest, predictions)
@@ -279,7 +292,7 @@ def predict(Xtest, clf, yTest):
     #print(classificationReport)
     #print(meanSquaredScore)
 
-    return accuracyScore, classificationReport, f1Score
+    return accuracyScore, classificationReport, f1Score, precision
 
 
 def saveMachinestate(clf):
