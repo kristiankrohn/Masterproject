@@ -22,7 +22,7 @@ import copy
 
 
 
-dataPoints = [[]]
+
 
 labels = []
 #features
@@ -53,19 +53,60 @@ def main():
 
 
 def startLearning():
-    XL = [[]]
-
+    bestParams = []
     accuracyScore = []
-    classificationReport = []
+    X, y = dataset.loadDataset("longdata.txt")
+    for channel in range(len(X)):
+        XL = extractFeatures(X, channel)
+    #XL = extractFeatures(X)
+
+    #Scale the data if needed and split dataset into training and testing
+        XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
+        #trenger en losning for aa ha samme split hver gang
+    #XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
+
+
+        #Lots of the prints in tuneSvmParameters are commented out. FOr more detailed view, uncomment prints
+        bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
+    #bestParams = tuneSvmParameters(XLtrain, yTrain, XLtest, yTest)
+
+        clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
+    #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams)
+        tempAccuracyScore, classificationReport = predict(XLtest, clf, yTest)
+        accuracyScore.append(tempAccuracyScore)
+    #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
+    print()
+    print("The best parameters for the different channels are:")
+    print()
+    print(bestParams)
+    print("The prediction accuracy for the different channels are:")
+    print(accuracyScore)
+    #prints the classification report
+
+    #for i in range(len(classificationReport)):
+        #print "Number of features :", i + 1
+        #print(classificationReport[i])
+
+    #saveMachinestate(clf)   #Uncomment this to save the machine state
+    #plotClassifier(clfPlot, XLtrain) #Not sure if this works atm. Uncomment this to plot the classifier
+
+def scaleAndSplit(XL, labels):
+    XLscaled = (np.array(XL))
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1, random_state = 42)
+
+    return XLtrain, XLtest, yTrain, yTest
+
+def extractFeatures(X, channel):
+    XL = [[]]
     featureVector = []
 
-    X, y = dataset.loadDataset("longdata.txt")
-    #Add system to support all channels, double lokke. for i in range (len(X[0])) and len(X[0][0])
     for i in range(len(X[0])):
-        power, powerRatio = pyeeg.bin_power(X[0][i], [0.1, 4, 7, 12,30], 250)
+        power, powerRatio = pyeeg.bin_power(X[channel][i], [0.1, 4, 7, 12,30], 250)
+        #print(power)
+        #print(channel)
         #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
         featureVector = [powerRatio[0],
-                        pyeeg.hurst(list(X[0][i])),
+                        pyeeg.hurst(list(X[channel][i])),
                         #powerRatio[1],
                         #powerRatio[2],
                         #powerRatio[3],
@@ -74,40 +115,25 @@ def startLearning():
                         #power[2],
                         #power[3],
                         #pyeeg.pfd(list(X[0][i])),
-                        np.std(list(X[0][i])),
-                        pyeeg.hfd(list(X[0][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
+                        np.std(list(X[channel][i])),
+                        pyeeg.hfd(list(X[channel][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
                         #pyeeg.hjorth(list(X[0][i])),
-                        pyeeg.spectral_entropy(list(X[0][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
                         #pyeeg.dfa(list(X[0][i]), None, None),
                         #np.ptp(list(X[0][i])),
                         #np.amax(list(X[0][i])),
                         #np.amin(list(X[0][i]))
                         ]
-        #, np.var(list(X[0][i])),
-        #, np.max(list(X[0][i]))
-        #, np.min(list(X[0][i]))
-
-
-        #Suggested doing the below if a vector should be added as feature
-        #cov = np.cov(list(X[0][i]), list(X[6][i]))
-        #cov = np.ravel(cov)
-        #featureVector = np.concatenate((featureVector, cov))
-        #print(cov)
-        #pyeeg.dfa(list(X[0][i]))] #pyeeg.dfa(list(X[0][i])
-        #pyeeg.pfd(list(X[0][i])) denne gjor det sykt daarlig med resten
-
-
         XL.append(featureVector)
     XL.pop(0)
+    return XL
 
-    #Scale the data if needed and split dataset into training and testing
-    XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
-
-    bestParams = tuneSvmParameters(XLtrain, yTrain, XLtest, yTest)
-
+def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams):
+    accuracyScore = []
+    classificationReport = []
     #Nested loops to compare accuracy when varying number of features are used.
     for i in range(len(XL[0])):
-        compFeaturesTraining, compFeaturesTest = compareFeatures(i, XL, XLtrain, XLtest)
+        compFeaturesTraining, compFeaturesTest = appendFeaturesForComparison(i, XL, XLtrain, XLtest)
         #Create the classifier and train it on the test data.
         clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, bestParams) #uncomment this if state should be loaded
 
@@ -119,27 +145,10 @@ def startLearning():
 
         accuracyScore.append(tempAccuracy)
         classificationReport.append(tempClassReport)
-    #Evaluate the features on the training data.
-    evaluateFeatures(XLtrain, yTrain)
-    print(accuracyScore)
 
-    #prints the classification report
+    return accuracyScore, classificationReport
 
-    #for i in range(len(classificationReport)):
-        #print "Number of features :", i + 1
-        #print(classificationReport[i])
-
-    #saveMachinestate(clf)   #Uncomment this to save the machine state
-    #plotClassifier(clfPlot) #uncomment this to plot the classifier
-
-def scaleAndSplit(dataPoints, labels):
-
-    XLscaled = (np.array(dataPoints))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1)
-
-    return XLscaled, XLtrain, XLtest, yTrain, yTest
-
-def compareFeatures(i, XL, XLtrain, XLtest):
+def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
 
     compareFeaturesTraining = []
     compareFeaturesTesting = []
@@ -172,36 +181,38 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
 def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
     bestParams = []
-    tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
-                        'C': [1, 10, 100, 1000, 10000, 100000]},
-                        {'kernel': ['linear'], 'C': [1, 10, 100, 1000, 10000, 100000]}]
+    tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5],
+                        'C': [0.1, 1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 100000]},
+                        {'kernel': ['linear'], 'C': [0.1, 1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 100000,]}]
 
     scores = ['precision', 'recall']
 
     for score in scores:
 
-        #CV = ?????
+        #CV = ?????Increase CV = less variation, more computation time
         clf = GridSearchCV(svm.SVC(), tunedParameters, cv=2, scoring='%s_macro' % score)
         clf.fit(XLtrain, yTrain)
         bestParams.append(clf.best_params_)
-        print("Best parameters set found on development set:")
-        print()
-        print(bestParams)
-        print()
-        print("Grid scores on development set:")
-        print()
+        #print("Best parameters set found on development set:")
+        #print()
+        #print(bestParams)
+        #print()
+        #print("Grid scores on development set:")
+        #print()
         means = clf.cv_results_['mean_test_score']
         stds = clf.cv_results_['std_test_score']
-        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-            print("%0.3f (+/-%0.03f) for %r"
-                  % (mean, std * 2, params))
-        print()
 
-        print("Detailed classification report:")
-        print()
-        print("The model is trained on the full development set.")
-        print("The scores are computed on the full evaluation set.")
-        print()
+        #This loop prints out standarddeviation and lots of good stuff
+
+        #for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            #print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+        #print()
+
+        #print("Detailed classification report:")
+        #print()
+        #print("The model is trained on the full development set.")
+        #print("The scores are computed on the full evaluation set.")
+        #print()
         yPred = clf.predict(XLtest)
         print(classification_report(yTest, yPred))
         print()
@@ -247,7 +258,7 @@ def predict(Xtest, clf, yTest):
     print(yTest)
     print(predictions)
     accuracyScore = accuracy_score(yTest, predictions)
-    print(accuracyScore)
+    #print(accuracyScore)
     #meanSquaredScore = mean_squared_error(yTest, predictions)
     classificationReport = classification_report(yTest, predictions)
     #print(classificationReport)
@@ -263,11 +274,10 @@ def loadMachineState():
     clf = joblib.load('learningState.pkl')
     return clf
 
-def plotClassifier(clf):
-    global dataPoints
+def plotClassifier(clf, XLtrain):
     title = 'SVC with RBF-kernel'
 
-    Xtrain = np.array(dataPoints)
+    Xtrain = np.array(XLtrain)
 
     # Set-up 2x2 grid for plotting.
     fig, ax = plt.subplots()
