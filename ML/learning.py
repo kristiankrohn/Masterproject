@@ -27,23 +27,7 @@ import copy
 
 
 
-labels = []
-#features
-dfaOpen = []
-hurstOpen = []
-pfdOpen = []
-stdOpen = []
 
-dataSetOpen = []
-dataSetClosed = []
-
-dfaClosed = []
-hurstClosed = []
-pfdClosed = []
-stdClosed = []
-#specEntropyOpen = []
-eyesOpen = [] #dataset A
-eyesClosed = [] #dataset B
 
 def main():
     partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
@@ -234,8 +218,8 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
         #print("The scores are computed on the full evaluation set.")
         #print()
         yPred = clf.predict(XLtest)
-        print(classification_report(yTest, yPred))
-        print()
+    print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
+    print()
     return bestParams[0]
 
 def evaluateFeatures(X, y):
