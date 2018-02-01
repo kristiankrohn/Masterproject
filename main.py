@@ -26,6 +26,12 @@ from serial import SerialException
 
 #mutex = Lock()
 
+####TODO###################################
+##
+##	Make it possible to set datasetfolder
+##
+####END TODO###############################
+
 
 
 board = None
@@ -69,6 +75,7 @@ def housekeeper():
 						print("Uneven length of timestamp")
 					if len(glb.data[i][timestamp]) != len(glb.data[i][rawdata]):
 						print("Uneven length between timestamp and raw data")
+		
 		if longsleep:
 			if glb.fs == 250.0:
 				tme.sleep(0.003)
@@ -79,7 +86,7 @@ def housekeeper():
 				tme.sleep(0.002)
 			else:
 				tme.sleep(0.004)
-
+		
 def dataCatcher():
 	global board
 
@@ -323,6 +330,10 @@ def keys():
 		elif string == "savelongdata":
 			dataset.saveLongData()
 
+		elif string == "saveall":
+			dataset.saveShortData()
+			dataset.saveLongData()
+
 		elif string == "deleteshortdata":
 			dataset.clear("shortdata")
 
@@ -451,8 +462,12 @@ def keys():
 			exportThread.start()
 			#dataset.exportPlots("temp", "raw")
 		elif string == "fftplot":
-			plotlib.fftplot(0)
-			plt.show()
+			if inputval != None:
+				plotlib.fftplot(inputval)
+				plt.show()
+			else:	
+				plotlib.fftplot(0)
+				plt.show()
 		elif string == "loaddataset":
 			x,y = dataset.loadDataset("temp.txt")
 			
@@ -462,7 +477,10 @@ def keys():
 			dataset.saveLongTemp(0)
 		elif string == "learn":
 			import ML.learning as learning
-			learning.startLearning()
+			learnThread = threading.Thread(target=learning.startLearning, args=())
+			learnThread.setDaemon(True)
+			learnThread.start()
+
 		elif string == "help":
 			print("This is a list over essential commands, those ending with = need input values")
 			print("exit - exits the system")
@@ -483,7 +501,7 @@ def keys():
 		else:
 			print("Unknown command")	
 
-
+		#tme.sleep(0.1)
 
 
 def save():

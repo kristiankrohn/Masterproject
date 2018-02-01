@@ -214,6 +214,14 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 		if speed == "fast":
 			if len(DataSet) > numCh:
+				'''
+				if (len(DataSet)/numCh) > 150:
+					print("Size of dataset is: %d" %(len(DataSet)/numCh) + ", are you sure you want to continue? [Y/n]")
+					inputString = raw_input()
+					if inputString != "Y":
+						print("Aborting")
+						return
+				'''		
 				num_cpu = multiprocessing.cpu_count()
 				
 				pool = multiprocessing.Pool(len(DataSet)/numCh)
@@ -261,9 +269,9 @@ def exportPlots(command, plottype="time", speed="slow"):
 				#iterator = None
 				#print(p)
 				pool.close()
-				#print("Waiting to join")
+				print("Waiting to join")
 				pool.join()
-				#print("Has joined")
+				print("Has joined")
 			else:	
 				print("Empty file")
 		else:
