@@ -26,7 +26,7 @@ def saveShortTemp(direction):
 
 	if f != -1:
 		with filelock:
-			file = open(dir_path+"\\Dataset\\temp.txt", 'a')
+			file = open(dir_path+glb.datasetFolder+"temp.txt", 'a')
 			file.write(f)
 			file.close()
 		#print("Save short temp completed")
@@ -39,7 +39,7 @@ def saveLongTemp(direction):
 
 	if f != -1:
 		with filelock:
-			file = open(dir_path+"\\Dataset\\longtemp.txt", 'a')
+			file = open(dir_path+glb.datasetFolder+"longtemp.txt", 'a')
 			file.write(f)
 			file.close()
 		#print("Save long temp completed")
@@ -183,24 +183,24 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 		if command == "temp":
 			if i == 0:
-				file = open(dir_path+"\\Dataset\\temp.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"temp.txt", 'r')
 			else:
-				file = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"longtemp.txt", 'r')
 		elif command == "data":
 			if i == 0:
-				file = open(dir_path+"\\Dataset\\data.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"data.txt", 'r')
 			else:
-				file = open(dir_path+"\\Dataset\\longdata.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"longdata.txt", 'r')
 		else:	
 
 			if i == 0:
-				file = open(dir_path+"\\Dataset\\data.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"data.txt", 'r')
 			elif i == 1: 
-				file = open(dir_path+"\\Dataset\\temp.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"temp.txt", 'r')
 			elif i == 2:
-				file = open(dir_path+"\\Dataset\\longdata.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"longdata.txt", 'r')
 			elif i == 3:
-				file = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
+				file = open(dir_path+glb.datasetFolder+"longtemp.txt", 'r')
 		
 
 		with filelock:	
@@ -535,13 +535,13 @@ def saveShortData():
 	print("Continue? [Y/n]")
 	inputString = raw_input()
 	if inputString == "Y":
-		tempfile = open(dir_path+"\\Dataset\\temp.txt", 'r')
+		tempfile = open(dir_path+glb.datasetFolder+"temp.txt", 'r')
 		tempData = tempfile.read()
 		tempfile.close()
-		permfile = open(dir_path+"\\Dataset\\data.txt", 'a')
+		permfile = open(dir_path+glb.datasetFolder+"data.txt", 'a')
 		permfile.write(tempData)
 		permfile.close()
-		tempfile = open(dir_path+"\\Dataset\\temp.txt", 'w')
+		tempfile = open(dir_path+glb.datasetFolder+"temp.txt", 'w')
 		tempfile.truncate(0)
 		tempfile.close()
 		print("Short Data Saved")
@@ -554,13 +554,13 @@ def saveLongData():
 	print("Continue? [Y/n]")
 	inputString = raw_input()
 	if inputString == "Y":
-		tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'r')
+		tempfile = open(dir_path+glb.datasetFolder+"longtemp.txt", 'r')
 		tempData = tempfile.read()
 		tempfile.close()
-		permfile = open(dir_path+"\\Dataset\\longdata.txt", 'a')
+		permfile = open(dir_path+glb.datasetFolder+"longdata.txt", 'a')
 		permfile.write(tempData)
 		permfile.close()
-		tempfile = open(dir_path+"\\Dataset\\longtemp.txt", 'w')
+		tempfile = open(dir_path+glb.datasetFolder+"longtemp.txt", 'w')
 		tempfile.truncate(0)
 		tempfile.close()
 		print("Long Data Saved")
@@ -586,7 +586,7 @@ def clear(elementtype):
 	print("Continue? [Y/n]")
 	inputString = raw_input()
 	if inputString == "Y":
-		tempfile = open(dir_path+"\\Dataset\\"+targetfile, 'w')
+		tempfile = open(dir_path+glb.datasetFolder+targetfile, 'w')
 		tempfile.truncate(0)
 		tempfile.close()
 		print("All data in " + elementtype + " are deleted")
@@ -604,7 +604,7 @@ def loadDataset(filename="data.txt"):
 	file = None
 
 	with filelock:
-		file = open((dir_path+"\\Dataset\\"+filename), 'r')
+		file = open((dir_path+glb.datasetFolder+filename), 'r')
 		AllData = file.read()
 		file.close()
 		
@@ -697,7 +697,7 @@ def deletesystem(elementtype="shorttemp"):
 def deleteelement(index, filename):
 
 	index = index * numCh
-	file = open(dir_path+"\\Dataset\\"+filename, 'r')
+	file = open(dir_path+glb.datasetFolder+filename, 'r')
 	AllData = file.read()
 	DataSet = []
 	DataSet = AllData.split(':')
@@ -709,7 +709,7 @@ def deleteelement(index, filename):
 		#DataSet.pop(index)
 		#print(DataSet)
 		file.close()
-		file = open(dir_path+"\\Dataset\\"+filename, 'w')
+		file = open(dir_path+glb.datasetFolder+filename, 'w')
 		for i in range(len(DataSet)-1):
 			file.write(DataSet[i])
 			file.write(':')
@@ -817,4 +817,7 @@ def setDatasetFolder(folder):
 	else:
 		glb.datasetFolder = datasetFolders[0]
 
+	print("Now working on the dataset in: " + glb.datasetFolder)
+
+def printDatasetFolder():
 	print("Now working on the dataset in: " + glb.datasetFolder)

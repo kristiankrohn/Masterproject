@@ -29,7 +29,7 @@ from datetime import datetime
 ####TODO###################################
 ##
 ##	Make it possible to set datasetfolder
-##	Insert warning on slow tme.sleep()
+##	
 ####END TODO###############################
 
 
@@ -467,6 +467,15 @@ def keys():
 				#dataset.viewtempelement(inputval)
 			#else:
 				#print("Invalid input")
+		elif string == "setdatasetfolderlocal":
+			dataset.setDatasetFolder("local")
+
+		elif string == "setdatasetfolderexternal":
+			dataset.setDatasetFolder("external")
+
+		elif string == "printdatasetfolder":
+			dataset.printDatasetFolder()
+
 		elif string == "exportfft":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
 												args=("temp", "fft","fast")) 
