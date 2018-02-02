@@ -23,13 +23,13 @@ import filterlib
 import dataset
 #import ML.learning #this is moved to keys() -> "learn"
 from serial import SerialException
-
+from datetime import datetime
 #mutex = Lock()
 
 ####TODO###################################
 ##
 ##	Make it possible to set datasetfolder
-##
+##	Insert warning on slow tme.sleep()
 ####END TODO###############################
 
 
@@ -47,12 +47,28 @@ averageCondition = False
 
 app = QtGui.QApplication([])
 
+
+
+
+def check_sleep(amount):
+    start = datetime.now()
+    tme.sleep(amount)
+    end = datetime.now()
+    delta = end-start
+    return delta.seconds + delta.microseconds/1000000.
+
+
 def housekeeper():
 	
 	longsleep = False
 	pop = False
 	while True:
 		with glb.mutex:
+			if len(glb.data[0][0]) >= nSamples + 500:
+				print("Error in tme.sleep() function sleeps for too long. DO NOT START TO MAKE DATA!")
+				error = sum(abs(check_sleep(0.050)-0.050) for i in xrange(100))*10
+				print "Average error is %0.2fms" % error
+
 			if len(glb.data[0][0]) >= nSamples + 100:
 				longsleep = False
 				pop = True

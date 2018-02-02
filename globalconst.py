@@ -11,6 +11,7 @@ timestamp = 2
 numCh = 8
 nPlots = numCh
 nSamples = 2000
+datasetFolders = ["\\Dataset", "\\Dataset_Aexternal"]
 
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 

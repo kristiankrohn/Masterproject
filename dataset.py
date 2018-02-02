@@ -210,18 +210,18 @@ def exportPlots(command, plottype="time", speed="slow"):
 		#DataSet = []
 		DataSet = AllData.split(':')
 		
-
+		if (speed == "fast") and ((len(DataSet)/numCh) > 150):
+			print("Size of dataset is: %d" %(len(DataSet)/numCh) + ", are you sure you want to continue? [Y/n]")
+			inputString = raw_input()
+			if inputString != "Y":
+				print("Changed to slow sequential plot export")
+				speed = "slow"
 
 		if speed == "fast":
 			if len(DataSet) > numCh:
-				'''
-				if (len(DataSet)/numCh) > 150:
-					print("Size of dataset is: %d" %(len(DataSet)/numCh) + ", are you sure you want to continue? [Y/n]")
-					inputString = raw_input()
-					if inputString != "Y":
-						print("Aborting")
-						return
-				'''		
+				
+				
+						
 				num_cpu = multiprocessing.cpu_count()
 				
 				pool = multiprocessing.Pool(len(DataSet)/numCh)
@@ -810,3 +810,11 @@ def print_appenddelete(elementtype):
 	else:
 		print(elementtype + " list is empty")
 
+def setDatasetFolder(folder):
+	if folder == "external":
+		glb.datasetFolder = datasetFolders[1]
+
+	else:
+		glb.datasetFolder = datasetFolders[0]
+
+	print("Now working on the dataset in: " + glb.datasetFolder)

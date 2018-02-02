@@ -21,6 +21,7 @@ a = None
 window = 10
 Zi = np.zeros([numCh,window-1])
 mutex = Lock()
+datasetFolder = datasetFolders[0]
 
 oldSampleID = 255
 if numCh == 8:
