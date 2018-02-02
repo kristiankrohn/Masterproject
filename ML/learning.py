@@ -18,6 +18,9 @@ from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
+from numpy.fft import fft
+from numpy import zeros, floor
+import math
 
 import dataset
 from globalconst import  *
@@ -47,7 +50,7 @@ def startLearning():
     precision = []
     #crossValScore = []
     X, y = dataset.loadDataset("longdata.txt")
-    for channel in range(len(X)):
+    for channel in range(1): #len(X) for aa ha med alle kanaler
         XL = extractFeatures(X, channel)
     #XL = extractFeatures(X)
 
@@ -59,6 +62,7 @@ def startLearning():
 
         #Lots of the prints in tuneSvmParameters are commented out. FOr more detailed view, uncomment prints
         #Use this if SVM is used
+
         #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
 
@@ -71,6 +75,7 @@ def startLearning():
         precision.append(tempPrecision)
         #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
+
     print()
     print("The best parameters for the different channels are:")
     print()
@@ -82,7 +87,7 @@ def startLearning():
     print(f1Score)#This score says something about the correctness of the prediction.
     print("The precision score:")
     print(precision)#This score says something about the correctness of the prediction.
-
+    evaluateFeatures(XLtrain, yTrain)
 
     #print("The cross-validation score is:")
     #print(crossValScore)
@@ -103,16 +108,31 @@ def scaleAndSplit(XL, labels):
 
 def extractFeatures(X, channel):
     XL = [[]]
+    frequencyBands = [0.1, 4, 8, 12,30]
+    Fs = 250
     featureVector = []
 
     for i in range(len(X[0])):
-        power, powerRatio = pyeeg.bin_power(X[channel][i], [0.1, 4, 8, 12,30], 250)
+        #power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
+        bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
+        thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
+
         #print(power)
         #print(channel)
         #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
         #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
-        featureVector = [powerRatio[0],
-                        pyeeg.hurst(list(X[channel][i])),
+        featureVector = [#powerRatio[0],
+                        #pyeeg.hurst(list(X[channel][i])),
+                        thetaBetaRatio,
+                        #bandAvgAmplitudes[0]/bandAvgAmplitudes[1],
+                        #bandAvgAmplitudes[1]/bandAvgAmplitudes[2],
+                        #np.std(list(X[channel][i])),
+                        pyeeg.hfd(list(X[channel][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
+                        #pyeeg.hjorth(list(X[0][i])),
+                        #pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        #np.ptp(list(X[0][i])),
+                        np.amax(list(X[0][i])),
+                        #np.amin(list(X[0][i])),
                         #thetaBetaPowerRatio,
                         #powerRatio[1],
                         #powerRatio[2],
@@ -122,18 +142,24 @@ def extractFeatures(X, channel):
                         #power[2],
                         #power[3],
                         #pyeeg.pfd(list(X[0][i])),
-                        np.std(list(X[channel][i])),
-                        pyeeg.hfd(list(X[channel][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
-                        #pyeeg.hjorth(list(X[0][i])),
-                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
                         #pyeeg.dfa(list(X[0][i]), None, None),
-                        #np.ptp(list(X[0][i])),
-                        #np.amax(list(X[0][i])),
-                        #np.amin(list(X[0][i]))
                         ]
         XL.append(featureVector)
+        #print(XL)
     XL.pop(0)
     return XL
+
+def getBandAmplitudes(X, Band, Fs):
+    C = fft(X)
+    C = abs(C)
+    avgAmplitude =zeros(len(Band)-1);
+
+    for Freq_Index in range(len(Band)-1):
+        Freq = float(Band[Freq_Index])										## Xin Liu
+        Next_Freq = float(Band[Freq_Index+1])
+		#Endret til Int for aa faa det til aa gaa igjennom
+        avgAmplitude[Freq_Index] = sum(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))]) / len(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))])
+    return avgAmplitude
 
 def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams):
     accuracyScore = []
@@ -170,6 +196,9 @@ def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
 def createAndTrain(XLtrain, yTrain, bestParams):
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
 
+    print("Starting to train the classifier")
+    print()
+
     #SVM classification, regulation parameter C = 102 gives good results
     #This fits with the tested best parameters. Might want to manually write this to not
     #if bestParams['kernel'] == 'linear':
@@ -195,39 +224,43 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
 def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
     bestParams = []
-    tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e1, 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5],
-                        'C': [0.1, 1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 100000]},
-                        {'kernel': ['linear'], 'C': [0.1, 1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 100000,]}]
+    tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
+                        'C': [1, 10, 100, 1000, 10000]},
+                        {'kernel': ['linear'], 'C': [1, 10, 100, 1000, 10000]}]
 
     scores = ['precision', 'recall']
 
-    for score in scores:
+    #for score in scores:
 
-        #CV = ?????Increase CV = less variation, more computation time
-        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=2, scoring='%s_macro' % score)
-        clf.fit(XLtrain, yTrain)
-        bestParams.append(clf.best_params_)
-        #print("Best parameters set found on development set:")
-        #print()
-        #print(bestParams)
-        #print()
-        #print("Grid scores on development set:")
-        #print()
-        means = clf.cv_results_['mean_test_score']
-        stds = clf.cv_results_['std_test_score']
+    #CV = ?????Increase CV = less variation, more computation time
+    #comment in for loop and add score where scores[0] is atm, to make best parameters for prediction and recall
+    print("Starting to tune parameters")
+    print()
 
-        #This loop prints out standarddeviation and lots of good stuff
+    clf = GridSearchCV(svm.SVC(), tunedParameters, cv=5, scoring='%s_macro' % scores[0])
+    clf.fit(XLtrain, yTrain)
+    bestParams.append(clf.best_params_)
+    print("Best parameters set found on development set:")
+    print()
+    print(bestParams)
+    print()
+    print("Grid scores on development set:")
+    print()
+    means = clf.cv_results_['mean_test_score']
+    stds = clf.cv_results_['std_test_score']
 
-        #for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-            #print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
-        #print()
+    #This loop prints out standarddeviation and lots of good stuff
 
-        #print("Detailed classification report:")
-        #print()
-        #print("The model is trained on the full development set.")
-        #print("The scores are computed on the full evaluation set.")
-        #print()
-        yPred = clf.predict(XLtest)
+    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+        print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+    print()
+
+    print("Detailed classification report:")
+    print()
+    print("The model is trained on the full development set.")
+    print("The scores are computed on the full evaluation set.")
+    print()
+    yPred = clf.predict(XLtest)
     print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
     print()
     return bestParams[0]
