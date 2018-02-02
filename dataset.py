@@ -20,6 +20,7 @@ frontPadding = 750
 backPadding = 250
 #Datalist = []
 DataSet = []
+
 def saveShortTemp(direction):
 	global filelock, printlock
 	f = prepSaveData(direction, shortLength)

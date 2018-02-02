@@ -65,7 +65,12 @@ def housekeeper():
 	while True:
 		with glb.mutex:
 			if len(glb.data[0][0]) >= nSamples + 500:
-				print("Error in tme.sleep() function sleeps for too long. DO NOT START TO MAKE DATA!")
+				print("Error in tme.sleep() function sleeps for too long, flushing databuffer!")
+
+				for i in range(numCh):
+					for j in range(3):
+						del glb.data[i][j][:]
+						
 				error = sum(abs(check_sleep(0.050)-0.050) for i in xrange(100))*10
 				print "Average error is %0.2fms" % error
 
