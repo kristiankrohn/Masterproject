@@ -2,10 +2,10 @@ import pyeeg
 import numpy as np
 from sklearn import svm
 from sklearn import preprocessing
+from sklearn import neighbors
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
 from sklearn.externals import joblib
-from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from sklearn.cross_validation import train_test_split
@@ -16,6 +16,7 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 
 import dataset
@@ -57,11 +58,13 @@ def startLearning():
 
 
         #Lots of the prints in tuneSvmParameters are commented out. FOr more detailed view, uncomment prints
-        bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
-    #bestParams = tuneSvmParameters(XLtrain, yTrain, XLtest, yTest)
+        #Use this if SVM is used
+        #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
+        #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
 
-        clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
-    #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams)
+        #Use this if predictor other than SVM is used.
+        clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+
         tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
         f1Score.append(tempf1Score)
@@ -103,12 +106,14 @@ def extractFeatures(X, channel):
     featureVector = []
 
     for i in range(len(X[0])):
-        power, powerRatio = pyeeg.bin_power(X[channel][i], [0.1, 4, 7, 12,30], 250)
+        power, powerRatio = pyeeg.bin_power(X[channel][i], [0.1, 4, 8, 12,30], 250)
         #print(power)
         #print(channel)
+        #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
         #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
         featureVector = [powerRatio[0],
                         pyeeg.hurst(list(X[channel][i])),
+                        #thetaBetaPowerRatio,
                         #powerRatio[1],
                         #powerRatio[2],
                         #powerRatio[3],
@@ -167,15 +172,20 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     #SVM classification, regulation parameter C = 102 gives good results
     #This fits with the tested best parameters. Might want to manually write this to not
-    if bestParams['kernel'] == 'linear':
-        clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
-    else:
-        clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+    #if bestParams['kernel'] == 'linear':
+    #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
+    #else:
+    #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
     #C = 102
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
 
     #Decision tree classification. max_depth 8 and min_leaf = 5 gives good results, but varying.
-    #clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
+    clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
+
+    #randomForestClassifier.
+    #clf = RandomForestClassifier(max_depth = 200,  random_state = 0, )
+
+    #clf = neighbors.KNeighborsClassifier(5)
     clf.fit(XLtrain,yTrain)#skaler???
 
     #Create classifier to be able to visualize it
@@ -261,7 +271,7 @@ def predict(Xtest, clf, yTest):
     #Print the test data to see how well it performs.
     print(yTest)
     print(predictions)
-
+    #print("HALLO", clf.predict_proba(Xtest))
     accuracyScore = accuracy_score(yTest, predictions)
     precision = precision_score(yTest, predictions, average = 'macro')
     print("Accuracy score:")
