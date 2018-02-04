@@ -21,6 +21,7 @@ from sklearn.feature_selection import SelectFromModel
 from numpy.fft import fft
 from numpy import zeros, floor
 import math
+import time
 
 import dataset
 from globalconst import  *
@@ -113,10 +114,15 @@ def extractFeatures(X, channel):
     featureVector = []
 
     for i in range(len(X[0])):
-        #power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
+        startTime = time.time()
+        power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
+
+
+
         bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
         thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
-
+        #pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
+        #pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
         #print(power)
         #print(channel)
         #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
@@ -126,13 +132,13 @@ def extractFeatures(X, channel):
                         thetaBetaRatio,
                         #bandAvgAmplitudes[0]/bandAvgAmplitudes[1],
                         #bandAvgAmplitudes[1]/bandAvgAmplitudes[2],
-                        #np.std(list(X[channel][i])),
-                        pyeeg.hfd(list(X[channel][i]), 200), #denne maa testes med forskjellige Kverdier, vet ikke hva den betyr
+                        np.std(list(X[channel][i])),
+                        #pyeeg.hfd(list(X[channel][i]), 20), #Denne er drittreig naa!!! Okende tall gir viktigere feature, men mye lenger computation time
                         #pyeeg.hjorth(list(X[0][i])),
-                        #pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        #np.ptp(list(X[0][i])),
+                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        np.ptp(list(X[0][i])),
                         np.amax(list(X[0][i])),
-                        #np.amin(list(X[0][i])),
+                        np.amin(list(X[0][i])),
                         #thetaBetaPowerRatio,
                         #powerRatio[1],
                         #powerRatio[2],
@@ -145,6 +151,8 @@ def extractFeatures(X, channel):
                         #pyeeg.dfa(list(X[0][i]), None, None),
                         ]
         XL.append(featureVector)
+        print("Time taken to extract features for example %d: " % i)
+        print(time.time() - startTime)
         #print(XL)
     XL.pop(0)
     return XL
