@@ -51,6 +51,13 @@ def startLearning():
     precision = []
     #crossValScore = []
     X, y = dataset.loadDataset("longdata.txt")
+    
+    X, y = dataset.sortDataset(X, y, length=10, classes=[0,5,2,6,4,8])
+    #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]) 
+    #if x or y is undefined, data.txt will be loaded
+    
+
+
     for channel in range(1): #len(X) for aa ha med alle kanaler
         XL = extractFeatures(X, channel)
     #XL = extractFeatures(X)

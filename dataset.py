@@ -642,6 +642,49 @@ def loadDataset(filename="data.txt"):
 	return(x,y)
 
 
+def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
+	if (x or y) == None:
+		x, y = loadDataset()
+
+	#print(y[0])
+	#x[channel][index]
+	xReturn = [[],[],[],[],[],[],[],[]]
+	yReturn = [[],[],[],[],[],[],[],[]]
+	counts = [None]*len(classes)
+	print("Statistics before sort: ")
+	for i in range(len(classes)):
+		print("Number of occurances of class %d:" %classes[i])
+		counts[i] = y[0].count(classes[i])
+		print(counts[i])
+	minValElement = min(counts)
+	print("Lowest occurance of a class is: %d" %minValElement)
+	if minValElement == 0:
+		print("List is empty or class cannot be found in set, returning empty arrays")
+		return xReturn, yReturn
+
+	elif minValElement < length:
+		print("Given length is too long, max for this dataset is: %d" %minValElement)
+		length = minValElement
+	
+	returnCounts = [0]*len(classes)
+	for i in range(len(y[0])):
+		if y[0][i] in classes:
+			classitemindex = classes.index(y[0][i])
+			if returnCounts[classitemindex] < length:
+				returnCounts[classitemindex] += 1
+				for j in range(numCh):
+					xReturn[j].append(x[j][i])
+					yReturn[j].append(y[j][i])
+	#print(returnCounts)
+	#print(yReturn[0])
+	counts = [None]*len(classes)
+	print("Statistics after sort: ")
+	for i in range(len(classes)):
+		print("Number of occurances of class %d:" %classes[i])
+		counts[i] = yReturn[0].count(classes[i])
+		print(counts[i])
+
+	return xReturn, yReturn
 
 def deletesystem(elementtype="shorttemp"):
 	#Some system for setting variables according to file

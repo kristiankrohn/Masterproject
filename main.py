@@ -22,7 +22,8 @@ import plot as plotlib
 import filterlib 
 import dataset
 #import ML.learning #this is moved to keys() -> "learn"
-from serial import SerialException
+import serial
+#from serial import SerialException
 from datetime import datetime
 #mutex = Lock()
 
@@ -121,7 +122,7 @@ def dataCatcher():
 			try:
 				board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
 					filter_data = False, daisy=True)
-			except SerialException:
+			except serial.SerialException:
 				pass
 	else:
 		for i in range(10):
@@ -130,7 +131,7 @@ def dataCatcher():
 				board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
 					filter_data = False, daisy=False)
 				break
-			except SerialException:
+			except serial.SerialException:
 				pass
 
 	if board != None:
@@ -500,8 +501,8 @@ def keys():
 				plt.show()
 		elif string == "loaddataset":
 			x,y = dataset.loadDataset("temp.txt")
+			dataset.sortDataset(x, y, classes=[0,5,10])
 			
-			print(x[7][0])
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
