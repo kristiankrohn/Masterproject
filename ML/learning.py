@@ -29,8 +29,8 @@ import globalvar
 import copy
 
 
-yTestGUI = np.array([])
-predictionsGUI = np.array([])
+yTestGUI = []
+predictionsGUI = []
 
 
 
@@ -88,7 +88,7 @@ def startLearning():
         f1Score.append(tempf1Score)
         precision.append(tempPrecision)
 
-    predictGUI(XLtest, clf, 2)
+    predictGUI(X, clf, 2)
     classificationReportGUI()
         #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
@@ -367,8 +367,8 @@ def predictGUI(X, clf, y):
     print()
     print("Actually predicted:")
     print(predictions)
-    yTestGUI.append(yTest)
-    predictionsGUI.append(predictions)
+    yTestGUI.append(y)
+    predictionsGUI.append(predictions[0])
     #print("HALLO", clf.predict_proba(Xtest))
     #accuracyScoreGUI = accuracy_score(yTest, predictions)
     #precisionGUI = precision_score(yTest, predictions, average = 'macro')
@@ -385,6 +385,9 @@ def predictGUI(X, clf, y):
     #print(meanSquaredScore)
 def classificationReportGUI():
     global yTestGUI, predictionsGUI
+    print(yTestGUI)
+    print()
+    print(predictionsGUI)
 
     accuracyScore = accuracy_score(yTestGUI, predictionsGUI)
     precision = precision_score(yTestGUI, predictionsGUI, average = 'macro')
