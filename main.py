@@ -531,6 +531,7 @@ def keys():
 			learnThread.start()
 		
 		elif string == "predict":
+			import ML.learning
 			predictioncondition = True
 			classifier = ML.learning.loadMachineState()
 			print("Predictionsetup complete")
@@ -539,6 +540,7 @@ def keys():
 			predictioncondition = False
 
 		elif string == "report":
+			import ML.learning
 			ML.learning.classificationReportGUI()
 
 		elif string == "help":

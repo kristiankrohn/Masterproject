@@ -211,69 +211,80 @@ def exportPlots(command, plottype="time", speed="slow"):
 		DataSet = AllData.split(':')
 		
 		if (speed == "fast") and ((len(DataSet)/numCh) > 150):
-			print("Size of dataset is: %d" %(len(DataSet)/numCh) + ", are you sure you want to continue? [Y/n]")
+			print("Size of dataset is: %d" %(len(DataSet)/numCh) + ", do you still want to plot fast?(this might halt your cpu) [Y/n]")
 			inputString = raw_input()
 			if inputString != "Y":
 				print("Changed to slow sequential plot export")
 				speed = "slow"
 
 		if speed == "fast":
-			if len(DataSet) > numCh:
-				
-				
-						
-				num_cpu = multiprocessing.cpu_count()
-				
-				pool = multiprocessing.Pool(len(DataSet)/numCh)
-				variables = [None]*4
-				#variables[0] = 0
-				variables[0] = i
-				variables[1] = command
-				variables[2] = plottype
-				variables[3] = 0
-				#variables[4] = DataSet
-				#variables[5] = 0
-				indexlist = range(len(DataSet)/numCh)
-				Datalist = [None]*(len(DataSet)/numCh)
-				#print(Datalist)
-				for g in range(len(DataSet)/numCh):
-					start = g*numCh
-					stop = (g+1)*numCh
-					#print("Start: %d"%start)
-					#print("Stop: %d"%stop)
-					#print("g: %d"%g)
-					#if len(DataSet) <= stop:
-						#break
-					#Datalist.append(DataSet[start:stop])
-					variables[3] = DataSet[start:stop]
+			if len(DataSet) < numCh:
+				return
+			else:
+				split = 128
+				splitsize = numCh*split
+				numSplits = len(DataSet)//splitsize
+				if len(DataSet)%splitsize != 0:
+					numSplits += 1
+
+				for k in range(numSplits):
+					if k < (numSplits-1):
+						DataSetTemp = DataSet[k*splitsize:(k+1)*splitsize]			
+					elif k == (numSplits-1):
+						DataSetTemp = DataSet[k*splitsize:-1]
+					num_cpu = multiprocessing.cpu_count()
 					
-					#variables[4] = str(g)
-					Datalist[g]=copy.deepcopy(variables)
-					#indexlist.append(g)	
-				#Datalist = [None]*(len(DataSet)/numCh)
-				#for i in range(len(Datalist)):
-					#print(Datalist[i])
-					#tme.sleep(1)
-				#Dataset = None
-				print("Spawning %d threads" %(len(DataSet)/numCh))
-				#threadexport = [None]*(len(DataSet)/numCh)
-				#print("Thread index up to: %d" %len(DataSet))
-				#print(i)
-				
-				#res = pool.map(func_star, itertools.izip(indexlist,itertools.repeat(variables)), num_cpu)
-				iterator = itertools.izip(indexlist,Datalist)
-				#Datalist = None
-				#indexlist = None
-				res = pool.map(func_star, iterator, num_cpu)
-				res = [r for r in res if r is not None]
-				#iterator = None
-				#print(p)
-				pool.close()
-				print("Waiting to join")
-				pool.join()
-				print("Has joined")
-			else:	
-				print("Empty file")
+					pool = multiprocessing.Pool(len(DataSetTemp)/numCh)
+					variables = [None]*4
+					#variables[0] = 0
+					variables[0] = i
+					variables[1] = command
+					variables[2] = plottype
+					variables[3] = 0
+					#variables[4] = DataSet
+					#variables[5] = 0
+					indexlist = range(len(DataSetTemp)/numCh)
+					for m in range(len(indexlist)):
+						indexlist[m] += k*split
+					Datalist = [None]*(len(DataSetTemp)/numCh)
+					#print(indexlist)
+					for g in range(len(DataSetTemp)/numCh):
+						start = g*numCh
+						stop = (g+1)*numCh
+						#print("Start: %d"%start)
+						#print("Stop: %d"%stop)
+						#print("g: %d"%g)
+						#if len(DataSet) <= stop:
+							#break
+						#Datalist.append(DataSet[start:stop])
+						variables[3] = DataSetTemp[start:stop]
+						
+						#variables[4] = str(g)
+						Datalist[g]=copy.deepcopy(variables)
+						#indexlist.append(g)	
+					#Datalist = [None]*(len(DataSet)/numCh)
+					#for i in range(len(Datalist)):
+						#print(Datalist[i])
+						#tme.sleep(1)
+					#Dataset = None
+					print("Spawning %d threads" %(len(DataSet)/numCh))
+					#threadexport = [None]*(len(DataSet)/numCh)
+					#print("Thread index up to: %d" %len(DataSet))
+					#print(i)
+					
+					#res = pool.map(func_star, itertools.izip(indexlist,itertools.repeat(variables)), num_cpu)
+					iterator = itertools.izip(indexlist,Datalist)
+					#Datalist = None
+					#indexlist = None
+					res = pool.map(func_star, iterator, split/num_cpu)
+					res = [r for r in res if r is not None]
+					#iterator = None
+					#print(p)
+					pool.close()
+					print("Waiting to join")
+					pool.join()
+					print("Has joined")
+			
 		else:
 		
 			for k in range(0, len(DataSet), numCh):

@@ -27,11 +27,11 @@ sleeping = False
 startMove = tme.time()
 endMode = tme.time()
 z = 3
-classifier = ML.learning.loadMachineState()
+classifier = None
 
 class Alien(object):
 	def __init__(self, canvas, *args, **kwargs):
-		global center, right, left, up, down, startSleep, startMove, endMove, sleeping
+		global center, right, left, up, down, startSleep, startMove, endMove, sleeping, classifier
 		self.canvas = canvas
 		self.id = canvas.create_oval(*args, **kwargs)
 		#self.canvas.coords(self.id, [20, 260, 120, 360])
@@ -44,8 +44,8 @@ class Alien(object):
 		down = False
 		startSleep = tme.time()
 		sleeping = True
-	
-
+		
+		classifier = ML.learning.loadMachineState()
 	def move(self):
 		global size, speed, center, right, left, up, down, startSleep, sleeping, startMove, endMove, classifier
 		global timestamp
@@ -105,6 +105,9 @@ class Alien(object):
 				(size/2) + ballsize, (size/2) + ballsize, 
 				outline='white', fill='red')
 			cmd = 0
+			predictiondata = dataset.shapeArray(glb.data, longLength)
+			predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+			predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			#threadSave.setDaemon(True)
 			threadSave.start()
@@ -122,6 +125,9 @@ class Alien(object):
 			endMove = tme.time()
 			#print("Movementtime= ")
 			#print(tme.time())
+			predictiondata = dataset.shapeArray(glb.data, longLength)
+			predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+			predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			#threadSave.setDaemon(True)
 			threadSave.start()
