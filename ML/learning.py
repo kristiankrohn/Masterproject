@@ -145,10 +145,10 @@ def extractFeatures(X, channel):
                         thetaBetaRatio,
                         pearsonCoefficients13[0][1],
                         pearsonCoefficients13[1][0],
-                        #bandAvgAmplitudes[0]/bandAvgAmplitudes[1],
-                        #bandAvgAmplitudes[1]/bandAvgAmplitudes[2],
+                        #bandAvgAmplitudes[0],
+                        #bandAvgAmplitudes[1],
                         np.std(list(X[channel][i])),
-                        #pyeeg.hfd(list(X[channel][i]), 50), #Denne er drittreig naa!!! Okende tall gir viktigere feature, men mye lenger computation time
+                        #pyeeg.hfd(list(X[channel][i]), 50), #Okende tall gir viktigere feature, men mye lenger computation time
                         #pyeeg.hjorth(list(X[0][i])),
                         pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
                         np.ptp(list(X[0][i])),
@@ -385,9 +385,6 @@ def predictGUI(X, clf, y):
     #print(meanSquaredScore)
 def classificationReportGUI():
     global yTestGUI, predictionsGUI
-    print(yTestGUI)
-    print()
-    print(predictionsGUI)
 
     accuracyScore = accuracy_score(yTestGUI, predictionsGUI)
     precision = precision_score(yTestGUI, predictionsGUI, average = 'macro')
