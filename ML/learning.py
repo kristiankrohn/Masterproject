@@ -29,6 +29,8 @@ import globalvar
 import copy
 
 
+yTestGUI = []
+predictionsGUI = []
 
 
 
@@ -77,13 +79,17 @@ def startLearning():
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
 
         #Use this if predictor other than SVM is used.
-        clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        saveMachinestate(clf)   #Uncomment this to save the machine state
+        #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+        clf = loadMachineState()
+        #saveMachinestate(clf)   #Uncomment this to save the machine state
 
         tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
         f1Score.append(tempf1Score)
         precision.append(tempPrecision)
+
+    predictGUI(XLtest, clf, 2)
+    classificationReportGUI()
         #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
 
@@ -126,9 +132,6 @@ def extractFeatures(X, channel):
     for i in range(len(X[0])):
         startTime = time.time()
         power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
-
-
-
         bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
         thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
         pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
@@ -349,7 +352,103 @@ def predict(Xtest, clf, yTest):
 
     return accuracyScore, classificationReport, f1Score, precision
 
-def predictRealTime(Xtest, clf):
+def predictGUI(Xtest, clf, y):
+    global yTestGUI, predictionsGUI
+    yTest = [y]
+    print("Starting to predict with GUI")
+    start = time.time()
+    predictions = clf.predict(Xtest)
+    print("Time taken to predict with given examples in GUI:")
+    print(time.time() - start)
+    #Print the test data to see how well it performs.
+    print("Should have predicted:")
+    print(yTest)
+    print()
+    print("Actually predicted:")
+    print(predictions)
+    yTestGUI.append(yTest)
+    predictionsGUI.append(predictions)
+    #print("HALLO", clf.predict_proba(Xtest))
+    #accuracyScoreGUI = accuracy_score(yTest, predictions)
+    #precisionGUI = precision_score(yTest, predictions, average = 'macro')
+        #print("Accuracy score:")
+        #print(accuracyScore)
+        #print("Precision score:")
+        #print(precision)
+    #print(accuracyScore)
+    #meanSquaredScore = mean_squared_error(yTest, predictions)
+        #classificationReportGUI = classification_report(yTest, predictions)
+        #f1Score = f1_score(yTest, predictions, average='macro')
+    #crossValScore = cross_val_score(clf, Xtest, yTest, cv=2)
+    #print(classificationReport)
+    #print(meanSquaredScore)
+def classificationReportGUI():
+    global yTestGUI, predictionsGUI
+
+    accuracyScore = accuracy_score(yTestGUI, predictionsGUI)
+    precision = precision_score(yTestGUI, predictionsGUI, average = 'macro')
+    classificationReport = classification_report(yTestGUI, predictionsGUI)
+    f1Score = f1_score(yTestGUI, predictionsGUI, average='macro')
+    print("Should have predicted: ")
+    print(yTestGUI)
+    print("Actually predicted: ")
+    print(predictionsGUI)
+    print("Accuracy score:")
+    print(accuracyScore)
+    print("Precision score:")
+    print(precision)
+    print("Classification report:")
+    print(classificationReport)
+
+
+def predictRealTime(X, clf):
+    Xtest = [[]]
+    frequencyBands = [0.1, 4, 8, 12,30]
+    Fs = 250
+    featureVector = []
+
+    for i in range(len(X[0])):
+        startTime = time.time()
+        power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
+        bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
+        thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
+        pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
+        pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
+        #print(power)
+        #print(channel)
+        #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
+        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        featureVector = [#powerRatio[0],
+                        #pyeeg.hurst(list(X[channel][i])),
+                        thetaBetaRatio,
+                        pearsonCoefficients13[0][1],
+                        pearsonCoefficients13[1][0],
+                        #bandAvgAmplitudes[0]/bandAvgAmplitudes[1],
+                        #bandAvgAmplitudes[1]/bandAvgAmplitudes[2],
+                        np.std(list(X[channel][i])),
+                        #pyeeg.hfd(list(X[channel][i]), 50), #Denne er drittreig naa!!! Okende tall gir viktigere feature, men mye lenger computation time
+                        #pyeeg.hjorth(list(X[0][i])),
+                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        np.ptp(list(X[0][i])),
+                        np.amax(list(X[0][i])),
+                        np.amin(list(X[0][i])),
+                        #thetaBetaPowerRatio,
+                        #powerRatio[1],
+                        #powerRatio[2],
+                        #powerRatio[3],
+                        #power[0],
+                        #power[1],
+                        #power[2],
+                        #power[3],
+                        #pyeeg.pfd(list(X[0][i])),
+                        #pyeeg.dfa(list(X[0][i]), None, None),
+                        ]
+        Xtest.append(featureVector)
+        print("Time taken to extract features for example %d: " % i)
+        print(time.time() - startTime)
+        #print(XL)
+    Xtest.pop(0)
+
     print("Starting to predict")
     start = time.time()
     predictions = clf.predict(Xtest)
