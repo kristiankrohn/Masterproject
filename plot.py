@@ -109,6 +109,7 @@ def exportFftPlot(plotdata, title="", ax=None):
 	plt.xlabel('Frequency (Hz)')
 	#plt.yscale('log')
 
+
 def plot_filterz(b, a=1):
 	ax=plt.subplot(221)
 	plot_freqz(ax, b, a)

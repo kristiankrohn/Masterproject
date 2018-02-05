@@ -2,14 +2,15 @@ import Tkinter as tk
 import time as tme
 import numpy as np
 from numpy.random import randint
-from globalvar import *
+from globalconst import *
+import globalvar as glb
 #from threading import Lock
 import threading
 import matplotlib.pyplot as plt
 from scipy import signal
 import os, shutil
 import dataset
-
+import ML.learning
 
 
 size = 1000
@@ -26,7 +27,7 @@ sleeping = False
 startMove = tme.time()
 endMode = tme.time()
 z = 3
-
+classifier = ML.learning.loadMachineState()
 
 class Alien(object):
 	def __init__(self, canvas, *args, **kwargs):
@@ -43,9 +44,10 @@ class Alien(object):
 		down = False
 		startSleep = tme.time()
 		sleeping = True
+	
 
 	def move(self):
-		global size, speed, center, right, left, up, down, startSleep, sleeping, startMove, endMove
+		global size, speed, center, right, left, up, down, startSleep, sleeping, startMove, endMove, classifier
 		global timestamp
 		global z
 		global removeBall, startRemoveBall, wait, startWait
@@ -74,8 +76,9 @@ class Alien(object):
 
 			elif down:
 				cmd = 2
-
-			
+			predictiondata = dataset.shapeArray(glb.data, longLength)
+			predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+			predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			#threadSave.setDaemon(True)
 			threadSave.start()
@@ -226,7 +229,7 @@ def guiloop():
 	global startButton, w, root
 	root = tk.Tk()
 	root.title("Training GUI")
-	w = tk.Label(root, text="Look at the red dot, press start when ready!")
+	w = tk.Label(root, text="Look at the red dot, blink when it dissapears. Press start when ready!")
 	w.pack()
 	startButton = tk.Button(root, text='Start', width=25, command=startgui)
 	startButton.pack()

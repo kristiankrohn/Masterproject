@@ -21,7 +21,7 @@ import gui as ttk
 import plot as plotlib
 import filterlib 
 import dataset
-#import ML.learning #this is moved to keys() -> "learn"
+import ML.learning #this is moved to keys() -> "learn"
 import serial
 #from serial import SerialException
 from datetime import datetime
@@ -45,7 +45,11 @@ p = None
 exit = False
 filtering = True
 averageCondition = False
-
+predictioncondition = False
+predictioninterval = 250
+counterlock = Lock()
+classifier = None
+intervalcounter = 0
 app = QtGui.QApplication([])
 
 
@@ -152,7 +156,7 @@ def dataCatcher():
 
 
 def printData(sample):	
-
+	global intervalcounter, predictioncondition, counterlock
 	xt = tme.time()
 	if glb.fs == 125.0:
 		offset = 2
@@ -175,7 +179,19 @@ def printData(sample):
 			for i in range(numCh):
 				for j in range(3):
 					del glb.data[i][j][:]
-		
+				
+	if predictioncondition == True:
+		#print("predictioncondition is true")	
+		with counterlock:
+			#print("got lock")
+			intervalcounter += 1
+			if intervalcounter >= predictioninterval:
+				print("New predict:")
+				intervalcounter = 0
+				predictiondata = dataset.shapeArray(glb.data, longLength)	
+				predictionThread = threading.Thread(target=ML.learning.predictRealTime,args=(predictiondata, classifier))
+				predictionThread.start()
+
 	if len(glb.newSamples[0]) >= glb.window:
 		with glb.mutex:
 			for i in range(numCh):
@@ -242,7 +258,7 @@ def graph():
 
 def keys():
 
-	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar
+	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, classifier, predictioncondition
 	while True:
 		inputString = raw_input()
 		if "=" in inputString:
@@ -499,18 +515,31 @@ def keys():
 			else:	
 				plotlib.fftplot(0)
 				plt.show()
+		
 		elif string == "loaddataset":
-			x,y = dataset.loadDataset("temp.txt")
-			dataset.sortDataset(x, y, classes=[0,5,10])
+			x,y = dataset.loadDataset("data.txt")
+			dataset.sortDataset(x, y, classes=[0,5,2,4,6,8])
 			
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
+		
 		elif string == "learn":
 			import ML.learning as learning
 			learnThread = threading.Thread(target=learning.startLearning, args=())
 			learnThread.setDaemon(True)
 			learnThread.start()
+		
+		elif string == "predict":
+			predictioncondition = True
+			classifier = ML.learning.loadMachineState()
+			print("Predictionsetup complete")
+
+		elif string == "notpredict":
+			predictioncondition = False
+
+		elif string == "report":
+			ML.learning.classificationReportGUI()
 
 		elif string == "help":
 			print("This is a list over essential commands, those ending with = need input values")

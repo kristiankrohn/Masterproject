@@ -29,8 +29,8 @@ import globalvar
 import copy
 
 
-yTestGUI = []
-predictionsGUI = []
+yTestGUI = np.array([])
+predictionsGUI = np.array([])
 
 
 
@@ -352,11 +352,12 @@ def predict(Xtest, clf, yTest):
 
     return accuracyScore, classificationReport, f1Score, precision
 
-def predictGUI(Xtest, clf, y):
+def predictGUI(X, clf, y):
     global yTestGUI, predictionsGUI
     yTest = [y]
     print("Starting to predict with GUI")
     start = time.time()
+    Xtest = extractFeatures(X, 0)
     predictions = clf.predict(Xtest)
     print("Time taken to predict with given examples in GUI:")
     print(time.time() - start)
@@ -401,53 +402,9 @@ def classificationReportGUI():
     print(classificationReport)
 
 
-def predictRealTime(X, clf):
-    Xtest = [[]]
-    frequencyBands = [0.1, 4, 8, 12,30]
-    Fs = 250
-    featureVector = []
 
-    for i in range(len(X[0])):
-        startTime = time.time()
-        power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
-        bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
-        thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
-        pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
-        pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
-        #print(power)
-        #print(channel)
-        #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
-        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
-        featureVector = [#powerRatio[0],
-                        #pyeeg.hurst(list(X[channel][i])),
-                        thetaBetaRatio,
-                        pearsonCoefficients13[0][1],
-                        pearsonCoefficients13[1][0],
-                        #bandAvgAmplitudes[0]/bandAvgAmplitudes[1],
-                        #bandAvgAmplitudes[1]/bandAvgAmplitudes[2],
-                        np.std(list(X[channel][i])),
-                        #pyeeg.hfd(list(X[channel][i]), 50), #Denne er drittreig naa!!! Okende tall gir viktigere feature, men mye lenger computation time
-                        #pyeeg.hjorth(list(X[0][i])),
-                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        np.ptp(list(X[0][i])),
-                        np.amax(list(X[0][i])),
-                        np.amin(list(X[0][i])),
-                        #thetaBetaPowerRatio,
-                        #powerRatio[1],
-                        #powerRatio[2],
-                        #powerRatio[3],
-                        #power[0],
-                        #power[1],
-                        #power[2],
-                        #power[3],
-                        #pyeeg.pfd(list(X[0][i])),
-                        #pyeeg.dfa(list(X[0][i]), None, None),
-                        ]
-        Xtest.append(featureVector)
-        print("Time taken to extract features for example %d: " % i)
-        print(time.time() - startTime)
-        #print(XL)
-    Xtest.pop(0)
+def predictRealTime(X, clf):
+    Xtest = extractFeatures(X, 0)
 
     print("Starting to predict")
     start = time.time()

@@ -13,8 +13,7 @@ import itertools
 printlock = Lock()
 filelock = Lock()
 
-longLength = 625
-shortLength = 250
+
 
 frontPadding = 750
 backPadding = 250
@@ -865,3 +864,9 @@ def setDatasetFolder(folder):
 
 def printDatasetFolder():
 	print("Now working on the dataset in: " + glb.datasetFolder)
+
+def shapeArray(data, length):
+	returnlist = [[],[],[],[],[],[],[],[]]
+	for i in range(numCh):
+		returnlist[i].append(data[i][filterdata][-length:])
+	return returnlist

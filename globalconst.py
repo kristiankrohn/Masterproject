@@ -12,7 +12,8 @@ numCh = 8
 nPlots = numCh
 nSamples = 2000
 datasetFolders = ["\\Dataset\\", "\\Dataset_Aexternal\\"]
-
+longLength = 625
+shortLength = 250
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 movements = ["\\Center_blink", "\\Center_still", 
