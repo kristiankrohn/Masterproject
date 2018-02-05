@@ -51,11 +51,13 @@ def startLearning():
     precision = []
     #crossValScore = []
     X, y = dataset.loadDataset("longdata.txt")
-    
-    X, y = dataset.sortDataset(X, y, length=10, classes=[0,5,2,6,4,8])
-    #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]) 
+
+    #Length = how many examples of each class is desired.
+    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,2,6,4,8])
+
+    #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8])
     #if x or y is undefined, data.txt will be loaded
-    
+
 
 
     for channel in range(1): #len(X) for aa ha med alle kanaler
@@ -76,6 +78,7 @@ def startLearning():
 
         #Use this if predictor other than SVM is used.
         clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+        saveMachinestate(clf)   #Uncomment this to save the machine state
 
         tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
@@ -105,7 +108,7 @@ def startLearning():
         #print "Number of features :", i + 1
         #print(classificationReport[i])
 
-    #saveMachinestate(clf)   #Uncomment this to save the machine state
+
     #plotClassifier(clfPlot, XLtrain) #Not sure if this works atm. Uncomment this to plot the classifier
 
 def scaleAndSplit(XL, labels):
@@ -128,8 +131,8 @@ def extractFeatures(X, channel):
 
         bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
         thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
-        #pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
-        #pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
+        pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
+        pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
         #print(power)
         #print(channel)
         #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
@@ -137,10 +140,12 @@ def extractFeatures(X, channel):
         featureVector = [#powerRatio[0],
                         #pyeeg.hurst(list(X[channel][i])),
                         thetaBetaRatio,
+                        pearsonCoefficients13[0][1],
+                        pearsonCoefficients13[1][0],
                         #bandAvgAmplitudes[0]/bandAvgAmplitudes[1],
                         #bandAvgAmplitudes[1]/bandAvgAmplitudes[2],
                         np.std(list(X[channel][i])),
-                        #pyeeg.hfd(list(X[channel][i]), 20), #Denne er drittreig naa!!! Okende tall gir viktigere feature, men mye lenger computation time
+                        #pyeeg.hfd(list(X[channel][i]), 50), #Denne er drittreig naa!!! Okende tall gir viktigere feature, men mye lenger computation time
                         #pyeeg.hjorth(list(X[0][i])),
                         pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
                         np.ptp(list(X[0][i])),
@@ -212,6 +217,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
 
     print("Starting to train the classifier")
+    start = time.time()
     print()
 
     #SVM classification, regulation parameter C = 102 gives good results
@@ -220,11 +226,12 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
     #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
-    #C = 102
+    C = 1000
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
+    clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
 
     #Decision tree classification. max_depth 8 and min_leaf = 5 gives good results, but varying.
-    clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
+    #clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
 
     #randomForestClassifier.
     #clf = RandomForestClassifier(max_depth = 200,  random_state = 0, )
@@ -233,9 +240,11 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     clf.fit(XLtrain,yTrain)#skaler???
 
     #Create classifier to be able to visualize it
-    clfPlot = clf
-    clfPlot.fit(XLtrain,yTrain)
-    return clf, clfPlot #Uncomment this to be able to plot the classifier
+    #clfPlot = clf
+    #clfPlot.fit(XLtrain,yTrain)
+    print("Time taken to train classifier:")
+    print(time.time() - start)
+    return clf, None #clfPlot Uncomment this to be able to plot the classifier
 
 def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
     bestParams = []
@@ -315,7 +324,11 @@ def evaluateFeatures(X, y):
 
 
 def predict(Xtest, clf, yTest):
+    print("Starting to predict")
+    start = time.time()
     predictions = clf.predict(Xtest)
+    print("Time taken to predict with given examples:")
+    print(time.time() - start)
     #Print the test data to see how well it performs.
     print(yTest)
     print(predictions)
@@ -336,12 +349,36 @@ def predict(Xtest, clf, yTest):
 
     return accuracyScore, classificationReport, f1Score, precision
 
+def predictRealTime(Xtest, clf):
+    print("Starting to predict")
+    start = time.time()
+    predictions = clf.predict(Xtest)
+    timeStop = time.time()
+    print("The prediction is:")
+    print(predictions)
+    print()
+    print("Time taken to predict with given examples:")
+    print(timeStop - start)
+
+
+    #Print the test data to see how well it performs.
+
+    #accuracyScore = accuracy_score(yTest, predictions)
+    #precision = precision_score(yTest, predictions, average = 'macro')
+    #print("Accuracy score:")
+    #print(accuracyScore)
+    #print("Precision score:")
+    #print(precision)
+
+    #meanSquaredScore = mean_squared_error(yTest, predictions)
+    #classificationReport = classification_report(yTest, predictions)
+    #f1Score = f1_score(yTest, predictions, average='macro')
 
 def saveMachinestate(clf):
-    joblib.dump(clf, 'learningState.pkl')
+    joblib.dump(clf, 'ML\learningState.pkl')
 
 def loadMachineState():
-    clf = joblib.load('learningState.pkl')
+    clf = joblib.load('ML\learningState.pkl')
     return clf
 
 def plotClassifier(clf, XLtrain):
