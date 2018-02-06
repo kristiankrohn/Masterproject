@@ -29,7 +29,7 @@ endMode = tme.time()
 z = 3
 classifier = None
 guipredict = False	
-class Alien(object):
+class Ball(object):
 	def __init__(self, canvas, *args, **kwargs):
 		global center, right, left, up, down, startSleep, startMove, endMove, sleeping, classifier
 		self.canvas = canvas
@@ -97,12 +97,16 @@ class Alien(object):
 			wait=False
 			removeBall = True
 			startRemoveBall = tme.time()
+			self.canvas.delete(self.id)
+			
 			self.id = self.canvas.create_oval((size/2) - ballsize, (size/2) - ballsize, 
 				(size/2) + ballsize, (size/2) + ballsize, 
-				outline='white', fill='white')
-
+				outline='')
+				#outline='white', fill='white')
+			
 		if removeBall and (tme.time()>startRemoveBall+0.5):
 			removeBall = False
+			self.canvas.delete(self.id)
 			self.id = self.canvas.create_oval((size/2) - ballsize, (size/2) - ballsize, 
 				(size/2) + ballsize, (size/2) + ballsize, 
 				outline='white', fill='red')
@@ -211,41 +215,60 @@ class Alien(object):
 		self.canvas.move(self.id, self.vx, self.vy)
 
 
-class Ball(object):
-	def __init__(self, master, **kwargs):
+class App:
+	def __init__(self, master):
 		self.master = master
+		master.title("Training GUI")
+	
+		self.w = tk.Label(master, text="Look at the red dot, blink when it dissapears. Press start when ready!")
+		self.w.pack()
+
+		self.startButton = tk.Button(master, text='Start Training', width=25, command=self.startBall)
+		self.startButton.pack()
+
+		self.exitButton = tk.Button(master, text='Exit', width=25, command=master.quit)
+		self.exitButton.pack()
+
+
+	def animation(self):
+		
+		self.ball.move()
+		self.master.after(12, self.animation)
+
+
+	def startBall(self):
+		print("StartBall")		
+		self.w.pack_forget()
+		self.startButton.pack_forget()
+
 		self.canvas = tk.Canvas(self.master, width=size, height=size)
 		self.canvas.pack()
-		self.aliens = Alien(self.canvas, (size/2) - ballsize, (size/2) - ballsize, (size/2) + ballsize, (size/2) + ballsize, outline='white', fill='red')
+
+		self.ball = Ball(self.canvas, (size/2) - ballsize, (size/2) - ballsize, (size/2) + ballsize, (size/2) + ballsize, outline='white', fill='red')
 		self.canvas.pack()
 		self.master.after(0, self.animation)
 
 
-	def animation(self):
-		#for alien in self.aliens:
-		self.aliens.move()
-		self.master.after(12, self.animation)
+class MyFirstGUI:
+    def __init__(self, master):
+        self.master = master
+        master.title("A simple GUI")
 
-	def close_window(self):
-		self.destroy()
+        self.label = tk.Label(master, text="This is our first GUI!")
+        self.label.pack()
 
-def startgui():
-	global startButton, w, root
-	w.pack_forget()
-	startButton.pack_forget()
-	Ball(root)
+        self.greet_button = tk.Button(master, text="Greet", command=self.greet)
+        self.greet_button.pack()
+
+        self.close_button = tk.Button(master, text="Close", command=master.quit)
+        self.close_button.pack()
+
+    def greet(self):
+        print("Greetings!")
 
 def guiloop():
-	global startButton, w, root
-	root = tk.Tk()
-	root.title("Training GUI")
-	w = tk.Label(root, text="Look at the red dot, blink when it dissapears. Press start when ready!")
-	w.pack()
-	startButton = tk.Button(root, text='Start', width=25, command=startgui)
-	startButton.pack()
-	exitButton = tk.Button(root, text='Exit', width=25, command=root.destroy)
-	exitButton.pack()
-	#root = tk.Tk()
-	#app = App(root)
+	root = tk.Tk()	
+	app = App(root)
+	#my_gui = MyFirstGUI(root)
 	root.mainloop()
 

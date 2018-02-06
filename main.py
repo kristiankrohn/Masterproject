@@ -328,7 +328,7 @@ def keys():
 
 		elif string == "gui":
 			threadGui = threading.Thread(target=ttk.guiloop, args=())
-			#threadGui.setDaemon(True)
+			threadGui.setDaemon(True)
 			threadGui.start()
 		elif string == "makedata":
 			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
@@ -590,9 +590,9 @@ def main():
 	#threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 	#threadDataCatcher.setDaemon(True)
 	#threadDataCatcher.start()
-	#threadGui = threading.Thread(target=gui, args=())
-	#threadGui.setDaemon(True)
-	#threadGui.start()
+	threadGui = threading.Thread(target=gui, args=())
+	threadGui.setDaemon(True)
+	threadGui.start()
 	
 	#thread2 = threading.Thread(target=QtGui.QApplication.instance().exec_(),args=())
 
