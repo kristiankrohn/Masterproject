@@ -76,20 +76,21 @@ def startLearning():
         #Use this if SVM is used
 
         #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
+        #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
 
         #Use this if predictor other than SVM is used.
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        clf = loadMachineState()
-        #saveMachinestate(clf)   #Uncomment this to save the machine state
+        clf = loadMachineState("learningState")
+        #saveMachinestate(clf, "learningStateblabla")   #Uncomment this to save the machine state
+
+        #compareFeatures(XL, XLtrain, yTrain, XLtest, yTest)
 
         tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
         f1Score.append(tempf1Score)
         precision.append(tempPrecision)
 
-    predictGUI(X, clf, 2)
-    classificationReportGUI()
         #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
 
@@ -119,7 +120,7 @@ def startLearning():
 
 def scaleAndSplit(XL, labels):
     XLscaled = (np.array(XL))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1, random_state = 42)
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1, random_state = 42  )
 
     return XLtrain, XLtest, yTrain, yTest
 
@@ -136,24 +137,66 @@ def extractFeatures(X, channel):
         thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
         pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
         pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
+        pearsonCoefficients23 = np.corrcoef(X[1][i], X[2][i])
+        pearsonCoefficients24 = np.corrcoef(X[1][i], X[3][i])
+        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
+        cov12 = np.cov(list(X[0][i]), list(X[1][i]))
+        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
+        corr12 = np.correlate(list(X[0][i]), list(X[1][i])),
+
         #print(power)
         #print(channel)
         #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
         #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
-        featureVector = [#powerRatio[0],
-                        #pyeeg.hurst(list(X[channel][i])),
+        featureVector = [
                         thetaBetaRatio,
-                        pearsonCoefficients13[0][1],
-                        pearsonCoefficients13[1][0],
+                        np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
+                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        np.amax(list(X[0][i])),
+
+                        pearsonCoefficients14[0][1], #new top dog
+                        pearsonCoefficients14[1][0], #new top dog
+                        np.ptp(list(X[0][i])), #denne er bra
+                        np.amin(list(X[0][i])),
+
+                        #corr12[0][0],
+                        #np.amax(list(X[0][i])) - np.amax(list(X[3][i])),
+                        #np.correlate(list(X[0][i]), list(X[2][i])),
+
+                        #cov12[0][1],
+                        #cov12[1][0],
+                        #np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
+
+                        #np.amax(list(X[1][i])) - np.amax(list(X[2][i])),
+                        #np.amax(list(X[1][i])) - np.amax(list(X[3][i])),
+                        #pearsonCoefficients13[0][1],
+                        #pearsonCoefficients13[1][0],
+                        #thetaBetaRatio,
+
+                        #powerRatio[0],
+                        #pyeeg.hurst(list(X[channel][i])),
+                        #np.std(list(X[channel][i])),
+                        #np.var(list(X[channel][i])),
+
+                        #np.correlate(list(X[0][i]), list(X[3][i])), #funker bare for decision tree???
+                        #np.correlate(list(X[2][i]), list(X[3][i])),
+
+                        #cov34[0][1],
+                        #cov34[1][0],
+
                         #bandAvgAmplitudes[0],
                         #bandAvgAmplitudes[1],
-                        np.std(list(X[channel][i])),
+                        #np.std(list(X[channel][i])),
                         #pyeeg.hfd(list(X[channel][i]), 50), #Okende tall gir viktigere feature, men mye lenger computation time
                         #pyeeg.hjorth(list(X[0][i])),
-                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        np.ptp(list(X[0][i])),
-                        np.amax(list(X[0][i])),
-                        np.amin(list(X[0][i])),
+
+
+                        #np.ptp(list(X[3][i])),
+
+
+
+
+
                         #thetaBetaPowerRatio,
                         #powerRatio[1],
                         #powerRatio[2],
@@ -184,27 +227,41 @@ def getBandAmplitudes(X, Band, Fs):
         avgAmplitude[Freq_Index] = sum(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))]) / len(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))])
     return avgAmplitude
 
-def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams):
+def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
     accuracyScore = []
-    classificationReport = []
-    crossValScore = []
+    f1Score = []
+    precisionScore = []
     #Nested loops to compare accuracy when varying number of features are used.
     for i in range(len(XL[0])):
         compFeaturesTraining, compFeaturesTest = appendFeaturesForComparison(i, XL, XLtrain, XLtest)
         #Create the classifier and train it on the test data.
-        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, bestParams) #uncomment this if state should be loaded
+        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, None) #uncomment this if state should be loaded
 
         #Load state of the classifier
         #clf = loadMachineState() #Uncomment this to load the machine state
 
         #Predict the classes
-        tempAccuracy, tempClassReport, tempCrossValScore = predict(compFeaturesTest, clf, yTest)
+        tempAccuracy, tempClassReport, tempf1Score, tempPrecision = predict(compFeaturesTest, clf, yTest)
+        print("Accuracy f1 and preision for %d features: " %i)
+
+
+
+
 
         accuracyScore.append(tempAccuracy)
-        classificationReport.append(tempClassReport)
+        f1Score.append(tempf1Score)
+        precisionScore.append(tempPrecision)
         #crossValScore.append(tempCrossValScore)
+    print("Feature comparison recap: ")
+    print()
+    print("Accuracy:")
+    print(accuracyScore)
+    print("F1 score:")
+    print(f1Score)
+    print("Precision")
+    print(precisionScore)
 
-    return accuracyScore, classificationReport
+    return accuracyScore, f1Score, precisionScore
 
 def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
 
@@ -234,10 +291,11 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
 
     #Decision tree classification. max_depth 8 and min_leaf = 5 gives good results, but varying.
-    #clf = tree.DecisionTreeClassifier(max_depth = 8, min_samples_leaf=5)
-
+    #clf = tree.DecisionTreeClassifier(max_depth = None, min_samples_leaf=5)
+    #clf = tree.DecisionTreeClassifier(max_depth = None, min_samples_leaf = bestParams['min_samples_leaf'])
     #randomForestClassifier.
-    #clf = RandomForestClassifier(max_depth = 200,  random_state = 0, )
+    #clf = RandomForestClassifier(max_depth = None,  min_samples_leaf = 10, random_state = 40)
+    #clf = RandomForestClassifier(max_depth = None, min_samples_leaf = bestParams['min_samples_leaf'], random_state = 40)
 
     #clf = neighbors.KNeighborsClassifier(5)
     clf.fit(XLtrain,yTrain)#skaler???
@@ -265,6 +323,42 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
     print()
 
     clf = GridSearchCV(svm.SVC(), tunedParameters, cv=5, scoring='%s_macro' % scores[0])
+    clf.fit(XLtrain, yTrain)
+    bestParams.append(clf.best_params_)
+    print("Best parameters set found on development set:")
+    print()
+    print(bestParams)
+    print()
+    print("Grid scores on development set:")
+    print()
+    means = clf.cv_results_['mean_test_score']
+    stds = clf.cv_results_['std_test_score']
+
+    #This loop prints out standarddeviation and lots of good stuff
+
+    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+        print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+    print()
+
+    print("Detailed classification report:")
+    print()
+    print("The model is trained on the full development set.")
+    print("The scores are computed on the full evaluation set.")
+    print()
+    yPred = clf.predict(XLtest)
+    print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
+    print()
+    return bestParams[0]
+
+def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
+    bestParams = []
+
+    sampleLeafPipeline = [{'min_samples_leaf': [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 200, 500]}]
+
+    print("Starting to tune parameters")
+    print()
+
+    clf = GridSearchCV(tree.DecisionTreeClassifier(), sampleLeafPipeline, cv=5, scoring='%s_macro' % 'precision')
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)
     print("Best parameters set found on development set:")
@@ -430,11 +524,12 @@ def predictRealTime(X, clf):
     #classificationReport = classification_report(yTest, predictions)
     #f1Score = f1_score(yTest, predictions, average='macro')
 
-def saveMachinestate(clf):
-    joblib.dump(clf, 'ML\learningState.pkl')
+def saveMachinestate(clf, string):
+    joblib.dump(clf, "ML\ " + string + ".pkl")
 
-def loadMachineState():
-    clf = joblib.load('ML\learningState.pkl')
+def loadMachineState(string):
+
+    clf = joblib.load("ML\ " + string + ".pkl")
     return clf
 
 def plotClassifier(clf, XLtrain):
