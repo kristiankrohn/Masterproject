@@ -28,7 +28,7 @@ startMove = tme.time()
 endMode = tme.time()
 z = 3
 classifier = None
-
+guipredict = False	
 class Alien(object):
 	def __init__(self, canvas, *args, **kwargs):
 		global center, right, left, up, down, startSleep, startMove, endMove, sleeping, classifier
@@ -51,6 +51,7 @@ class Alien(object):
 		global timestamp
 		global z
 		global removeBall, startRemoveBall, wait, startWait
+		global guipredict
 		x1, y1, x2, y2 = self.canvas.bbox(self.id)
 
 		if not center and ((right and (x1 <= (size/2) - ballsize)) 
@@ -76,9 +77,10 @@ class Alien(object):
 
 			elif down:
 				cmd = 2
-			predictiondata = dataset.shapeArray(glb.data, longLength)
-			predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
-			predictionThread.start()
+			if guipredict:	
+				predictiondata = dataset.shapeArray(glb.data, longLength)
+				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+				predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			#threadSave.setDaemon(True)
 			threadSave.start()
@@ -105,9 +107,10 @@ class Alien(object):
 				(size/2) + ballsize, (size/2) + ballsize, 
 				outline='white', fill='red')
 			cmd = 0
-			predictiondata = dataset.shapeArray(glb.data, longLength)
-			predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
-			predictionThread.start()
+			if guipredict:	
+				predictiondata = dataset.shapeArray(glb.data, longLength)
+				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+				predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			#threadSave.setDaemon(True)
 			threadSave.start()
@@ -125,9 +128,10 @@ class Alien(object):
 			endMove = tme.time()
 			#print("Movementtime= ")
 			#print(tme.time())
-			predictiondata = dataset.shapeArray(glb.data, longLength)
-			predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
-			predictionThread.start()
+			if guipredict:	
+				predictiondata = dataset.shapeArray(glb.data, longLength)
+				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+				predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			#threadSave.setDaemon(True)
 			threadSave.start()

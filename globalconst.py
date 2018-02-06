@@ -23,3 +23,5 @@ movements = ["\\Center_blink", "\\Center_still",
 			"\\Right_direction", "\\Right_return", "\\Garbage"]
 
 channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
+shortclasses = [0,1,2,3,4,5,6,7,8,9]
+longclasses = [0,5,2,4,6,8]

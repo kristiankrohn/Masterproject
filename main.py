@@ -27,11 +27,11 @@ import serial
 from datetime import datetime
 #mutex = Lock()
 
-####TODO###################################
+####TODO############################################
 ##
-##	Make it possible to set datasetfolder
+##	Lag egen fil for realtime predict og gui predict
 ##	
-####END TODO###############################
+####END TODO########################################
 
 
 
@@ -519,7 +519,9 @@ def keys():
 		elif string == "loaddataset":
 			x,y = dataset.loadDataset("data.txt")
 			dataset.sortDataset(x, y, classes=[0,5,2,4,6,8])
-			
+
+		elif string == "stats":
+			dataset.datasetStats("data.txt")	
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
@@ -563,7 +565,7 @@ def keys():
 		else:
 			print("Unknown command")	
 
-		#tme.sleep(0.1)
+		tme.sleep(0.1)
 
 
 def save():
@@ -601,7 +603,7 @@ def main():
 	#thread2.join()
 
 	while not graphVar:
-		pass
+		tme.sleep(0.1)
 
 	if not exit:
 		graph()	

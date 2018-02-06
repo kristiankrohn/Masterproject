@@ -696,6 +696,15 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 
 	return xReturn, yReturn
 
+def datasetStats(filename="data.txt"):
+	x,y = loadDataset(filename)
+	counts = [None]*len(longclasses)
+	print("Statistics: ")
+	for i in range(len(longclasses)):
+		print("Number of occurances of class %d:" %longclasses[i])
+		counts[i] = y[0].count(longclasses[i])
+		print(counts[i])
+
 def deletesystem(elementtype="shorttemp"):
 	#Some system for setting variables according to file
 	if elementtype == "shorttemp": 
