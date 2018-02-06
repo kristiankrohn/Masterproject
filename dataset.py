@@ -139,7 +139,7 @@ def prepSaveData(direction, length):
 def exportPlots(command, plottype="time", speed="slow"):
 	global filelock
 	global DataSet
-	
+	del ML.learning
 	#folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	#print(folder)
 	if command == "temp":
@@ -209,18 +209,19 @@ def exportPlots(command, plottype="time", speed="slow"):
 		
 		#DataSet = []
 		DataSet = AllData.split(':')
-		
+		'''
 		if (speed == "fast") and ((len(DataSet)/numCh) > 150):
 			print("Size of dataset is: %d" %(len(DataSet)/numCh) + ", do you still want to plot fast?(this might halt your cpu) [Y/n]")
 			inputString = raw_input()
 			if inputString != "Y":
 				print("Changed to slow sequential plot export")
 				speed = "slow"
-
+		'''
 		if speed == "fast":
 			if len(DataSet) < numCh:
 				return
 			else:
+				print("Number of plots: %d" %(len(DataSet)/numCh))
 				split = 128
 				splitsize = numCh*split
 				numSplits = len(DataSet)//splitsize
@@ -267,7 +268,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 						#print(Datalist[i])
 						#tme.sleep(1)
 					#Dataset = None
-					print("Spawning %d threads" %(len(DataSet)/numCh))
+					print("Spawning %d threads" %(len(DataSetTemp)/numCh))
 					#threadexport = [None]*(len(DataSet)/numCh)
 					#print("Thread index up to: %d" %len(DataSet))
 					#print(i)
@@ -276,7 +277,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 					iterator = itertools.izip(indexlist,Datalist)
 					#Datalist = None
 					#indexlist = None
-					res = pool.map(func_star, iterator, split/num_cpu)
+					res = pool.map(func_star, iterator, num_cpu)
 					res = [r for r in res if r is not None]
 					#iterator = None
 					#print(p)
@@ -400,6 +401,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 					print("Empty file")
 		
 	#plt.close('all')
+	import ML.learning
 	print("Finished exporting plots")
 
 def func_star(a_b):
@@ -538,7 +540,7 @@ def threadplots(k, variables):
 
 	else:
 		print("Empty file")
-	print("Returning %d" %k)
+	print("Finished plot: %d" %k)
 
 
 def saveShortData():

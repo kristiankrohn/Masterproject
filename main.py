@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 #from numpy.random import randint
 from globalconst import *
 import globalvar as glb
-import Tkinter as tk
+#import Tkinter as tk
 import gui as ttk
 import plot as plotlib
 import filterlib 
@@ -535,7 +535,7 @@ def keys():
 		elif string == "predict":
 			import ML.learning
 			predictioncondition = True
-			classifier = ML.learning.loadMachineState()
+			classifier = ML.learning.loadMachineState(machinestate)
 			print("Predictionsetup complete")
 
 		elif string == "notpredict":
@@ -590,9 +590,9 @@ def main():
 	#threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 	#threadDataCatcher.setDaemon(True)
 	#threadDataCatcher.start()
-	threadGui = threading.Thread(target=gui, args=())
-	threadGui.setDaemon(True)
-	threadGui.start()
+	#threadGui = threading.Thread(target=gui, args=())
+	#threadGui.setDaemon(True)
+	#threadGui.start()
 	
 	#thread2 = threading.Thread(target=QtGui.QApplication.instance().exec_(),args=())
 
