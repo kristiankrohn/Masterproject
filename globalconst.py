@@ -15,7 +15,7 @@ datasetFolders = ["\\Dataset\\", "\\Dataset_Aexternal\\"]
 longLength = 625
 shortLength = 250
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-machinestate = "learningState"
+machinestate = "learningState67HFDreducedSvm"
 movements = ["\\Center_blink", "\\Center_still", 
 			"\\Down_direction", "\\Down_return", 
 			"\\Up_direction", "\\Up_return",

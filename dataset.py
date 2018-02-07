@@ -887,8 +887,67 @@ def setDatasetFolder(folder):
 def printDatasetFolder():
 	print("Now working on the dataset in: " + glb.datasetFolder)
 
-def shapeArray(data, length):
+def shapeArray(data, length, direction):
 	returnlist = [[],[],[],[],[],[],[],[]]
+
+	global mutex
+	#global printlock
+	if direction == 5:
+		delayconstant = 0.2
+	else:
+		if length == shortLength:
+			delayconstant = 0.8
+		elif length == longLength:
+			delayconstant = 0.6
+
+	startTime = tme.time() + delayconstant
+	ready = False
+
+	temp = None
+	
+	while not ready:
+		with glb.mutex:
+			if len(glb.data[0][timestamp]) < (length + frontPadding + backPadding):
+				print("Lenght of data is too small")
+				return -1
+			elif glb.data[0][timestamp][-1] >= startTime: #Gaar out of range
+				ready = True
+				temp = copy.deepcopy(glb.data)
+				error = False
+				for i in range(numCh):
+
+					if temp[i][timestamp][-1] != temp[i-1][timestamp][-1]:
+						print("Timestamp error, unequal for same index")
+						return -1
+					if len(temp[i][rawdata]) != len(temp[i-1][rawdata]):
+						print("Uneven length of rawdata")
+						return -1
+					if len(temp[i][filterdata]) != len(temp[i-1][filterdata]):
+						print("Uneven length of filterdata")
+						return -1
+					if len(temp[i][timestamp]) != len(temp[i-1][timestamp]):
+						print("Uneven length of timestamp")
+						return -1
+					if len(temp[i][timestamp]) != len(temp[i][rawdata]):
+						print("Uneven length between timestamp and rawdata")
+						return -1
+					
+
+	stopindex = len(temp[0][rawdata])-1
+
+
+	for i in range((len(temp[0][timestamp])-1), 0, -1): 
+		#print(i)
+		if temp[0][timestamp][i]<=startTime:
+			stopindex = i
+			break
+		elif i == (length + frontPadding + backPadding):
+			print("Index error, could not find stop index")
+			return -1
+
+	stop = stopindex
+	start = stop - length
+
 	for i in range(numCh):
-		returnlist[i].append(data[i][filterdata][-length:])
+		returnlist[i].append(data[i][filterdata][start:stop])
 	return returnlist

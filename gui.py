@@ -1,5 +1,5 @@
-from Tkinter import *
-#from mttkinter import *
+#from Tkinter import *
+from mttkinter import *
 import time as tme
 import numpy as np
 from numpy.random import randint
@@ -29,7 +29,7 @@ startMove = tme.time()
 endMode = tme.time()
 z = 3
 classifier = None
-
+classifier = ML.learning.loadMachineState(machinestate)
 guipredict = False
 
 class Ball(object):
@@ -46,9 +46,9 @@ class Ball(object):
 		up = False
 		down = False
 		startSleep = tme.time()
-		sleeping = True
+		sleeping = True	
 		
-		classifier = ML.learning.loadMachineState(machinestate)
+
 	def move(self):
 		global size, speed, center, right, left, up, down, startSleep, sleeping, startMove, endMove, classifier
 		global timestamp
@@ -80,15 +80,17 @@ class Ball(object):
 
 			elif down:
 				cmd = 2
+
 			if guipredict:	
-				predictiondata = dataset.shapeArray(glb.data, longLength)
+				predictiondata = dataset.shapeArray(glb.data, longLength, cmd)
 				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
 				predictionThread.start()
+
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			#threadSave.setDaemon(True)
+			threadSave.setDaemon(True)
 			threadSave.start()
 			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			#threadShortSave.setDaemon(True)
+			threadShortSave.setDaemon(True)
 			threadShortSave.start()
 			right = False
 			left = False
@@ -96,6 +98,7 @@ class Ball(object):
 			down = False
 			wait=True
 			startWait = tme.time()
+
 		if wait and (tme.time()>startWait+2):
 			wait=False
 			removeBall = True
@@ -114,15 +117,17 @@ class Ball(object):
 				(size/2) + ballsize, (size/2) + ballsize, 
 				outline='white', fill='red')
 			cmd = 0
+
 			if guipredict:	
-				predictiondata = dataset.shapeArray(glb.data, longLength)
+				predictiondata = dataset.shapeArray(glb.data, longLength, cmd)
 				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
 				predictionThread.start()
+
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			#threadSave.setDaemon(True)
+			threadSave.setDaemon(True)
 			threadSave.start()
 			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			#threadShortSave.setDaemon(True)
+			threadShortSave.setDaemon(True)
 			threadShortSave.start()
 
 
@@ -136,14 +141,14 @@ class Ball(object):
 			#print("Movementtime= ")
 			#print(tme.time())
 			if guipredict:	
-				predictiondata = dataset.shapeArray(glb.data, longLength)
+				predictiondata = dataset.shapeArray(glb.data, longLength, cmd)
 				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
 				predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			#threadSave.setDaemon(True)
+			threadSave.setDaemon(True)
 			threadSave.start()
 			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			#threadShortSave.setDaemon(True)
+			threadShortSave.setDaemon(True)
 			threadShortSave.start()
 			#z = randint(0,4)
 			if z == 3:
@@ -177,7 +182,7 @@ class Ball(object):
 			center = False
 			cmd = 3
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			#threadSave.setDaemon(True)
+			threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vx = -speed
@@ -188,7 +193,7 @@ class Ball(object):
 			center = False
 			cmd = 7
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			#threadSave.setDaemon(True)
+			threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vx = speed
@@ -199,7 +204,7 @@ class Ball(object):
 			center = False
 			cmd = 9
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			#threadSave.setDaemon(True)
+			threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vy = -speed
@@ -210,7 +215,7 @@ class Ball(object):
 			center = False
 			cmd = 1
 			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			#threadSave.setDaemon(True)
+			threadSave.setDaemon(True)
 			threadSave.start()
 			tme.sleep(1)
 			self.vy = speed
@@ -220,46 +225,33 @@ class Ball(object):
 
 class App:
 	def __init__(self, master):
-		self.master = master
-		master.title("Training GUI")
-	
-		self.w = Label(master, text="Look at the red dot, blink when it dissapears. Press start when ready!")
+		self.master = master		
+		self.w = Label(self.master, text="Look at the red dot, blink when it dissapears. Press start when ready!")
 		self.w.pack()
-
-		self.startButton = Button(master, text='Start Training', width=25, command=self.startBall)
+		self.startButton = Button(self.master, text='Start Training', width=50, command=self.startBall)
 		self.startButton.pack()
-
-		self.exitButton = Button(master, text='Exit', width=25, command=master.quit)
+		self.exitButton = Button(self.master, text='Exit', width=25, command=master.quit)
 		self.exitButton.pack()
 
-
-	def animation(self):
-		
+	def animation(self):	
 		self.ball.move()
 		self.master.after(12, self.animation)
-
 
 	def startBall(self):
 		print("StartBall")		
 		self.w.pack_forget()
 		self.startButton.pack_forget()
-
 		self.canvas = Canvas(self.master, width=size, height=size)
 		self.canvas.pack()
-
 		self.ball = Ball(self.canvas, (size/2) - ballsize, (size/2) - ballsize, (size/2) + ballsize, (size/2) + ballsize, outline='white', fill='red')
-		self.canvas.pack()
+		self.canvas.pack()				
 		self.master.after(0, self.animation)
 
-
-
-
 def guiloop():
-	try:
-		root = Tk()	
-		app = App(root)
-		#my_gui = MyFirstGUI(root)
-		root.mainloop()
-	except Exception, e:
-		print e
+
+	root = Tk()
+	root.title("Training GUI")	
+	App(root)
+	root.mainloop()
+
 

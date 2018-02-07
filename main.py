@@ -4,8 +4,8 @@ import open_bci_v3 as bci
 import os
 import logging
 import time as tme
-from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
+from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from pyqtgraph.ptime import time
 import threading
@@ -50,6 +50,9 @@ predictioninterval = 250
 counterlock = Lock()
 classifier = None
 intervalcounter = 0
+
+
+
 app = QtGui.QApplication([])
 
 
@@ -328,7 +331,7 @@ def keys():
 
 		elif string == "gui":
 			threadGui = threading.Thread(target=ttk.guiloop, args=())
-			threadGui.setDaemon(True)
+			#threadGui.setDaemon(True)
 			threadGui.start()
 		elif string == "makedata":
 			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
@@ -590,9 +593,9 @@ def main():
 	#threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 	#threadDataCatcher.setDaemon(True)
 	#threadDataCatcher.start()
-	#threadGui = threading.Thread(target=gui, args=())
+	threadGui = threading.Thread(target=gui, args=())
 	#threadGui.setDaemon(True)
-	#threadGui.start()
+	threadGui.start()
 	
 	#thread2 = threading.Thread(target=QtGui.QApplication.instance().exec_(),args=())
 

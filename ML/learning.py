@@ -129,8 +129,11 @@ def extractFeatures(X, channel):
     frequencyBands = [0.1, 4, 8, 12,30]
     Fs = 250
     featureVector = []
-
-    for i in range(len(X[0])):
+    if type(X[0]) is int:
+        length = 1
+    else: 
+        length = len(X[0])
+    for i in range(length):
         startTime = time.time()
         power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
         bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
