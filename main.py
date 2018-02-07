@@ -23,6 +23,7 @@ import filterlib
 import dataset
 import ML.learning #this is moved to keys() -> "learn"
 import serial
+import hht
 #from serial import SerialException
 from datetime import datetime
 #mutex = Lock()
@@ -528,11 +529,11 @@ def keys():
 				plt.show()
 		
 		elif string == "loaddataset":
-			x,y = dataset.loadDataset("data.txt")
-			dataset.sortDataset(x, y, classes=[0,5,2,4,6,8])
-
+			x,y = dataset.loadDataset("longtemp.txt")
+			#x,y = dataset.sortDataset(x, y, classes=[0,5,2,4,6,8])
+			print(x[0][0])
 		elif string == "stats":
-			dataset.datasetStats("data.txt")	
+			dataset.datasetStats("temp.txt")	
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
@@ -555,6 +556,10 @@ def keys():
 		elif string == "report":
 			import ML.learning
 			ML.learning.classificationReportGUI()
+
+		elif string == "hht":
+			if inputval != None and inputval < 10:
+				hht.testHHT(inputval)
 
 		elif string == "help":
 			print("This is a list over essential commands, those ending with = need input values")
