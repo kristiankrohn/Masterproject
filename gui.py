@@ -31,7 +31,7 @@ z = 3
 classifier = None
 classifier = ML.learning.loadMachineState(machinestate)
 guipredict = True
-
+saveData = False
 class Ball(object):
 	def __init__(self, canvas, *args, **kwargs):
 		global center, right, left, up, down, startSleep, startMove, endMove, sleeping, classifier
@@ -54,7 +54,7 @@ class Ball(object):
 		global timestamp
 		global z
 		global removeBall, startRemoveBall, wait, startWait
-		global guipredict
+		global guipredict, saveData
 		x1, y1, x2, y2 = self.canvas.bbox(self.id)
 
 		if not center and ((right and (x1 <= (size/2) - ballsize)) 
@@ -84,13 +84,13 @@ class Ball(object):
 			if guipredict:	
 				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
 				predictionThread.start()
-
-			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			threadSave.setDaemon(True)
-			threadSave.start()
-			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadShortSave.setDaemon(True)
-			threadShortSave.start()
+			if saveData:
+				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
+				threadSave.setDaemon(True)
+				threadSave.start()
+				threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+				threadShortSave.setDaemon(True)
+				threadShortSave.start()
 			right = False
 			left = False
 			up = False
@@ -120,13 +120,13 @@ class Ball(object):
 			if guipredict:	
 				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
 				predictionThread.start()
-
-			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			threadSave.setDaemon(True)
-			threadSave.start()
-			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadShortSave.setDaemon(True)
-			threadShortSave.start()
+			if saveData:
+				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
+				threadSave.setDaemon(True)
+				threadSave.start()
+				threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+				threadShortSave.setDaemon(True)
+				threadShortSave.start()
 
 
 			startSleep = tme.time()
@@ -141,12 +141,13 @@ class Ball(object):
 			if guipredict:	
 				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
 				predictionThread.start()
-			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
-			threadSave.setDaemon(True)
-			threadSave.start()
-			threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadShortSave.setDaemon(True)
-			threadShortSave.start()
+			if saveData:
+				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
+				threadSave.setDaemon(True)
+				threadSave.start()
+				threadShortSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+				threadShortSave.setDaemon(True)
+				threadShortSave.start()
 			#z = randint(0,4)
 			if z == 3:
 				z = 0
@@ -178,9 +179,10 @@ class Ball(object):
 			right = True
 			center = False
 			cmd = 3
-			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
-			threadSave.start()
+			if saveData:
+				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+				threadSave.setDaemon(True)
+				threadSave.start()
 			tme.sleep(1)
 			self.vx = -speed
 
@@ -189,9 +191,10 @@ class Ball(object):
 			left = True
 			center = False
 			cmd = 7
-			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
-			threadSave.start()
+			if saveData:
+				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+				threadSave.setDaemon(True)
+				threadSave.start()
 			tme.sleep(1)
 			self.vx = speed
 
@@ -200,9 +203,10 @@ class Ball(object):
 			down = True
 			center = False
 			cmd = 9
-			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
-			threadSave.start()
+			if saveData:
+				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+				threadSave.setDaemon(True)
+				threadSave.start()
 			tme.sleep(1)
 			self.vy = -speed
 			
@@ -211,9 +215,10 @@ class Ball(object):
 			up = True
 			center = False
 			cmd = 1
-			threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
-			threadSave.setDaemon(True)
-			threadSave.start()
+			if saveData:
+				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
+				threadSave.setDaemon(True)
+				threadSave.start()
 			tme.sleep(1)
 			self.vy = speed
 
