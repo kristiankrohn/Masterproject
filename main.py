@@ -38,6 +38,7 @@ from datetime import datetime
 board = None
 root = None
 graphVar = False
+guiVar = False
 count = None
 curves = []
 ptr = 0
@@ -53,7 +54,7 @@ intervalcounter = 0
 
 
 
-app = QtGui.QApplication([])
+#app = QtGui.QApplication([])
 
 
 
@@ -219,7 +220,7 @@ def update():
 def graph():
 	#Graph setup
 	global nPlots, nSamples, count, data, curves, p, QtGui, app
-	#app = QtGui.QApplication([])
+	app = QtGui.QApplication([])
 	p = pg.plot()
 
 	p.setWindowTitle('pyqtgraph example: MultiPlotSpeedTest')
@@ -262,6 +263,7 @@ def graph():
 def keys():
 
 	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, classifier, predictioncondition
+	global guiVar
 	while True:
 		inputString = raw_input()
 		if "=" in inputString:
@@ -327,20 +329,26 @@ def keys():
 			threadDataCatcher.start()
 
 		elif string == "graph":
-			graphVar = True
+			#graphVar = True
+			thread2 = threading.Thread(target=graph,args=())
+			thread2.start()
 
 		elif string == "gui":
-			threadGui = threading.Thread(target=ttk.guiloop, args=())
+			guiVar = True
+			#threadGui = threading.Thread(target=ttk.guiloop, args=())
 			#threadGui.setDaemon(True)
-			threadGui.start()
+			#threadGui.start()
 		elif string == "makedata":
 			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 			#threadDataCatcher.setDaemon(True)
 			threadDataCatcher.start()
-			graphVar = True
-			threadGui = threading.Thread(target=gui, args=())
+			guiVar = True
+			thread2 = threading.Thread(target=graph,args=())
+			thread2.start()
+			#graphVar = True
+			#threadGui = threading.Thread(target=gui, args=())
 			#threadGui.setDaemon(True)
-			threadGui.start()
+			#threadGui.start()
 		elif string == "analyzefilter":
 			if inputval != None:
 				filterlib.analyze_filter(inputval)
@@ -580,7 +588,7 @@ def gui():
 
 
 def main():
-	global graphVar, exit
+	global graphVar, exit, guiVar
 
 	print("Setup finished, starting threads")
 	threadHK = threading.Thread(target=housekeeper,args=())
@@ -593,10 +601,10 @@ def main():
 	#threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 	#threadDataCatcher.setDaemon(True)
 	#threadDataCatcher.start()
-	threadGui = threading.Thread(target=gui, args=())
+	#threadGui = threading.Thread(target=ttk.guiloop, args=())
 	#threadGui.setDaemon(True)
-	threadGui.start()
-	
+	#threadGui.start()
+	#ttk.guiloop()
 	#thread2 = threading.Thread(target=QtGui.QApplication.instance().exec_(),args=())
 
 	#thread2.start()
@@ -605,11 +613,13 @@ def main():
 	#thread1.join()
 	#thread2.join()
 
-	while not graphVar:
+	#while not graphVar:
+		#tme.sleep(0.1)
+	while not guiVar:
 		tme.sleep(0.1)
-
 	if not exit:
-		graph()	
+		#graph()	
+		ttk.guiloop()
 
 	while not exit:
 		pass

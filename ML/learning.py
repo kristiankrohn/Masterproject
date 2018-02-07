@@ -5,7 +5,7 @@ from sklearn import preprocessing
 from sklearn import neighbors
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
- from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
@@ -130,12 +130,7 @@ def extractFeatures(X, channel):
     Fs = 250
     featureVector = []
 
-    if type(X[0]) is int:
-        length = 1
-    else:
-        length = len(X[0])
-
-    for i in range(length):
+    for i in range(len(X[0])):
         startTime = time.time()
         power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
         bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
@@ -431,21 +426,28 @@ def predict(Xtest, clf, yTest):
 
     return accuracyScore, classificationReport, f1Score, precision
 
-def predictGUI(X, clf, y):
+def predictGUI(X, clf, y, windowLength):
     global yTestGUI, predictionsGUI
     yTest = [y]
-    print("Starting to predict with GUI")
+    #print("Starting to predict with GUI")
     start = time.time()
+    X = dataset.shapeArray(X, windowLength, y)
+    if X == -1:
+        return
+
     Xtest = extractFeatures(X, 0)
     predictions = clf.predict(Xtest)
     print("Time taken to predict with given examples in GUI:")
     print(time.time() - start)
     #Print the test data to see how well it performs.
-    print("Should have predicted:")
-    print(yTest)
-    print()
-    print("Actually predicted:")
-    print(predictions)
+    if yTest == predictions:
+        print("Correct prediction of %d!" %predictions)
+    else:
+        print("Should have predicted:")
+        print(yTest)
+        print()
+        print("Actually predicted:")
+        print(predictions)
     yTestGUI.append(y)
     predictionsGUI.append(predictions[0])
     #print("HALLO", clf.predict_proba(Xtest))

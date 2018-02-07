@@ -1,5 +1,5 @@
-#from Tkinter import *
-from mttkinter import *
+from Tkinter import *
+#from mttkinter import *
 import time as tme
 import numpy as np
 from numpy.random import randint
@@ -30,7 +30,7 @@ endMode = tme.time()
 z = 3
 classifier = None
 classifier = ML.learning.loadMachineState(machinestate)
-guipredict = False
+guipredict = True
 
 class Ball(object):
 	def __init__(self, canvas, *args, **kwargs):
@@ -82,8 +82,7 @@ class Ball(object):
 				cmd = 2
 
 			if guipredict:	
-				predictiondata = dataset.shapeArray(glb.data, longLength, cmd)
-				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
 				predictionThread.start()
 
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -119,8 +118,7 @@ class Ball(object):
 			cmd = 0
 
 			if guipredict:	
-				predictiondata = dataset.shapeArray(glb.data, longLength, cmd)
-				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
 				predictionThread.start()
 
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -141,8 +139,7 @@ class Ball(object):
 			#print("Movementtime= ")
 			#print(tme.time())
 			if guipredict:	
-				predictiondata = dataset.shapeArray(glb.data, longLength, cmd)
-				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(predictiondata, classifier, cmd))
+				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
 				predictionThread.start()
 			threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
 			threadSave.setDaemon(True)
@@ -223,14 +220,14 @@ class Ball(object):
 		self.canvas.move(self.id, self.vx, self.vy)
 
 
-class App:
+class App(object):
 	def __init__(self, master):
 		self.master = master		
 		self.w = Label(self.master, text="Look at the red dot, blink when it dissapears. Press start when ready!")
 		self.w.pack()
-		self.startButton = Button(self.master, text='Start Training', width=50, command=self.startBall)
+		self.startButton = Button(self.master, text='Start Training', width=25, command=self.startBall)
 		self.startButton.pack()
-		self.exitButton = Button(self.master, text='Exit', width=25, command=master.quit)
+		self.exitButton = Button(self.master, text='Exit', width=25, command=self.master.destroy)
 		self.exitButton.pack()
 
 	def animation(self):	
@@ -254,4 +251,43 @@ def guiloop():
 	App(root)
 	root.mainloop()
 
+'''
+class Ball(object):
+	def __init__(self, master, **kwargs):
+		self.master = master
+		self.canvas = tk.Canvas(self.master, width=size, height=size)
+		self.canvas.pack()
+		self.aliens = Alien(self.canvas, (size/2) - ballsize, (size/2) - ballsize, (size/2) + ballsize, (size/2) + ballsize, outline='white', fill='red')
+		self.canvas.pack()
+		self.master.after(0, self.animation)
+
+
+	def animation(self):
+		#for alien in self.aliens:
+		self.aliens.move()
+		self.master.after(12, self.animation)
+
+	def close_window(self):
+		self.destroy()
+
+def startgui():
+	global startButton, w, root
+	w.pack_forget()
+	startButton.pack_forget()
+	Ball(root)
+
+def guiloop():
+	global startButton, w, root
+	root = tk.Tk()
+	root.title("Training GUI")
+	w = tk.Label(root, text="Look at the red dot, press start when ready!")
+	w.pack()
+	startButton = tk.Button(root, text='Start', width=25, command=startgui)
+	startButton.pack()
+	exitButton = tk.Button(root, text='Exit', width=25, command=root.destroy)
+	exitButton.pack()
+	#root = tk.Tk()
+	#app = App(root)
+	root.mainloop()
+'''
 
