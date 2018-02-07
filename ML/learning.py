@@ -81,8 +81,8 @@ def startLearning():
 
         #Use this if predictor other than SVM is used.
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        clf = loadMachineState("learningState")
-        #saveMachinestate(clf, "learningStateblabla")   #Uncomment this to save the machine state
+        clf = loadMachineState("learningState67HFDreducedSvm")
+        #saveMachinestate(clf, "learningState67HFDreducedSvm")   #Uncomment this to save the machine state
 
         #compareFeatures(XL, XLtrain, yTrain, XLtest, yTest)
 
@@ -120,7 +120,7 @@ def startLearning():
 
 def scaleAndSplit(XL, labels):
     XLscaled = (np.array(XL))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1, random_state = 42  )
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1, random_state = 28  )
 
     return XLtrain, XLtest, yTrain, yTest
 
@@ -149,15 +149,17 @@ def extractFeatures(X, channel):
         #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
         #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
         featureVector = [
-                        thetaBetaRatio,
+                        pyeeg.hfd(list(X[channel][i]), 200), #Okende tall gir viktigere feature, men mye lenger computation time
                         np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
                         pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        np.amax(list(X[0][i])),
-
                         pearsonCoefficients14[0][1], #new top dog
                         pearsonCoefficients14[1][0], #new top dog
-                        np.ptp(list(X[0][i])), #denne er bra
-                        np.amin(list(X[0][i])),
+                        np.std(list(X[channel][i])),
+                        #np.amax(list(X[0][i])),
+                        #thetaBetaRatio,
+                        #np.ptp(list(X[0][i])), #denne er bra
+                        #np.amin(list(X[0][i])),
+
 
                         #corr12[0][0],
                         #np.amax(list(X[0][i])) - np.amax(list(X[3][i])),
@@ -187,7 +189,6 @@ def extractFeatures(X, channel):
                         #bandAvgAmplitudes[0],
                         #bandAvgAmplitudes[1],
                         #np.std(list(X[channel][i])),
-                        #pyeeg.hfd(list(X[channel][i]), 50), #Okende tall gir viktigere feature, men mye lenger computation time
                         #pyeeg.hjorth(list(X[0][i])),
 
 
@@ -215,63 +216,6 @@ def extractFeatures(X, channel):
     XL.pop(0)
     return XL
 
-def getBandAmplitudes(X, Band, Fs):
-    C = fft(X)
-    C = abs(C)
-    avgAmplitude =zeros(len(Band)-1);
-
-    for Freq_Index in range(len(Band)-1):
-        Freq = float(Band[Freq_Index])										## Xin Liu
-        Next_Freq = float(Band[Freq_Index+1])
-		#Endret til Int for aa faa det til aa gaa igjennom
-        avgAmplitude[Freq_Index] = sum(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))]) / len(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))])
-    return avgAmplitude
-
-def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
-    accuracyScore = []
-    f1Score = []
-    precisionScore = []
-    #Nested loops to compare accuracy when varying number of features are used.
-    for i in range(len(XL[0])):
-        compFeaturesTraining, compFeaturesTest = appendFeaturesForComparison(i, XL, XLtrain, XLtest)
-        #Create the classifier and train it on the test data.
-        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, None) #uncomment this if state should be loaded
-
-        #Load state of the classifier
-        #clf = loadMachineState() #Uncomment this to load the machine state
-
-        #Predict the classes
-        tempAccuracy, tempClassReport, tempf1Score, tempPrecision = predict(compFeaturesTest, clf, yTest)
-        print("Accuracy f1 and preision for %d features: " %i)
-
-
-
-
-
-        accuracyScore.append(tempAccuracy)
-        f1Score.append(tempf1Score)
-        precisionScore.append(tempPrecision)
-        #crossValScore.append(tempCrossValScore)
-    print("Feature comparison recap: ")
-    print()
-    print("Accuracy:")
-    print(accuracyScore)
-    print("F1 score:")
-    print(f1Score)
-    print("Precision")
-    print(precisionScore)
-
-    return accuracyScore, f1Score, precisionScore
-
-def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
-
-    compareFeaturesTraining = []
-    compareFeaturesTesting = []
-    for j in range(len(XLtrain)):
-        compareFeaturesTraining.append(list(XLtrain[j][0:(i + 1)]))
-    for j in range(len(XLtest)):
-        compareFeaturesTesting.append(list(XLtest[j][0:(i + 1)]))
-    return compareFeaturesTraining, compareFeaturesTesting
 
 def createAndTrain(XLtrain, yTrain, bestParams):
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
@@ -286,7 +230,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
     #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
-    C = 1000
+    C = 100
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
     clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
 
@@ -384,6 +328,7 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     yPred = clf.predict(XLtest)
     print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
     print()
+
     return bestParams[0]
 
 def evaluateFeatures(X, y):
@@ -419,6 +364,41 @@ def evaluateFeatures(X, y):
     print(Xnew.shape)
     #return Xnew
 
+def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
+    accuracyScore = []
+    f1Score = []
+    precisionScore = []
+    #Nested loops to compare accuracy when varying number of features are used.
+    for i in range(len(XL[0])):
+        compFeaturesTraining, compFeaturesTest = appendFeaturesForComparison(i, XL, XLtrain, XLtest)
+        #Create the classifier and train it on the test data.
+        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, None) #uncomment this if state should be loaded
+
+        #Load state of the classifier
+        #clf = loadMachineState() #Uncomment this to load the machine state
+
+        #Predict the classes
+        tempAccuracy, tempClassReport, tempf1Score, tempPrecision = predict(compFeaturesTest, clf, yTest)
+        print("Accuracy f1 and preision for %d features: " %i)
+
+
+
+
+
+        accuracyScore.append(tempAccuracy)
+        f1Score.append(tempf1Score)
+        precisionScore.append(tempPrecision)
+        #crossValScore.append(tempCrossValScore)
+    print("Feature comparison recap: ")
+    print()
+    print("Accuracy:")
+    print(accuracyScore)
+    print("F1 score:")
+    print(f1Score)
+    print("Precision")
+    print(precisionScore)
+
+    return accuracyScore, f1Score, precisionScore
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
@@ -525,12 +505,37 @@ def predictRealTime(X, clf):
     #f1Score = f1_score(yTest, predictions, average='macro')
 
 def saveMachinestate(clf, string):
-    joblib.dump(clf, "ML\ " + string + ".pkl")
+    joblib.dump(clf, "ML\\" + string + ".pkl")
 
 def loadMachineState(string):
 
-    clf = joblib.load("ML\ " + string + ".pkl")
+    clf = joblib.load("ML\\" + string + ".pkl")
     return clf
+
+def getBandAmplitudes(X, Band, Fs):
+    C = fft(X)
+    C = abs(C)
+    avgAmplitude =zeros(len(Band)-1);
+
+    for Freq_Index in range(len(Band)-1):
+        Freq = float(Band[Freq_Index])										## Xin Liu
+        Next_Freq = float(Band[Freq_Index+1])
+		#Endret til Int for aa faa det til aa gaa igjennom
+        avgAmplitude[Freq_Index] = sum(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))]) / len(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))])
+    return avgAmplitude
+
+
+
+def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
+
+    compareFeaturesTraining = []
+    compareFeaturesTesting = []
+    for j in range(len(XLtrain)):
+        compareFeaturesTraining.append(list(XLtrain[j][0:(i + 1)]))
+    for j in range(len(XLtest)):
+        compareFeaturesTesting.append(list(XLtest[j][0:(i + 1)]))
+    return compareFeaturesTraining, compareFeaturesTesting
+
 
 def plotClassifier(clf, XLtrain):
     title = 'SVC with RBF-kernel'
