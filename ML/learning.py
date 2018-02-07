@@ -5,10 +5,10 @@ from sklearn import preprocessing
 from sklearn import neighbors
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
+ from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import classification_report
@@ -129,10 +129,12 @@ def extractFeatures(X, channel):
     frequencyBands = [0.1, 4, 8, 12,30]
     Fs = 250
     featureVector = []
+
     if type(X[0]) is int:
         length = 1
-    else: 
+    else:
         length = len(X[0])
+
     for i in range(length):
         startTime = time.time()
         power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
