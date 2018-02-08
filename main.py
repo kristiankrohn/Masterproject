@@ -533,7 +533,7 @@ def keys():
 			#x,y = dataset.sortDataset(x, y, classes=[0,5,2,4,6,8])
 			print(x[0][0])
 		elif string == "stats":
-			dataset.datasetStats("temp.txt")	
+			dataset.datasetStats("longdata.txt")	
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
