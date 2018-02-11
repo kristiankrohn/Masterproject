@@ -39,7 +39,6 @@ predictionsGUI = []
 def main():
     partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
     partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
-
     extractFeatures(partialPathZ, partialPathO)
 
 
@@ -51,11 +50,12 @@ def startLearning():
     accuracyScore = []
     f1Score = []
     precision = []
+    classificationReport = []
     #crossValScore = []
     X, y = dataset.loadDataset("longdata.txt")
 
     #Length = how many examples of each class is desired.
-    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,2,6,4,8])
+    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,2,6,4,8]) #
 
     #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8])
     #if x or y is undefined, data.txt will be loaded
@@ -63,10 +63,13 @@ def startLearning():
 
 
     for channel in range(1): #len(X) for aa ha med alle kanaler
-        XL = extractFeatures(X, channel)
+        XL = extractFeatures(X, 0)
     #XL = extractFeatures(X)
 
-    #Scale the data if needed and split dataset into training and testing
+
+        #Trying something new with cross_val_score
+
+        #Scale the data if needed and split dataset into training and testing
         XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
         #trenger en losning for aa ha samme split hver gang
     #XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
@@ -81,15 +84,20 @@ def startLearning():
 
         #Use this if predictor other than SVM is used.
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        clf = loadMachineState("learningState67HFDreducedSvm")
-        #saveMachinestate(clf, "learningState67HFDreducedSvm")   #Uncomment this to save the machine state
+        clf = loadMachineState("learningState99HFDreducedSvm")
+        #saveMachinestate(clf, "learningState99AllChannelsSvm")   #Uncomment this to save the machine state
 
+        #Use this if it is imporatnt to see the overall prediction, and not for only the test set
+        #scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'precision_macro')
+        #print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+        #print()
         #compareFeatures(XL, XLtrain, yTrain, XLtest, yTest)
 
         tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
         f1Score.append(tempf1Score)
         precision.append(tempPrecision)
+        classificationReport.append(tempClassificationReport)
 
         #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
@@ -105,6 +113,9 @@ def startLearning():
     print(f1Score)#This score says something about the correctness of the prediction.
     print("The precision score:")
     print(precision)#This score says something about the correctness of the prediction.
+    print("Classification Report of channel 1:") #String, weird if you print whole array with string, and predicting over several channels.
+    print(classificationReport[0])
+
     evaluateFeatures(XLtrain, yTrain)
 
     #print("The cross-validation score is:")
@@ -120,7 +131,7 @@ def startLearning():
 
 def scaleAndSplit(XL, labels):
     XLscaled = (np.array(XL))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.1, random_state = 28  )
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 42, stratify = labels)
 
     return XLtrain, XLtest, yTrain, yTest
 
@@ -133,8 +144,15 @@ def extractFeatures(X, channel):
     for i in range(len(X[0])):
         startTime = time.time()
         power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
-        bandAvgAmplitudes = getBandAmplitudes(X[channel][i], frequencyBands, Fs)
-        thetaBetaRatio = bandAvgAmplitudes[1]/bandAvgAmplitudes[3]
+        bandAvgAmplitudesCh1 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh2 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh3 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh4 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
+        thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+        thetaBetaRatioCh2 = bandAvgAmplitudesCh2[1]/bandAvgAmplitudesCh2[3]
+        thetaBetaRatioCh3 = bandAvgAmplitudesCh3[1]/bandAvgAmplitudesCh3[3]
+        thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
+
         pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
         pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
         pearsonCoefficients23 = np.corrcoef(X[1][i], X[2][i])
@@ -152,12 +170,25 @@ def extractFeatures(X, channel):
                         pyeeg.hfd(list(X[channel][i]), 200), #Okende tall gir viktigere feature, men mye lenger computation time
                         np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
                         pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        pearsonCoefficients14[0][1], #new top dog
-                        pearsonCoefficients14[1][0], #new top dog
+                        pearsonCoefficients14[0][1],
+                        pearsonCoefficients14[1][0],
                         np.std(list(X[channel][i])),
+
                         #np.amax(list(X[0][i])),
-                        #thetaBetaRatio,
+                        #np.amax(list(X[1][i])),
+                        #np.amin(list(X[0][i])),
+                        #np.amin(list(X[1][i])),
+                        #thetaBetaRatioCh1,
+                        #thetaBetaRatioCh2,
+                        #thetaBetaRatioCh3,
+                        #thetaBetaRatioCh4,
                         #np.ptp(list(X[0][i])), #denne er bra
+                        #powerRatio[2],
+                        #powerRatio[1],
+
+
+
+
                         #np.amin(list(X[0][i])),
 
 
@@ -230,7 +261,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
     #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
-    C = 100
+    C = 10000
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
     clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
 
@@ -254,8 +285,8 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
     bestParams = []
     tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
-                        'C': [1, 10, 100, 1000, 10000]},
-                        {'kernel': ['linear'], 'C': [1, 10, 100, 1000, 10000]}]
+                        'C': [1, 10, 50, 100, 500, 1000, 10000]},
+                        {'kernel': ['linear'], 'C': [1, 10, 50, 100, 500, 1000, 10000]}]
 
     scores = ['precision', 'recall']
 
@@ -266,7 +297,7 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
     print("Starting to tune parameters")
     print()
 
-    clf = GridSearchCV(svm.SVC(), tunedParameters, cv=5, scoring='%s_macro' % scores[0])
+    clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0])
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)
     print("Best parameters set found on development set:")
@@ -278,7 +309,7 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
     means = clf.cv_results_['mean_test_score']
     stds = clf.cv_results_['std_test_score']
 
-    #This loop prints out standarddeviation and lots of good stuff
+    #This loop prints out the mean from all the 10 fold combinations standarddeviation and lots of good stuff
 
     for mean, std, params in zip(means, stds, clf.cv_results_['params']):
         print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))

@@ -23,7 +23,8 @@ Zi = np.zeros([numCh,window-1])
 mutex = Lock()
 datasetFolder = datasetFolders[0]
 #data[channel][filterdata][sample]
-
+guipredict = False
+saveData = True
 oldSampleID = 255
 if numCh == 8:
 	data = [[[],[],[]],

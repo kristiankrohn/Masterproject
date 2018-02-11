@@ -139,7 +139,7 @@ def prepSaveData(direction, length):
 def exportPlots(command, plottype="time", speed="slow"):
 	global filelock
 	global DataSet
-	del ML.learning
+	
 	#folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	#print(folder)
 	if command == "temp":
@@ -217,11 +217,12 @@ def exportPlots(command, plottype="time", speed="slow"):
 				print("Changed to slow sequential plot export")
 				speed = "slow"
 		'''
+		print("Number of plots: %d" %(len(DataSet)/numCh))
 		if speed == "fast":
 			if len(DataSet) < numCh:
 				return
 			else:
-				print("Number of plots: %d" %(len(DataSet)/numCh))
+				
 				split = 128
 				splitsize = numCh*split
 				numSplits = len(DataSet)//splitsize
@@ -401,7 +402,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 					print("Empty file")
 		
 	#plt.close('all')
-	import ML.learning
+	
 	print("Finished exporting plots")
 
 def func_star(a_b):
@@ -608,7 +609,7 @@ def clear(elementtype):
 
 
 
-def loadDataset(filename="data.txt"):
+def loadDataset(filename="data.txt", filterCondition=True):
 	global filelock
 	print("Starting to load dataset")
 	x = [[],[],[],[],[],[],[],[]]
@@ -642,6 +643,10 @@ def loadDataset(filename="data.txt"):
 			
 			featureData = map(float, feature)
 			featureData = filterlib.plotfilter(featureData, b, a)
+			#print("Raw data: %0.2f\n" %featureData[0])
+			if filterCondition:
+				featureData = filterlib.plotfilter(featureData, b, a)
+			
 			featureData = featureData[frontPadding:-backPadding] #Remove paddings
 
 			x[channel].append(featureData)
