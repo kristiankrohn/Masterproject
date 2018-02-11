@@ -615,21 +615,21 @@ def loadDataset(filename="data.txt"):
 	y = [[],[],[],[],[],[],[],[]]
 
 	file = None
-
+	print(dir_path+glb.datasetFolder+filename)
 	with filelock:
 		file = open((dir_path+glb.datasetFolder+filename), 'r')
 		AllData = file.read()
 		file.close()
 		
 	DataSet = []
-	DataSet = AllData.split(':')
+	DataSet = AllData.split(":")
 	#print(DataSet)
 	b, a = filterlib.designfilter()
 	for k in range(0, len(DataSet)):
 		#print("k = %d" %k)
 		care = True
 		feature = []
-		feature = DataSet[k].split(',')
+		feature = DataSet[k].split(",")
 		#print("Length of vector: %d\n" %len(feature))
 		if len(feature) > 10:
 			featuretype = feature[0]
@@ -641,25 +641,24 @@ def loadDataset(filename="data.txt"):
 			y[channel].append(directioncode.index(label))							
 			
 			featureData = map(float, feature)
-			#print("Raw data: %0.2f\n" %featureData[0])
 			featureData = filterlib.plotfilter(featureData, b, a)
 			featureData = featureData[frontPadding:-backPadding] #Remove paddings
-			#print("Filterdata: %0.2f\n" %featureData[0])
+
 			x[channel].append(featureData)
-		#else:
-			#print("Invalid datapoint")
-			#print(feature)
+
+		else:
+			print("Invalid datapoint")
+			
 	#plt.close('all')
+	#print(len(x[0][0]))
 	print("Finished loading dataset")
-	return(x,y)
+	return x,y
 
 
 def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 	if (x or y) == None:
 		x, y = loadDataset()
 
-	#print(y[0])
-	#x[channel][index]
 	xReturn = [[],[],[],[],[],[],[],[]]
 	yReturn = [[],[],[],[],[],[],[],[]]
 	counts = [None]*len(classes)
@@ -687,8 +686,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 				for j in range(numCh):
 					xReturn[j].append(x[j][i])
 					yReturn[j].append(y[j][i])
-	#print(returnCounts)
-	#print(yReturn[0])
+
 	counts = [None]*len(classes)
 	print("Statistics after sort: ")
 	for i in range(len(classes)):
@@ -696,7 +694,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 		counts[i] = yReturn[0].count(classes[i])
 		print(counts[i])
 
-	return xReturn, yReturn
+	return (xReturn, yReturn)
 
 def datasetStats(filename="data.txt"):
 	x,y = loadDataset(filename)
