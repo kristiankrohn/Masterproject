@@ -16,11 +16,17 @@ longLength = 625
 shortLength = 250
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 machinestate = "learningState67HFDreducedSvm"
+'''
 movements = ["\\Center_blink", "\\Center_still", 
 			"\\Down_direction", "\\Down_return", 
 			"\\Up_direction", "\\Up_return",
 			"\\Left_direction", "\\Left_return", 
 			"\\Right_direction", "\\Right_return", "\\Garbage"]
+'''
+
+movements = ["\\Center_blink", "\\Left_direction", "\\Down_return", "\\Down_direction",
+			"\\Left_return", "\\Center_still", "\\Right_return", "\\Up_direction",
+			"\\Up_return", "\\Right_direction", "\\Garbage"]			
 
 channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
 shortclasses = [0,1,2,3,4,5,6,7,8,9]
