@@ -55,15 +55,15 @@ def startLearning():
     X, y = dataset.loadDataset("longdata.txt")
 
     #Length = how many examples of each class is desired.
-    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,2,6,4,8]) #
+    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
 
     #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8])
     #if x or y is undefined, data.txt will be loaded
 
 
-
+    channelIndex = 0
     for channel in range(1): #len(X) for aa ha med alle kanaler
-        XL = extractFeatures(X, 0)
+        XL = extractFeatures(X, channelIndex)
     #XL = extractFeatures(X)
 
 
@@ -73,7 +73,7 @@ def startLearning():
         XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
         #trenger en losning for aa ha samme split hver gang
     #XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
-
+        #decisionTreeInfo(XLtrain, yTrain, XLtest)
 
         #Lots of the prints in tuneSvmParameters are commented out. FOr more detailed view, uncomment prints
         #Use this if SVM is used
@@ -113,7 +113,7 @@ def startLearning():
     print(f1Score)#This score says something about the correctness of the prediction.
     print("The precision score:")
     print(precision)#This score says something about the correctness of the prediction.
-    print("Classification Report of channel 1:") #String, weird if you print whole array with string, and predicting over several channels.
+    print("Classification Report of channel %d:" %channelIndex) #String, weird if you print whole array with string, and predicting over several channels.
     print(classificationReport[0])
 
     evaluateFeatures(XLtrain, yTrain)
@@ -333,7 +333,7 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     print("Starting to tune parameters")
     print()
 
-    clf = GridSearchCV(tree.DecisionTreeClassifier(), sampleLeafPipeline, cv=5, scoring='%s_macro' % 'precision')
+    clf = GridSearchCV(tree.DecisionTreeClassifier(), sampleLeafPipeline, cv=10, scoring='%s_macro' % 'precision')
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)
     print("Best parameters set found on development set:")
@@ -392,7 +392,7 @@ def evaluateFeatures(X, y):
     model = SelectFromModel(forest, prefit=True) #This removes the worst features.
     Xnew = model.transform(X)
     #Print to check that feature has been removed
-    print(Xnew.shape)
+    #print(Xnew.shape)
     #return Xnew
 
 def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
@@ -633,6 +633,114 @@ def plot_contours(ax, clf, xx, yy, **params):
     Z = Z.reshape(xx.shape)
     out = ax.contourf(xx, yy, Z, **params)
     return out
+
+def decisionTreeInfo(XLtrain, yTrain, XLtest):
+    estimator = tree.DecisionTreeClassifier(max_leaf_nodes=3, random_state=0)
+    estimator.fit(XLtrain, yTrain)
+
+    # The decision estimator has an attribute called tree_  which stores the entire
+    # tree structure and allows access to low level attributes. The binary tree
+    # tree_ is represented as a number of parallel arrays. The i-th element of each
+    # array holds information about the node `i`. Node 0 is the tree's root. NOTE:
+    # Some of the arrays only apply to either leaves or split nodes, resp. In this
+    # case the values of nodes of the other type are arbitrary!
+    #
+    # Among those arrays, we have:
+    #   - left_child, id of the left child of the node
+    #   - right_child, id of the right child of the node
+    #   - feature, feature used for splitting the node
+    #   - threshold, threshold value at the node
+    #
+
+    # Using those arrays, we can parse the tree structure:
+
+    n_nodes = estimator.tree_.node_count
+    children_left = estimator.tree_.children_left
+    children_right = estimator.tree_.children_right
+    feature = estimator.tree_.feature
+    threshold = estimator.tree_.threshold
+
+
+    # The tree structure can be traversed to compute various properties such
+    # as the depth of each node and whether or not it is a leaf.
+    node_depth = np.zeros(shape=n_nodes, dtype=np.int64)
+    is_leaves = np.zeros(shape=n_nodes, dtype=bool)
+    stack = [(0, -1)]  # seed is the root node id and its parent depth
+    while len(stack) > 0:
+        node_id, parent_depth = stack.pop()
+        node_depth[node_id] = parent_depth + 1
+
+        # If we have a test node
+        if (children_left[node_id] != children_right[node_id]):
+            stack.append((children_left[node_id], parent_depth + 1))
+            stack.append((children_right[node_id], parent_depth + 1))
+        else:
+            is_leaves[node_id] = True
+
+    print("The binary tree structure has %s nodes and has "
+          "the following tree structure:"
+          % n_nodes)
+    for i in range(n_nodes):
+        if is_leaves[i]:
+            print("%snode=%s leaf node." % (node_depth[i] * "\t", i))
+        else:
+            print("%snode=%s test node: go to node %s if X[:, %s] <= %s else to "
+                  "node %s."
+                  % (node_depth[i] * "\t",
+                     i,
+                     children_left[i],
+                     feature[i],
+                     threshold[i],
+                     children_right[i],
+                     ))
+    print()
+
+    # First let's retrieve the decision path of each sample. The decision_path
+    # method allows to retrieve the node indicator functions. A non zero element of
+    # indicator matrix at the position (i, j) indicates that the sample i goes
+    # through the node j.
+
+    node_indicator = estimator.decision_path(XLtest)
+
+    # Similarly, we can also have the leaves ids reached by each sample.
+
+    leave_id = estimator.apply(XLtest)
+
+    # Now, it's possible to get the tests that were used to predict a sample or
+    # a group of samples. First, let's make it for the sample.
+
+    sample_id = 0
+    node_index = node_indicator.indices[node_indicator.indptr[sample_id]:
+                                        node_indicator.indptr[sample_id + 1]]
+
+    print('Rules used to predict sample %s: ' % sample_id)
+    for node_id in node_index:
+        if leave_id[sample_id] != node_id:
+            continue
+
+        if (XLtest[sample_id, feature[node_id]] <= threshold[node_id]):
+            threshold_sign = "<="
+        else:
+            threshold_sign = ">"
+
+        print("decision id node %s : (XLtest[%s, %s] (= %s) %s %s)"
+              % (node_id,
+                 sample_id,
+                 feature[node_id],
+                 XLtest[sample_id, feature[node_id]],
+                 threshold_sign,
+                 threshold[node_id]))
+
+    # For a group of samples, we have the following common node.
+    sample_ids = [0, 1,2,3,4,5,6,7,8,9,10,11,12]
+    common_nodes = (node_indicator.toarray()[sample_ids].sum(axis=0) ==
+                    len(sample_ids))
+
+    common_node_id = np.arange(n_nodes)[common_nodes]
+
+    print("\nThe following samples %s share the node %s in the tree"
+          % (sample_ids, common_node_id))
+    print("It is %s %% of all nodes." % (100 * len(common_node_id) / n_nodes,))
 
 if __name__ == '__main__':
 	main()
