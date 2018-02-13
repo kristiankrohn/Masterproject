@@ -9,18 +9,56 @@ from globalconst import*
 #t = np.linspace(0, 1, 1000)
 #modes = np.sin(2 * np.pi * 5 * t) + np.sin(2 * np.pi * 10 * t)
 #x = modes + t
+
+def fixedIterationHht(xt, iterations = 10):
+	
+	xt = np.array(xt)
+	
+	#t = np.linspace(0, 1, 1000)
+	#print(x[0][0])
+	
+	#decomposer = EMD(xt, n_imfs=N_imfs, fixe=0, threshold_1=0.05, threshold_2=0.5, alpha=0.05)
+	decomposer = EMD(xt, fixe=iterations)
+	imfs = decomposer.decompose()
+
+	seconddecomposer = EMD(imfs[-1, :], fixe=iterations)
+	secondimfs = seconddecomposer.decompose()
+
+	thirddecomposer = EMD(secondimfs[-1, :], fixe=iterations)
+	thirdimfs = thirddecomposer.decompose()
+	
+	fourthdecomposer = EMD(thirdimfs[-1, :], fixe=iterations)
+	fourthimfs = fourthdecomposer.decompose()
+
+	fifthdecomposer = EMD(fourthimfs[-1, :], fixe=iterations)
+	fifthimfs = fifthdecomposer.decompose()
+	#print imfs.shape
+	#print secondimfs.shape
+	#imfs = np.concatenate(imfs[0], secondimfs[0])
+	imfs = np.vstack((imfs[0], secondimfs[0]))
+	#print imfs.shape
+	imfs = np.vstack((imfs, thirdimfs[0]))
+	imfs = np.vstack((imfs, fourthimfs[0]))
+	imfs = np.vstack((imfs, fifthimfs[0]))
+	#print imfs.shape
+	imfs = np.vstack((imfs, fifthimfs[1]))
+	#print imfs.shape
+
+	return imfs
+
+
 def multiplottestHHT(c):
 	x,y = dataset.loadDataset("longdata.txt", filterCondition=True, filterType="DC")
 			#print(y[0])
-	x,y = dataset.sortDataset(x, y, length=1, classes=[c])
-	N_imfs = 7
-	channelsToPlot = 2
-
+	x,y = dataset.sortDataset(x, y, length=10, classes=[c])
+	
+	channelsToPlot = 4
+	N_imfs = 6
 	for i in range(len(x[0])): #Iternate over number of elements in dataset
 		title = movements[y[0][i]]
-		print title
+		#print title
 		title = title[1:]
-		print title
+		#print title
 		fig = plt.figure(figsize=(20,10))
 		#fig = plt.figure()
 		plt.suptitle(title)
@@ -32,42 +70,11 @@ def multiplottestHHT(c):
                     subplot_spec=outer[j], wspace=0.1, hspace=0.1)
 
 			xt = x[j][i]
-			length = len(xt)
-			xt = np.array(xt)
-			t = np.arange(0, length/glb.fs, 1.0/glb.fs)
-			#t = np.linspace(0, 1, 1000)
-			#print(x[0][0])
-			
-			#decomposer = EMD(xt, n_imfs=N_imfs, fixe=0, threshold_1=0.05, threshold_2=0.5, alpha=0.05)
-			decomposer = EMD(xt, fixe=10)
-			imfs = decomposer.decompose()
 
-			seconddecomposer = EMD(imfs[-1, :], fixe=10)
-			secondimfs = seconddecomposer.decompose()
-
-			thirddecomposer = EMD(secondimfs[-1, :], fixe=10)
-			thirdimfs = thirddecomposer.decompose()
-			
-			fourthdecomposer = EMD(thirdimfs[-1, :], fixe=10)
-			fourthimfs = fourthdecomposer.decompose()
-
-			fifthdecomposer = EMD(fourthimfs[-1, :], fixe=10)
-			fifthimfs = fifthdecomposer.decompose()
-			#print imfs.shape
-			#print secondimfs.shape
-			#imfs = np.concatenate(imfs[0], secondimfs[0])
-			imfs = np.vstack((imfs[0], secondimfs[0]))
-			#print imfs.shape
-			imfs = np.vstack((imfs, thirdimfs[0]))
-			imfs = np.vstack((imfs, fourthimfs[0]))
-			imfs = np.vstack((imfs, fifthimfs[0]))
-			#print imfs.shape
-			imfs = np.vstack((imfs, fifthimfs[1]))
-			#print imfs.shape
-			
+			imfs = fixedIterationHht(xt)
 			n_imfs = imfs.shape[0]
-			#print(len(imfs))
-
+			length = len(xt)
+			t = np.arange(0, length/glb.fs, 1.0/glb.fs)
 			time_samples = t
 			signal = xt
 
@@ -131,14 +138,14 @@ def testHHT(c):
 	#print(x[0][0])
 	
 	#decomposer = EMD(xt, n_imfs=N_imfs, fixe=0, threshold_1=0.05, threshold_2=0.5, alpha=0.05)
-	
-	decomposer = EMD(xt, fixe=10)
+	iterations = 10
+	decomposer = EMD(xt, fixe=iterations)
 	imfs = decomposer.decompose()
 
-	seconddecomposer = EMD(imfs[-1, :], fixe=10)
+	seconddecomposer = EMD(imfs[-1, :], fixe=iterations)
 	secondimfs = seconddecomposer.decompose()
 
-	thirddecomposer = EMD(secondimfs[-1, :], fixe=10)
+	thirddecomposer = EMD(secondimfs[-1, :], fixe=iterations)
 	thirdimfs = thirddecomposer.decompose()
 	print imfs.shape
 	print secondimfs.shape
@@ -154,6 +161,7 @@ def testHHT(c):
 
 def main():
 	multiplottestHHT(8)
+	#testHHT(8)
 
 if __name__ == '__main__':
 	main()
