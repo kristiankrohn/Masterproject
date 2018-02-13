@@ -1,6 +1,7 @@
 from pyhht.visualization import plot_imfs
 import numpy as np
-from pyhht import EMD
+#from pyhht import EMD
+from emd import*
 import dataset
 import globalvar as glb
 import matplotlib.pyplot as plt
@@ -32,17 +33,13 @@ def fixedIterationHht(xt, iterations = 10):
 
 	fifthdecomposer = EMD(fourthimfs[-1, :], fixe=iterations)
 	fifthimfs = fifthdecomposer.decompose()
-	#print imfs.shape
-	#print secondimfs.shape
-	#imfs = np.concatenate(imfs[0], secondimfs[0])
+
 	imfs = np.vstack((imfs[0], secondimfs[0]))
-	#print imfs.shape
 	imfs = np.vstack((imfs, thirdimfs[0]))
 	imfs = np.vstack((imfs, fourthimfs[0]))
 	imfs = np.vstack((imfs, fifthimfs[0]))
-	#print imfs.shape
 	imfs = np.vstack((imfs, fifthimfs[1]))
-	#print imfs.shape
+
 
 	return imfs
 

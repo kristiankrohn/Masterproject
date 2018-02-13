@@ -472,15 +472,23 @@ def predictGUI(X, clf, y, windowLength):
     print(time.time() - start)
     #Print the test data to see how well it performs.
     if yTest == predictions:
-        print("Correct prediction of %d!" %predictions)
+        print("Correct prediction of %d!" %predictions[0])
     else:
-        print("Should have predicted:")
-        print(yTest)
-        print()
-        print("Actually predicted:")
-        print(predictions)
+        print("Should have predicted: %d" %y)
+        print("Actually predicted: %d" %predictions[0])
+
     yTestGUI.append(y)
     predictionsGUI.append(predictions[0])
+
+    yfile = open("y.txt", 'a+')
+    yfile.write(y)
+    yfile.write(",")
+    yfile.close()
+
+    pfile = open("p.txt", 'a+')
+    pfile.write(predictions[0])
+    pfile.write(",")
+    pfile.close()
     #print("HALLO", clf.predict_proba(Xtest))
     #accuracyScoreGUI = accuracy_score(yTest, predictions)
     #precisionGUI = precision_score(yTest, predictions, average = 'macro')
@@ -495,9 +503,35 @@ def predictGUI(X, clf, y, windowLength):
     #crossValScore = cross_val_score(clf, Xtest, yTest, cv=2)
     #print(classificationReport)
     #print(meanSquaredScore)
-def classificationReportGUI():
-    global yTestGUI, predictionsGUI
+def resetClassificationReport():
+    print("You are about to clear the classificationreport")
+    print("Continue? [Y/n]")
+    inputString = raw_input()
+    if inputString == "Y":
+        tempfile = open("y.txt", 'w')
+        tempfile.truncate(0)
+        tempfile.close()
+        tempfile = open("p.txt", 'w')
+        tempfile.truncate(0)
+        tempfile.close()
+        print("Classification cleared successfully")
+    else:
+        print("Classification report clearing aborted")
 
+def classificationReportGUI():
+    #global yTestGUI, predictionsGUI
+    yfile = open("y.txt", 'r')
+    AllY = yfile.read()
+    yfile.close()        
+    yTestGUI = []
+    yTestGUI = AllY.split(",")
+
+    pfile = open("p.txt", 'r')
+    AllP = yfile.read()
+    pfile.close()        
+    predictionsGUI = []
+    predictionsGUI = AllP.split(",")
+    
     accuracyScore = accuracy_score(yTestGUI, predictionsGUI)
     precision = precision_score(yTestGUI, predictionsGUI, average = 'macro')
     classificationReport = classification_report(yTestGUI, predictionsGUI)
