@@ -609,7 +609,7 @@ def clear(elementtype):
 
 
 
-def loadDataset(filename="data.txt", filterCondition=True):
+def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch"):
 	global filelock
 	print("Starting to load dataset")
 	x = [[],[],[],[],[],[],[],[]]
@@ -625,7 +625,12 @@ def loadDataset(filename="data.txt", filterCondition=True):
 	DataSet = []
 	DataSet = AllData.split(":")
 	#print(DataSet)
-	b, a = filterlib.designfilter()
+	if filterType == "DC":
+		a = [1 , -0.9] 
+		b = [1,-1]
+	else:
+		b, a = filterlib.designfilter()
+	
 	for k in range(0, len(DataSet)):
 		#print("k = %d" %k)
 		care = True
@@ -642,7 +647,7 @@ def loadDataset(filename="data.txt", filterCondition=True):
 			y[channel].append(directioncode.index(label))							
 			
 			featureData = map(float, feature)
-			featureData = filterlib.plotfilter(featureData, b, a)
+			#featureData = filterlib.plotfilter(featureData, b, a)
 			#print("Raw data: %0.2f\n" %featureData[0])
 			if filterCondition:
 				featureData = filterlib.plotfilter(featureData, b, a)

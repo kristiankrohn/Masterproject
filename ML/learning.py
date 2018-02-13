@@ -83,8 +83,8 @@ def startLearning():
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
 
         #Use this if predictor other than SVM is used.
-        #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        clf = loadMachineState("learningState99HFDreducedSvm")
+        clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+        #clf = loadMachineState("learningState99HFDreducedSvm")
         #saveMachinestate(clf, "learningState99AllChannelsSvm")   #Uncomment this to save the machine state
 
         #Use this if it is imporatnt to see the overall prediction, and not for only the test set
