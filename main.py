@@ -544,7 +544,11 @@ def keys():
 			learnThread = threading.Thread(target=learning.startLearning, args=())
 			learnThread.setDaemon(True)
 			learnThread.start()
-		
+		elif string == "findbestfeature":
+			import ML.learning as learning	
+			learnThread = threading.Thread(target=learning.compareFeatures, args=())
+			learnThread.setDaemon(True)
+			learnThread.start()
 		elif string == "predict":
 			import ML.learning
 			predictioncondition = True

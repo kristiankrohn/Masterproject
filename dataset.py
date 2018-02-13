@@ -963,3 +963,4 @@ def shapeArray(data, length, direction):
 	for i in range(numCh):
 		returnlist[i].append(data[i][filterdata][start:stop])
 	return returnlist
+	
