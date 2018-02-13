@@ -7,7 +7,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
@@ -67,30 +70,39 @@ def startLearning():
     #XL = extractFeatures(X)
 
 
+
         #Trying something new with cross_val_score
 
         #Scale the data if needed and split dataset into training and testing
         XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
+
         #trenger en losning for aa ha samme split hver gang
-    #XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
-        #decisionTreeInfo(XLtrain, yTrain, XLtest)
-
-        #Lots of the prints in tuneSvmParameters are commented out. FOr more detailed view, uncomment prints
-        #Use this if SVM is used
-
+        #XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
         #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
         #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
+
+        #scaler = StandardScaler()
+
+        #pca = PCA(n_components = 2)
+        #XLtrain = scaler.fit_transform(XLtrain, yTrain)
+        #XLtest = scaler.fit_transform(XLtest, yTest)
+        #pca.fit_transform(XLtrain, yTrain)
+        #pca.fit_transform(XLtest, yTest)
+        #try this with tuning of parameters later today.
+
         #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
+
+
 
         #Use this if predictor other than SVM is used.
         clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
         #clf = loadMachineState("learningState99HFDreducedSvm")
-        #saveMachinestate(clf, "learningState99AllChannelsSvm")   #Uncomment this to save the machine state
+        #saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
 
         #Use this if it is imporatnt to see the overall prediction, and not for only the test set
-        #scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'precision_macro')
-        #print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-        #print()
+        scores = cross_val_score(clf, XLtrain, yTrain, cv=5, scoring = 'precision_macro')
+        print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+        print()
         #compareFeatures(XL, XLtrain, yTrain, XLtest, yTest)
 
         tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
@@ -162,6 +174,11 @@ def extractFeatures(X, channel):
         cov34 = np.cov(list(X[2][i]), list(X[3][i]))
         corr12 = np.correlate(list(X[0][i]), list(X[1][i])),
 
+        maxIndex = np.argmax(list(X[channel][i]))
+        minIndex = np.argmin(list(X[channel][i]))
+        minValueCh1 = np.amin(list(X[0][i]))
+        maxValueCh1 = np.amax(list(X[0][i]))
+        slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
         #print(power)
         #print(channel)
         #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
@@ -169,15 +186,17 @@ def extractFeatures(X, channel):
         featureVector = [
                         pyeeg.hfd(list(X[channel][i]), 200), #Okende tall gir viktigere feature, men mye lenger computation time
                         np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
+                        np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
                         pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        pearsonCoefficients14[0][1],
+                        #pearsonCoefficients14[0][1],
                         pearsonCoefficients14[1][0],
                         np.std(list(X[channel][i])),
-
+                        slopeCh1,
                         #np.amax(list(X[0][i])),
                         #np.amax(list(X[1][i])),
                         #np.amin(list(X[0][i])),
                         #np.amin(list(X[1][i])),
+
                         #thetaBetaRatioCh1,
                         #thetaBetaRatioCh2,
                         #thetaBetaRatioCh3,
@@ -255,8 +274,8 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     start = time.time()
     print()
 
-    #SVM classification, regulation parameter C = 102 gives good results
-    #This fits with the tested best parameters. Might want to manually write this to not
+
+    #This fits with the tested best parameters. Might want to manually write this
     #if bestParams['kernel'] == 'linear':
     #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
