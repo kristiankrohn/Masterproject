@@ -225,28 +225,48 @@ class Ball(object):
 
 
 class App(object):
-	def __init__(self, master):
-		self.master = master		
-		self.w = Label(self.master, text="Look at the red dot, blink when it dissapears. Press start when ready!")
-		self.w.pack()
-		self.startButton = Button(self.master, text='Start Training', width=25, command=self.startBall)
-		self.startButton.pack()
-		self.exitButton = Button(self.master, text='Exit', width=25, command=self.master.destroy)
-		self.exitButton.pack()
+	def __init__(self, root):
 
+#class App(threading.Thread):
+	#def __init__(self):
+		#threading.Thread.__init__(self)
+		#self.start()
+		
+	#def run(self):
+		#self.root = Tk()
+
+		self.root = root		
+		self.w = Label(self.root, text="Look at the red dot, blink when it dissapears. Press start when ready!")
+		self.w.pack()
+		self.startButton = Button(self.root, text='Start Training', width=25, command=self.startBall)
+		self.startButton.pack()
+		self.exitButton = Button(self.root, text='Exit', width=25, command=self.close_window)
+		self.exitButton.pack()
+		
+		#self.refresh()
+
+		#self.root.mainloop()
+
+	#def refresh(self):
+		#self.root.update()
+		#self.root.after(1000,self.refresh)
+
+	def close_window(self):
+		self.root.destroy()
+	
 	def animation(self):	
 		self.ball.move()
-		self.master.after(12, self.animation)
+		self.root.after(12, self.animation)
 
 	def startBall(self):
 		print("StartBall")		
 		self.w.pack_forget()
 		self.startButton.pack_forget()
-		self.canvas = Canvas(self.master, width=size, height=size)
+		self.canvas = Canvas(self.root, width=size, height=size)
 		self.canvas.pack()
 		self.ball = Ball(self.canvas, (size/2) - ballsize, (size/2) - ballsize, (size/2) + ballsize, (size/2) + ballsize, outline='white', fill='red')
 		self.canvas.pack()				
-		self.master.after(0, self.animation)
+		self.root.after(0, self.animation)
 
 def guiloop():
 

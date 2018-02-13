@@ -335,6 +335,7 @@ def keys():
 			thread2.start()
 
 		elif string == "gui":
+			#app = ttk.App()
 			guiVar = True
 			#threadGui = threading.Thread(target=ttk.guiloop, args=())
 			#threadGui.setDaemon(True)
@@ -617,7 +618,8 @@ def main():
 	#thread0.join()
 	#thread1.join()
 	#thread2.join()
-
+	#app = ttk.App()
+	#print("Penis")
 	#while not graphVar:
 		#tme.sleep(0.1)
 	while not guiVar:
@@ -625,9 +627,10 @@ def main():
 	if not exit:
 		#graph()	
 		ttk.guiloop()
+		#app = ttk.App()
 
 	while not exit:
-		pass
+		tme.sleep(0.1)
 
 
 if __name__ == '__main__':
