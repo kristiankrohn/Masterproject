@@ -100,3 +100,8 @@ def analyze_filter(Q=50):
 	plt.subplots_adjust(hspace=0.5, wspace = 0.3)
 	plt.show()
 
+def loadfilter():
+	b=np.loadtxt('bcoeff.out')
+	a=np.loadtxt('acoeff.out')
+	print("Load filter coefficients")
+	return b,a

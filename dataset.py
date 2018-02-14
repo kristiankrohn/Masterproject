@@ -629,7 +629,10 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 		a = [1 , -0.9] 
 		b = [1,-1]
 	else:
-		b, a = filterlib.designfilter()
+		b, a = filterlib.loadfilter()
+		if b.all() == None or a.all() == None:
+			print("Designing filter from scratch")
+			b, a = filterlib.designfilter()
 	
 	for k in range(0, len(DataSet)):
 		#print("k = %d" %k)
