@@ -31,7 +31,7 @@ import dataset
 from globalconst import  *
 import globalvar
 import copy
-
+import mail
 
 yTestGUI = []
 predictionsGUI = []
@@ -441,11 +441,11 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True):
         print("Starting to tune parameters")
         print()
 
-    #clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
-    clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
+    clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
+    #clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
     clf.fit(XLtrain, yTrain)
-    bestParams.append(0)
-    #bestParams.append(clf.best_params_)
+    #bestParams.append(0)
+    bestParams.append(clf.best_params_)
     if debug:
         print("Best parameters set found on development set:")
         print()
@@ -564,6 +564,7 @@ def compareFeatures():
 
     #Constants
     maxNumFeatures = 1
+    minNumFeatures = 1 #Must be bigger than 1
     #Load dataset
     X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
@@ -573,7 +574,7 @@ def compareFeatures():
 
     features = range(len(XL[0]))
     print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
-    for i in range(1, maxNumFeatures+1):
+    for i in range(minNumFeatures, maxNumFeatures+1):
         print i
         for p in combinations(features, i): #If order matters use permutations, [XLtrain[j][k] for k in p] might needs changing
             #print p
@@ -627,6 +628,14 @@ def compareFeatures():
 
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
+    mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com', 
+                    to_addr_list = ['krishk@stud.ntnu.no'],
+                    cc_addr_list = ['adriari@stud.ntnu.no'], 
+                    subject      = 'Training finished', 
+                    message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
+                                    + classification_report(yTest, yPred), 
+                    login        = 'dronemasterprosjekt', 
+                    password     = 'drone123')
     
 
 def predict(Xtest, clf, yTest):
