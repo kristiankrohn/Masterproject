@@ -386,7 +386,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 											+ tempOrNot + slash + title + slash
 											+ title+str(k/numCh) + ".png")
 						else:
-							savestring = (dir_path + slash + "Dataset_exports" slash
+							savestring = (dir_path + slash + "Dataset_exports" + slash
 											+ tempOrNot +slash + title + slash 
 											+ title+str(k/numCh) + ".png")
 						print(savestring)
