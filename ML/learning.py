@@ -441,9 +441,11 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True):
         print("Starting to tune parameters")
         print()
 
-    clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
+    #clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
+    clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
     clf.fit(XLtrain, yTrain)
-    bestParams.append(clf.best_params_)
+    bestParams.append(0)
+    #bestParams.append(clf.best_params_)
     if debug:
         print("Best parameters set found on development set:")
         print()
@@ -488,6 +490,7 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     print()
 
     clf = GridSearchCV(tree.DecisionTreeClassifier(), sampleLeafPipeline, cv=10, scoring='%s_macro' % 'precision')
+    
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)
     print("Best parameters set found on development set:")
@@ -560,7 +563,7 @@ def compareFeatures():
     allS = []
 
     #Constants
-    maxNumFeatures = 6
+    maxNumFeatures = 1
     #Load dataset
     X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
@@ -772,11 +775,11 @@ def predictRealTime(X, clf):
     #f1Score = f1_score(yTest, predictions, average='macro')
 
 def saveMachinestate(clf, string):
-    joblib.dump(clf, "ML\\" + string + ".pkl")
+    joblib.dump(clf, "ML"+slash + string + ".pkl")
 
 def loadMachineState(string):
 
-    clf = joblib.load("ML\\" + string + ".pkl")
+    clf = joblib.load("ML"+slash + string + ".pkl")
     return clf
 
 def getBandAmplitudes(X, Band, Fs):

@@ -143,14 +143,14 @@ def exportPlots(command, plottype="time", speed="slow"):
 	#folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	#print(folder)
 	if command == "temp":
-		folders = ["\\tempfigures", "\\longtempfigures"]
+		folders = [slash + "tempfigures", slash + "longtempfigures"]
 
 	elif command == "data":
-		folders = ["\\figures", "\\longfigures"]
+		folders = [slash + "figures", slash + "longfigures"]
 
 	else:
-		folders = ["\\figures", "\\tempfigures", 
-				"\\longfigures", "\\longtempfigures"]
+		folders = [slash + "figures", slash + "tempfigures", 
+				slash + "longfigures", slash + "longtempfigures"]
 	
 	if speed != "slow":			
 		multiprocessing.freeze_support()
@@ -159,11 +159,11 @@ def exportPlots(command, plottype="time", speed="slow"):
 	
 		for j in range(len(movements)):
 			if plottype == "fft":
-				folder = dir_path + "\\Dataset_fft" + folders[i] + movements[j]
+				folder = dir_path + slash + "Dataset_fft" + folders[i] + movements[j]
 			elif plottype == "time":
-				folder = dir_path + "\\Dataset_exports" + folders[i] + movements[j]
+				folder = dir_path + slash +  "Dataset_exports" + folders[i] + movements[j]
 			elif plottype == "raw":
-				folder = dir_path + "\\Dataset_raw" + folders[i] + movements[j]
+				folder = dir_path + slash + "Dataset_raw" + folders[i] + movements[j]
 			else:
 				print("Invalid plottype")
 				return
@@ -378,16 +378,16 @@ def exportPlots(command, plottype="time", speed="slow"):
 								tempOrNot = "longtempfigures"
 
 						if plottype == "fft":
-							savestring = (dir_path + "\\Dataset_fft\\"
-											+ tempOrNot +"\\"+title +"\\"
+							savestring = (dir_path + slash + "Dataset_fft" + slash 
+											+ tempOrNot + slash + title + slash 
 											+ title+str(k/numCh) + ".png")
 						elif plottype == "raw":
-							savestring = (dir_path + "\\Dataset_raw\\"
-											+ tempOrNot +"\\"+title +"\\"
+							savestring = (dir_path + slash + "Dataset_raw" + slash 
+											+ tempOrNot + slash + title + slash
 											+ title+str(k/numCh) + ".png")
 						else:
-							savestring = (dir_path + "\\Dataset_exports\\"
-											+ tempOrNot +"\\"+title +"\\"
+							savestring = (dir_path + slash + "Dataset_exports" slash
+											+ tempOrNot +slash + title + slash 
 											+ title+str(k/numCh) + ".png")
 						print(savestring)
 
@@ -519,16 +519,16 @@ def threadplots(k, variables):
 					tempOrNot = "longtempfigures"
 
 			if plottype == "fft":
-				savestring = (dir_path + "\\Dataset_fft\\"
-								+ tempOrNot +"\\"+title +"\\"
+				savestring = (dir_path + slash + "Dataset_fft" + slash 
+								+ tempOrNot + slash + title + slash
 								+ title+str(k) + ".png")
 			elif plottype == "raw":
-				savestring = (dir_path + "\\Dataset_raw\\"
-								+ tempOrNot +"\\"+title +"\\"
+				savestring = (dir_path + slash + "Dataset_raw" + slash
+								+ tempOrNot + slash+title + slash
 								+ title+str(k) + ".png")
 			else:
-				savestring = (dir_path + "\\Dataset_exports\\"
-								+ tempOrNot +"\\"+title +"\\"
+				savestring = (dir_path + slash + "Dataset_exports" + slash
+								+ tempOrNot +slash+title +slash
 								+ title+str(k) + ".png")
 			#print(savestring)
 
@@ -737,7 +737,7 @@ def deletesystem(elementtype="shorttemp"):
 		print("Error: wrong elementtype")
 		return
 
-	tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'r')
+	tempfile = open(dir_path+ slash +"Dataset_delete" + slash +file, 'r')
 	tempData = tempfile.read()
 	tempfile.close()
 
@@ -761,7 +761,7 @@ def deletesystem(elementtype="shorttemp"):
 				deleteelement(index = indexlist[i], filename=targetfile)
 				#print(indexlist[i])
 			print("Sucessfully deleted elements")
-			tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'w')
+			tempfile = open(dir_path+slash+"Dataset_delete"+slash+file, 'w')
 			tempfile.truncate(0)
 			tempfile.close()
 		else:
@@ -809,7 +809,7 @@ def appenddelete(index, elementtype):
 		print("Error: wrong elementtype")
 		return
 
-	file = open(dir_path+"\\Dataset_delete\\"+filename, 'a')
+	file = open(dir_path+slash+"Dataset_delete"+slash+filename, 'a')
 	file.write(str(index))
 	file.write(",")
 	file.close()
@@ -830,7 +830,7 @@ def remove_appenddelete(index, elementtype):
 		print("Error: wrong elementtype")
 		return
 
-	tempfile = open(dir_path+"\\Dataset_delete\\"+filename, 'r')
+	tempfile = open(dir_path+slash+"Dataset_delete"+slash+filename, 'r')
 	tempData = tempfile.read()
 	tempfile.close()
 
@@ -842,7 +842,7 @@ def remove_appenddelete(index, elementtype):
 		indexlist = np.unique(indexlist).tolist()
 		if index in indexlist:
 			indexlist.remove(index)
-			file = open(dir_path+"\\Dataset_delete\\"+filename, 'w')
+			file = open(dir_path+slash+"Dataset_delete"+slash+filename, 'w')
 			for i in range(len(indexlist)):		
 				file.write(str(indexlist[i]))
 				file.write(",")
@@ -868,7 +868,7 @@ def print_appenddelete(elementtype):
 		print("Error: wrong elementtype")
 		return
 
-	tempfile = open(dir_path+"\\Dataset_delete\\"+filename, 'r')
+	tempfile = open(dir_path+slash+"Dataset_delete"+slash+filename, 'r')
 	tempData = tempfile.read()
 	tempfile.close()
 
@@ -963,4 +963,3 @@ def shapeArray(data, length, direction):
 	for i in range(numCh):
 		returnlist[i].append(data[i][filterdata][start:stop])
 	return returnlist
-	
