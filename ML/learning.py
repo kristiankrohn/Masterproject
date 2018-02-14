@@ -425,7 +425,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     print(time.time() - start)
     return clf, None #clfPlot Uncomment this to be able to plot the classifier
 
-def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True):
+def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False):
     bestParams = []
     tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
                         'C': [1, 10, 50, 100, 500, 1000, 10000]},
@@ -440,12 +440,15 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True):
     if debug:
         print("Starting to tune parameters")
         print()
-
-    clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
-    #clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
+    if fast:
+        clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
+        bestParams.append({'kernel': 'linear', 'C': 50})
+    else:
+        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
+        bestParams.append(clf.best_params_)
     clf.fit(XLtrain, yTrain)
-    #bestParams.append(0)
-    bestParams.append(clf.best_params_)
+    
+    
     if debug:
         print("Best parameters set found on development set:")
         print()
@@ -591,7 +594,7 @@ def compareFeatures():
             print(p)
             #print(len(XLtrainPerm))    
             #Optimize setting
-            bestParams, presc, r, f1, s = tuneSvmParameters(XLtrainPerm, yTrain, XLtestPerm, yTest, debug=False)
+            bestParams, presc, r, f1, s = tuneSvmParameters(XLtrainPerm, yTrain, XLtestPerm, yTest, debug=False, fast=True)
             
             #Append scores
             allPermutations.append(p)
@@ -608,18 +611,27 @@ def compareFeatures():
     #Evaluate score
     
     winner = allPavg.index(max(allPavg)) #Check for max average precision
-    XLtrainPerm = [[0]]*XLtrain
-    XLtestPerm = [[0]]*XLtest
-    XLtrainPerm = [XLtrain[k] for k in allPermutations[winner]]
-    XLtestPerm = [XLtest[k] for k in allPermutations[winner]]
+    XLtrainPerm = np.empty([len(XLtrain), i])
+    XLtestPerm = np.empty([len(XLtest), i])
+    p = allPermutations[winner]
+    for j in range(len(XLtrain)):
+        XLtrainPerm[j] = [XLtrain[j][k] for k in p]
+    for j in range(len(XLtest)):
+        XLtestPerm[j] = [XLtest[j][k] for k in p]
+
     print("Best features are:")
     print allPermutations[winner]
     #Test
     bestParams = allParams[winner]
+    print("Best parameters are: ")
+    print(bestParams)
+
     if bestParams['kernel'] == 'linear':
         clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     else:
         clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+    
+    clf.fit(XLtrainPerm, yTrain)
     saveMachinestate(clf, "BruteForceClassifier")
     featuremask = open("featuremask.txt", 'w+')
     featuremask.write(str(allPermutations[winner]))
@@ -630,7 +642,7 @@ def compareFeatures():
     print(classification_report(yTest, yPred))
     mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com', 
                     to_addr_list = ['krishk@stud.ntnu.no'],
-                    cc_addr_list = ['adriari@stud.ntnu.no'], 
+                    cc_addr_list = ['adriari@ntnu.no'], 
                     subject      = 'Training finished', 
                     message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
                                     + classification_report(yTest, yPred), 
