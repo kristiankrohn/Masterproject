@@ -67,8 +67,17 @@ def startLearning():
     channelIndex = 0
     for channel in range(1): #len(X) for aa ha med alle kanaler
         XL = extractFeatures(X, channelIndex)
+    #XL = extractFeatures(X)
+
+
+
+        #Trying something new with cross_val_score
+
+        #Scale the data if needed and split dataset into training and testing
         XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
 
+        #trenger en losning for aa ha samme split hver gang
+        #XLscaled, XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
         #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
         #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
 
@@ -86,16 +95,14 @@ def startLearning():
 
 
         #Use this if predictor other than SVM is used.
-        #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        clf = loadMachineState("learningState99HFDslopedSVM")
+        clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+        #clf = loadMachineState("learningState99HFDreducedSvm")
         #saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
 
         #Use this if it is imporatnt to see the overall prediction, and not for only the test set
-        scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'precision_macro')
-        print("From cross-validation:")
+        scores = cross_val_score(clf, XLtrain, yTrain, cv=5, scoring = 'precision_macro')
         print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-        print("All scores:")
-        print(scores)
+        print()
         #compareFeatures(XL, XLtrain, yTrain, XLtest, yTest)
 
         tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
@@ -273,8 +280,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
     #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
-    #C = 10000
-    C = 50
+    C = 10000
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
     clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
 
@@ -346,7 +352,6 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     print("Starting to tune parameters")
     print()
 
-    #Change from macro to micro, see how it differs
     clf = GridSearchCV(tree.DecisionTreeClassifier(), sampleLeafPipeline, cv=10, scoring='%s_macro' % 'precision')
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)
@@ -486,15 +491,23 @@ def predictGUI(X, clf, y, windowLength):
     print(time.time() - start)
     #Print the test data to see how well it performs.
     if yTest == predictions:
-        print("Correct prediction of %d!" %predictions)
+        print("Correct prediction of %d!" %predictions[0])
     else:
-        print("Should have predicted:")
-        print(yTest)
-        print()
-        print("Actually predicted:")
-        print(predictions)
+        print("Should have predicted: %d" %y)
+        print("Actually predicted: %d" %predictions[0])
+
     yTestGUI.append(y)
     predictionsGUI.append(predictions[0])
+
+    yfile = open("y.txt", 'a+')
+    yfile.write(y)
+    yfile.write(",")
+    yfile.close()
+
+    pfile = open("p.txt", 'a+')
+    pfile.write(predictions[0])
+    pfile.write(",")
+    pfile.close()
     #print("HALLO", clf.predict_proba(Xtest))
     #accuracyScoreGUI = accuracy_score(yTest, predictions)
     #precisionGUI = precision_score(yTest, predictions, average = 'macro')
@@ -509,9 +522,35 @@ def predictGUI(X, clf, y, windowLength):
     #crossValScore = cross_val_score(clf, Xtest, yTest, cv=2)
     #print(classificationReport)
     #print(meanSquaredScore)
-def classificationReportGUI():
-    global yTestGUI, predictionsGUI
+def resetClassificationReport():
+    print("You are about to clear the classificationreport")
+    print("Continue? [Y/n]")
+    inputString = raw_input()
+    if inputString == "Y":
+        tempfile = open("y.txt", 'w')
+        tempfile.truncate(0)
+        tempfile.close()
+        tempfile = open("p.txt", 'w')
+        tempfile.truncate(0)
+        tempfile.close()
+        print("Classification cleared successfully")
+    else:
+        print("Classification report clearing aborted")
 
+def classificationReportGUI():
+    #global yTestGUI, predictionsGUI
+    yfile = open("y.txt", 'r')
+    AllY = yfile.read()
+    yfile.close()        
+    yTestGUI = []
+    yTestGUI = AllY.split(",")
+
+    pfile = open("p.txt", 'r')
+    AllP = yfile.read()
+    pfile.close()        
+    predictionsGUI = []
+    predictionsGUI = AllP.split(",")
+    
     accuracyScore = accuracy_score(yTestGUI, predictionsGUI)
     precision = precision_score(yTestGUI, predictionsGUI, average = 'macro')
     classificationReport = classification_report(yTestGUI, predictionsGUI)
@@ -648,7 +687,113 @@ def plot_contours(ax, clf, xx, yy, **params):
     out = ax.contourf(xx, yy, Z, **params)
     return out
 
+def decisionTreeInfo(XLtrain, yTrain, XLtest):
+    estimator = tree.DecisionTreeClassifier(max_leaf_nodes=3, random_state=0)
+    estimator.fit(XLtrain, yTrain)
 
+    # The decision estimator has an attribute called tree_  which stores the entire
+    # tree structure and allows access to low level attributes. The binary tree
+    # tree_ is represented as a number of parallel arrays. The i-th element of each
+    # array holds information about the node `i`. Node 0 is the tree's root. NOTE:
+    # Some of the arrays only apply to either leaves or split nodes, resp. In this
+    # case the values of nodes of the other type are arbitrary!
+    #
+    # Among those arrays, we have:
+    #   - left_child, id of the left child of the node
+    #   - right_child, id of the right child of the node
+    #   - feature, feature used for splitting the node
+    #   - threshold, threshold value at the node
+    #
+
+    # Using those arrays, we can parse the tree structure:
+
+    n_nodes = estimator.tree_.node_count
+    children_left = estimator.tree_.children_left
+    children_right = estimator.tree_.children_right
+    feature = estimator.tree_.feature
+    threshold = estimator.tree_.threshold
+
+
+    # The tree structure can be traversed to compute various properties such
+    # as the depth of each node and whether or not it is a leaf.
+    node_depth = np.zeros(shape=n_nodes, dtype=np.int64)
+    is_leaves = np.zeros(shape=n_nodes, dtype=bool)
+    stack = [(0, -1)]  # seed is the root node id and its parent depth
+    while len(stack) > 0:
+        node_id, parent_depth = stack.pop()
+        node_depth[node_id] = parent_depth + 1
+
+        # If we have a test node
+        if (children_left[node_id] != children_right[node_id]):
+            stack.append((children_left[node_id], parent_depth + 1))
+            stack.append((children_right[node_id], parent_depth + 1))
+        else:
+            is_leaves[node_id] = True
+
+    print("The binary tree structure has %s nodes and has "
+          "the following tree structure:"
+          % n_nodes)
+    for i in range(n_nodes):
+        if is_leaves[i]:
+            print("%snode=%s leaf node." % (node_depth[i] * "\t", i))
+        else:
+            print("%snode=%s test node: go to node %s if X[:, %s] <= %s else to "
+                  "node %s."
+                  % (node_depth[i] * "\t",
+                     i,
+                     children_left[i],
+                     feature[i],
+                     threshold[i],
+                     children_right[i],
+                     ))
+    print()
+
+    # First let's retrieve the decision path of each sample. The decision_path
+    # method allows to retrieve the node indicator functions. A non zero element of
+    # indicator matrix at the position (i, j) indicates that the sample i goes
+    # through the node j.
+
+    node_indicator = estimator.decision_path(XLtest)
+
+    # Similarly, we can also have the leaves ids reached by each sample.
+
+    leave_id = estimator.apply(XLtest)
+
+    # Now, it's possible to get the tests that were used to predict a sample or
+    # a group of samples. First, let's make it for the sample.
+
+    sample_id = 0
+    node_index = node_indicator.indices[node_indicator.indptr[sample_id]:
+                                        node_indicator.indptr[sample_id + 1]]
+
+    print('Rules used to predict sample %s: ' % sample_id)
+    for node_id in node_index:
+        if leave_id[sample_id] != node_id:
+            continue
+
+        if (XLtest[sample_id, feature[node_id]] <= threshold[node_id]):
+            threshold_sign = "<="
+        else:
+            threshold_sign = ">"
+
+        print("decision id node %s : (XLtest[%s, %s] (= %s) %s %s)"
+              % (node_id,
+                 sample_id,
+                 feature[node_id],
+                 XLtest[sample_id, feature[node_id]],
+                 threshold_sign,
+                 threshold[node_id]))
+
+    # For a group of samples, we have the following common node.
+    sample_ids = [0, 1,2,3,4,5,6,7,8,9,10,11,12]
+    common_nodes = (node_indicator.toarray()[sample_ids].sum(axis=0) ==
+                    len(sample_ids))
+
+    common_node_id = np.arange(n_nodes)[common_nodes]
+
+    print("\nThe following samples %s share the node %s in the tree"
+          % (sample_ids, common_node_id))
+    print("It is %s %% of all nodes." % (100 * len(common_node_id) / n_nodes,))
 
 if __name__ == '__main__':
 	main()
