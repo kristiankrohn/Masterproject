@@ -26,6 +26,7 @@ from numpy import zeros, floor
 import math
 import time
 
+import sys; sys.path.append('.')
 import dataset
 from globalconst import  *
 import globalvar
@@ -615,45 +616,16 @@ def compareFeatures():
         clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     else:
         clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+    saveMachinestate(clf, "BruteForceClassifier")
+    featuremask = open("featuremask.txt", 'w+')
+    featuremask.write(str(allPermutations[winner]))
+    #featuremask.write(",")
+    featuremask.close()
+
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
     
-    '''
-    accuracyScore = []
-    f1Score = []
-    precisionScore = []
-    #Nested loops to compare accuracy when varying number of features are used.
-    for i in range(len(XL[0])):
-        compFeaturesTraining, compFeaturesTest = appendFeaturesForComparison(i, XL, XLtrain, XLtest)
-        #Create the classifier and train it on the test data.
-        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, None) #uncomment this if state should be loaded
 
-        #Load state of the classifier
-        #clf = loadMachineState() #Uncomment this to load the machine state
-
-        #Predict the classes
-        tempAccuracy, tempClassReport, tempf1Score, tempPrecision = predict(compFeaturesTest, clf, yTest)
-        print("Accuracy f1 and preision for %d features: " %i)
-
-
-
-
-
-        accuracyScore.append(tempAccuracy)
-        f1Score.append(tempf1Score)
-        precisionScore.append(tempPrecision)
-        #crossValScore.append(tempCrossValScore)
-    print("Feature comparison recap: ")
-    print()
-    print("Accuracy:")
-    print(accuracyScore)
-    print("F1 score:")
-    print(f1Score)
-    print("Precision")
-    print(precisionScore)
-
-    return accuracyScore, f1Score, precisionScore
-    '''
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
     start = time.time()
@@ -704,12 +676,12 @@ def predictGUI(X, clf, y, windowLength):
     predictionsGUI.append(predictions[0])
 
     yfile = open("y.txt", 'a+')
-    yfile.write(y)
+    yfile.write(str(y))
     yfile.write(",")
     yfile.close()
 
     pfile = open("p.txt", 'a+')
-    pfile.write(predictions[0])
+    pfile.write(str(predictions[0]))
     pfile.write(",")
     pfile.close()
     #print("HALLO", clf.predict_proba(Xtest))
