@@ -568,10 +568,10 @@ def compareFeatures():
     allS = []
     #Constants
     maxNumFeatures = 8
-    minNumFeatures = 2 #Must be bigger than 1
+    minNumFeatures = 6 #Must be bigger than 1
     #Load dataset
     X, y = dataset.loadDataset("longdata.txt")
-    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
+    X, y = dataset.sortDataset(X, y, length=1000, classes=[0,5,6,4,2,8]) #,6,4,2,8
     #Calculate features
     XL = extractAllFeatures(X, channel=0)
     XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
@@ -581,24 +581,27 @@ def compareFeatures():
     
     if len(features) < maxNumFeatures:
         maxNumFeatures = len(features)
-    elif maxNumFeatures > minNumFeatures:
+    elif maxNumFeatures < minNumFeatures:
         maxNumFeatures = minNumFeatures
 
     if minNumFeatures < 1:
         minNumFeatures = 1
     elif minNumFeatures > maxNumFeatures:
         minNumFeatures = maxNumFeatures 
-    
+    print("Testing with combinations of %d to %d" %(minNumFeatures, maxNumFeatures))
     for i in range(minNumFeatures, maxNumFeatures+1):
         print i
         for p in combinations(features, i): #If order matters use permutations, [XLtrain[j][k] for k in p] might needs changing
-            #print p
+            print p
             XLtrainPerm = np.empty([len(XLtrain), i])
             XLtestPerm = np.empty([len(XLtest), i])
             for j in range(len(XLtrain)):
                 #print j
+                #print([XLtrain[j][k] for k in p])
                 XLtrainPerm[j] = [XLtrain[j][k] for k in p]
             for j in range(len(XLtest)):
+                #print j
+                #print([XLtest[j][k] for k in p])
                 XLtestPerm[j] = [XLtest[j][k] for k in p]
             #print(XLtrainPerm[0])
             #print(XLtestPerm[0])
@@ -623,8 +626,9 @@ def compareFeatures():
     #Evaluate score
 
     winner = allPavg.index(max(allPavg)) #Check for max average precision
-    XLtrainPerm = np.empty([len(XLtrain), i])
-    XLtestPerm = np.empty([len(XLtest), i])
+    p = allPermutations[winner]
+    XLtrainPerm = np.empty([len(XLtrain), len(p)])
+    XLtestPerm = np.empty([len(XLtest), len(p)])
     p = allPermutations[winner]
     for j in range(len(XLtrain)):
         XLtrainPerm[j] = [XLtrain[j][k] for k in p]
@@ -652,15 +656,16 @@ def compareFeatures():
 
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
+    '''
     mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
                     to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
-                    #cc_addr_list = ['adriari@ntnu.no'],
+                    cc_addr_list = [],
                     subject      = 'Training finished',
                     message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
                                     + classification_report(yTest, yPred),
                     login        = 'dronemasterprosjekt',
                     password     = 'drone123')
-
+    '''
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
