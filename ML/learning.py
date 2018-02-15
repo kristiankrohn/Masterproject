@@ -194,7 +194,7 @@ def extractAllFeatures(X, channel):
                         #np.amin(list(X[0][i])),
                         #np.amin(list(X[1][i])),
 
-                        #thetaBetaRatioCh1,
+                        thetaBetaRatioCh1,
                         #thetaBetaRatioCh2,
                         #thetaBetaRatioCh3,
                         #thetaBetaRatioCh4,
@@ -434,13 +434,16 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False):
     if debug:
         print("Starting to tune parameters")
         print()
+
     if fast:
         clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
+        clf.fit(XLtrain, yTrain)
         bestParams.append({'kernel': 'linear', 'C': 50})
     else:
-        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
+        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0])
+        clf.fit(XLtrain, yTrain)
         bestParams.append(clf.best_params_)
-    clf.fit(XLtrain, yTrain)
+    
 
 
     if debug:
@@ -560,8 +563,8 @@ def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
     allF1 = []
     allS = []
     #Constants
-    maxNumFeatures = 1
-    minNumFeatures = 1 #Must be bigger than 1
+    maxNumFeatures = 8
+    minNumFeatures = 2 #Must be bigger than 1
     #Load dataset
     X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
@@ -571,6 +574,10 @@ def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
 
     features = range(len(XL[0]))
     print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
+    
+    if len(features) < maxNumFeatures:
+        maxNumFeatures = len(features)
+
     for i in range(minNumFeatures, maxNumFeatures+1):
         print i
         for p in combinations(features, i): #If order matters use permutations, [XLtrain[j][k] for k in p] might needs changing
