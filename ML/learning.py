@@ -553,7 +553,7 @@ def evaluateFeatures(X, y):
     #print(Xnew.shape)
     #return Xnew
 
-def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
+def compareFeatures():
     
     allPermutations = []
     allParams = []
