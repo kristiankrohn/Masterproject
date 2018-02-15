@@ -656,16 +656,16 @@ def compareFeatures():
 
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
-    '''
+    
     mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
                     to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
                     cc_addr_list = [],
-                    subject      = 'Training finished',
+                    subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
                     message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
                                     + classification_report(yTest, yPred),
                     login        = 'dronemasterprosjekt',
                     password     = 'drone123')
-    '''
+    
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
