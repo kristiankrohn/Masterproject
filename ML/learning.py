@@ -27,6 +27,7 @@ from numpy import zeros, floor
 import math
 import time
 
+import sys; sys.path.append('.')
 import dataset
 from globalconst import  *
 import globalvar
@@ -41,10 +42,10 @@ predictionsGUI = []
 
 
 def main():
-    partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
-    partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
-    extractFeatures(partialPathZ, partialPathO)
-
+    #partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
+    #partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
+    #extractFeatures(partialPathZ, partialPathO)
+    compareFeatures()
 
 
 
@@ -142,6 +143,126 @@ def scaleAndSplit(XL, labels):
     XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 42, stratify = labels)
 
     return XLtrain, XLtest, yTrain, yTest
+
+def extractAllFeatures(X, channel):
+    XL = [[]]
+    frequencyBands = [0.1, 4, 8, 12,30]
+    Fs = 250
+    featureVector = []
+
+    for i in range(len(X[0])):
+        startTime = time.time()
+        power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh1 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh2 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh3 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh4 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
+        thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+        thetaBetaRatioCh2 = bandAvgAmplitudesCh2[1]/bandAvgAmplitudesCh2[3]
+        thetaBetaRatioCh3 = bandAvgAmplitudesCh3[1]/bandAvgAmplitudesCh3[3]
+        thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
+
+        pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
+        pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
+        pearsonCoefficients23 = np.corrcoef(X[1][i], X[2][i])
+        pearsonCoefficients24 = np.corrcoef(X[1][i], X[3][i])
+        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
+        cov12 = np.cov(list(X[0][i]), list(X[1][i]))
+        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
+        corr12 = np.correlate(list(X[0][i]), list(X[1][i])),
+
+        maxIndex = np.argmax(list(X[channel][i]))
+        minIndex = np.argmin(list(X[channel][i]))
+        minValueCh1 = np.amin(list(X[0][i]))
+        maxValueCh1 = np.amax(list(X[0][i]))
+        slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+        #print(power)
+        #print(channel)
+        #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
+        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        featureVector = [
+                        pyeeg.hfd(list(X[channel][i]), 200), #Okende tall gir viktigere feature, men mye lenger computation time
+                        np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
+                        np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
+                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        #pearsonCoefficients14[0][1],
+                        pearsonCoefficients14[1][0],
+                        np.std(list(X[channel][i])),
+                        slopeCh1,
+                        #np.amax(list(X[0][i])),
+                        #np.amax(list(X[1][i])),
+                        #np.amin(list(X[0][i])),
+                        #np.amin(list(X[1][i])),
+
+                        #thetaBetaRatioCh1,
+                        #thetaBetaRatioCh2,
+                        #thetaBetaRatioCh3,
+                        #thetaBetaRatioCh4,
+                        #np.ptp(list(X[0][i])), #denne er bra
+                        #powerRatio[2],
+                        #powerRatio[1],
+
+
+
+
+                        #np.amin(list(X[0][i])),
+
+
+                        #corr12[0][0],
+                        #np.amax(list(X[0][i])) - np.amax(list(X[3][i])),
+                        #np.correlate(list(X[0][i]), list(X[2][i])),
+
+                        #cov12[0][1],
+                        #cov12[1][0],
+                        #np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
+
+                        #np.amax(list(X[1][i])) - np.amax(list(X[2][i])),
+                        #np.amax(list(X[1][i])) - np.amax(list(X[3][i])),
+                        #pearsonCoefficients13[0][1],
+                        #pearsonCoefficients13[1][0],
+                        #thetaBetaRatio,
+
+                        #powerRatio[0],
+                        #pyeeg.hurst(list(X[channel][i])),
+                        #np.std(list(X[channel][i])),
+                        #np.var(list(X[channel][i])),
+
+                        #np.correlate(list(X[0][i]), list(X[3][i])), #funker bare for decision tree???
+                        #np.correlate(list(X[2][i]), list(X[3][i])),
+
+                        #cov34[0][1],
+                        #cov34[1][0],
+
+                        #bandAvgAmplitudes[0],
+                        #bandAvgAmplitudes[1],
+                        #np.std(list(X[channel][i])),
+                        #pyeeg.hjorth(list(X[0][i])),
+
+
+                        #np.ptp(list(X[3][i])),
+
+
+
+
+
+                        #thetaBetaPowerRatio,
+                        #powerRatio[1],
+                        #powerRatio[2],
+                        #powerRatio[3],
+                        #power[0],
+                        #power[1],
+                        #power[2],
+                        #power[3],
+                        #pyeeg.pfd(list(X[0][i])),
+                        #pyeeg.dfa(list(X[0][i]), None, None),
+                        ]
+        XL.append(featureVector)
+        #print("Time taken to extract features for example %d: " % i)
+        #print(time.time() - startTime)
+        #print(XL)
+    XL.pop(0)
+    return XL
+
 
 def extractFeatures(X, channel):
     XL = [[]]
@@ -348,16 +469,15 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False):
         print()
         return bestParams[0]
     else:
+        yPred = clf.predict(XLtest)
+        labels = unique_labels(yTest, yPred)
+        print(classification_report(yTest, yPred))
+        p, r, f1, s = precision_recall_fscore_support(yTest, yPred,
+                                                      labels=labels,
+                                                      average=None)
 
-    print("Detailed classification report:")
-    print()
-    print("The model is trained on the full development set.")
-    print("The scores are computed on the full evaluation set.")
-    print()
-    yPred = clf.predict(XLtest)
-    print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
-    print()
-    return bestParams[0]
+        return bestParams[0], p, r, f1, s
+
 
 def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     bestParams = []
@@ -431,23 +551,14 @@ def evaluateFeatures(X, y):
     #return Xnew
 
 def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
-    accuracyScore = []
-    f1Score = []
-    precisionScore = []
-    #Nested loops to compare accuracy when varying number of features are used.
-    for i in range(len(XL[0])):
-        compFeaturesTraining, compFeaturesTest = appendFeaturesForComparison(i, XL, XLtrain, XLtest)
-        #Create the classifier and train it on the test data.
-        clf, clfPlot = createAndTrain(compFeaturesTraining, yTrain, None) #uncomment this if state should be loaded
-
-        #Load state of the classifier
-        #clf = loadMachineState() #Uncomment this to load the machine state
-
-        #Predict the classes
-        tempAccuracy, tempClassReport, tempf1Score, tempPrecision = predict(compFeaturesTest, clf, yTest)
-        print("Accuracy f1 and preision for %d features: " %i)
-
-
+    
+    allPermutations = []
+    allParams = []
+    allPavg = []
+    allP = []
+    allR = []
+    allF1 = []
+    allS = []
     #Constants
     maxNumFeatures = 1
     minNumFeatures = 1 #Must be bigger than 1
