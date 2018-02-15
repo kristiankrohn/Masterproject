@@ -581,7 +581,14 @@ def compareFeatures():
     
     if len(features) < maxNumFeatures:
         maxNumFeatures = len(features)
+    elif maxNumFeatures > minNumFeatures:
+        maxNumFeatures = minNumFeatures
 
+    if minNumFeatures < 1:
+        minNumFeatures = 1
+    elif minNumFeatures > maxNumFeatures:
+        minNumFeatures = maxNumFeatures 
+    
     for i in range(minNumFeatures, maxNumFeatures+1):
         print i
         for p in combinations(features, i): #If order matters use permutations, [XLtrain[j][k] for k in p] might needs changing
@@ -599,7 +606,7 @@ def compareFeatures():
             print(p)
             #print(len(XLtrainPerm))
             #Optimize setting
-            bestParams, presc, r, f1, s = tuneSvmParameters(XLtrainPerm, yTrain, XLtestPerm, yTest, debug=False, fast=True)
+            bestParams, presc, r, f1, s = tuneSvmParameters(XLtrainPerm, yTrain, XLtestPerm, yTest, debug=False, fast=False)
 
             #Append scores
             allPermutations.append(p)
@@ -646,8 +653,8 @@ def compareFeatures():
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
     mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
-                    to_addr_list = ['krishk@stud.ntnu.no'],
-                    cc_addr_list = ['adriari@ntnu.no'],
+                    to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
+                    #cc_addr_list = ['adriari@ntnu.no'],
                     subject      = 'Training finished',
                     message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
                                     + classification_report(yTest, yPred),
