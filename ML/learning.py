@@ -33,6 +33,10 @@ from globalconst import  *
 import globalvar
 import copy
 import mail
+from itertools import permutations
+from itertools import combinations
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.utils.multiclass import unique_labels
 
 yTestGUI = []
 predictionsGUI = []
