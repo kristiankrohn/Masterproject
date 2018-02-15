@@ -61,7 +61,7 @@ def prepSaveData(direction, length):
 	ready = False
 
 	temp = None
-	
+
 
 	while not ready:
 		with glb.mutex:
@@ -89,12 +89,12 @@ def prepSaveData(direction, length):
 					if len(temp[i][timestamp]) != len(temp[i][rawdata]):
 						print("Uneven length between timestamp and rawdata")
 						return -1
-					
+
 
 	stopindex = len(temp[0][rawdata])-1
 
 
-	for i in range((len(temp[0][timestamp])-1), 0, -1): 
+	for i in range((len(temp[0][timestamp])-1), 0, -1):
 		#print(i)
 		if temp[0][timestamp][i]<=startTime:
 			stopindex = i
@@ -109,19 +109,19 @@ def prepSaveData(direction, length):
 
 	f = ""
 	for j in range(numCh):
-		
+
 		if direction >= 10:
 			print("Unknown direction")
 			return -1
 		else:
-			f += directioncode[direction]	
+			f += directioncode[direction]
 			f += str(j) #Kanal
-			
+
 			for i in range(start, stop):
 				f += ","
 				try:
 					num = temp[j][rawdata][i]
-					
+
 				except IndexError:
 					print("Index error")
 					print("Len buffer = %d" %(len(temp[j][rawdata])-1))
@@ -131,39 +131,39 @@ def prepSaveData(direction, length):
 					return -1
 
 				f += str(num)
-			f += ":"		
-	
+			f += ":"
+
 	return f
 
 
 def exportPlots(command, plottype="time", speed="slow"):
 	global filelock
 	global DataSet
-	
+
 	#folder = dir_path + "\\Dataset_exports\\figures\\Center"
 	#print(folder)
 	if command == "temp":
-		folders = ["\\tempfigures", "\\longtempfigures"]
+		folders = [slash + "tempfigures", slash + "longtempfigures"]
 
 	elif command == "data":
-		folders = ["\\figures", "\\longfigures"]
+		folders = [slash + "figures", slash + "longfigures"]
 
 	else:
-		folders = ["\\figures", "\\tempfigures", 
-				"\\longfigures", "\\longtempfigures"]
-	
-	if speed != "slow":			
+		folders = [slash + "figures", slash + "tempfigures",
+				slash + "longfigures", slash + "longtempfigures"]
+
+	if speed != "slow":
 		multiprocessing.freeze_support()
 
 	for i in range(len(folders)):
-	
+
 		for j in range(len(movements)):
 			if plottype == "fft":
-				folder = dir_path + "\\Dataset_fft" + folders[i] + movements[j]
+				folder = dir_path + slash + "Dataset_fft" + folders[i] + movements[j]
 			elif plottype == "time":
-				folder = dir_path + "\\Dataset_exports" + folders[i] + movements[j]
+				folder = dir_path + slash +  "Dataset_exports" + folders[i] + movements[j]
 			elif plottype == "raw":
-				folder = dir_path + "\\Dataset_raw" + folders[i] + movements[j]
+				folder = dir_path + slash + "Dataset_raw" + folders[i] + movements[j]
 			else:
 				print("Invalid plottype")
 				return
@@ -191,22 +191,22 @@ def exportPlots(command, plottype="time", speed="slow"):
 				file = open(dir_path+glb.datasetFolder+"data.txt", 'r')
 			else:
 				file = open(dir_path+glb.datasetFolder+"longdata.txt", 'r')
-		else:	
+		else:
 
 			if i == 0:
 				file = open(dir_path+glb.datasetFolder+"data.txt", 'r')
-			elif i == 1: 
+			elif i == 1:
 				file = open(dir_path+glb.datasetFolder+"temp.txt", 'r')
 			elif i == 2:
 				file = open(dir_path+glb.datasetFolder+"longdata.txt", 'r')
 			elif i == 3:
 				file = open(dir_path+glb.datasetFolder+"longtemp.txt", 'r')
-		
 
-		with filelock:	
+
+		with filelock:
 			AllData = file.read()
 			file.close()
-		
+
 		#DataSet = []
 		DataSet = AllData.split(':')
 		'''
@@ -222,7 +222,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 			if len(DataSet) < numCh:
 				return
 			else:
-				
+
 				split = 128
 				splitsize = numCh*split
 				numSplits = len(DataSet)//splitsize
@@ -231,11 +231,11 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 				for k in range(numSplits):
 					if k < (numSplits-1):
-						DataSetTemp = DataSet[k*splitsize:(k+1)*splitsize]			
+						DataSetTemp = DataSet[k*splitsize:(k+1)*splitsize]
 					elif k == (numSplits-1):
 						DataSetTemp = DataSet[k*splitsize:-1]
 					num_cpu = multiprocessing.cpu_count()
-					
+
 					pool = multiprocessing.Pool(len(DataSetTemp)/numCh)
 					variables = [None]*4
 					#variables[0] = 0
@@ -260,10 +260,10 @@ def exportPlots(command, plottype="time", speed="slow"):
 							#break
 						#Datalist.append(DataSet[start:stop])
 						variables[3] = DataSetTemp[start:stop]
-						
+
 						#variables[4] = str(g)
 						Datalist[g]=copy.deepcopy(variables)
-						#indexlist.append(g)	
+						#indexlist.append(g)
 					#Datalist = [None]*(len(DataSet)/numCh)
 					#for i in range(len(Datalist)):
 						#print(Datalist[i])
@@ -273,7 +273,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 					#threadexport = [None]*(len(DataSet)/numCh)
 					#print("Thread index up to: %d" %len(DataSet))
 					#print(i)
-					
+
 					#res = pool.map(func_star, itertools.izip(indexlist,itertools.repeat(variables)), num_cpu)
 					iterator = itertools.izip(indexlist,Datalist)
 					#Datalist = None
@@ -286,9 +286,9 @@ def exportPlots(command, plottype="time", speed="slow"):
 					print("Waiting to join")
 					pool.join()
 					print("Has joined")
-			
+
 		else:
-		
+
 			for k in range(0, len(DataSet), numCh):
 				care = True
 				feature = []
@@ -341,7 +341,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 							featureData1 = map(float, feature1)
 							subplotnum = (numCh/2)*100 + 20 + l + 1
-		
+
 							ax1 = plt.subplot(subplotnum)
 							if plottype != "raw":
 								featureData1 = filterlib.plotfilter(featureData1, b, a)
@@ -366,7 +366,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 							if i == 0:
 								tempOrNot = "figures"
 							else:
-								tempOrNot = "longfigures"		
+								tempOrNot = "longfigures"
 						else:
 							if i == 0:
 								tempOrNot = "figures"
@@ -378,31 +378,31 @@ def exportPlots(command, plottype="time", speed="slow"):
 								tempOrNot = "longtempfigures"
 
 						if plottype == "fft":
-							savestring = (dir_path + "\\Dataset_fft\\"
-											+ tempOrNot +"\\"+title +"\\"
+							savestring = (dir_path + slash + "Dataset_fft" + slash
+											+ tempOrNot + slash + title + slash
 											+ title+str(k/numCh) + ".png")
 						elif plottype == "raw":
-							savestring = (dir_path + "\\Dataset_raw\\"
-											+ tempOrNot +"\\"+title +"\\"
+							savestring = (dir_path + slash + "Dataset_raw" + slash
+											+ tempOrNot + slash + title + slash
 											+ title+str(k/numCh) + ".png")
 						else:
-							savestring = (dir_path + "\\Dataset_exports\\"
-											+ tempOrNot +"\\"+title +"\\"
+							savestring = (dir_path + slash + "Dataset_exports" + slash
+											+ tempOrNot +slash + title + slash
 											+ title+str(k/numCh) + ".png")
 						print(savestring)
 
 						plt.subplots_adjust(hspace=0.6)
 						with filelock:
 							plt.savefig(savestring, bbox_inches='tight')
-						
+
 						#plt.show()
 						plt.close()
-						
+
 				else:
 					print("Empty file")
-		
+
 	#plt.close('all')
-	
+
 	print("Finished exporting plots")
 
 def func_star(a_b):
@@ -415,7 +415,7 @@ def threadplots(k, variables):
 	#DataSet
 	import matplotlib.pyplot as plt
 	#print(len(variables))
-	
+
 	#channels = variables[0]
 	i = variables[0]
 	command	= variables[1]
@@ -463,7 +463,7 @@ def threadplots(k, variables):
 			#care = False
 
 		if care:
-			
+
 			plt.figure(figsize=(20,10))
 			#print(title)
 			plt.suptitle(title)
@@ -507,7 +507,7 @@ def threadplots(k, variables):
 				if i == 0:
 					tempOrNot = "figures"
 				else:
-					tempOrNot = "longfigures"		
+					tempOrNot = "longfigures"
 			else:
 				if i == 0:
 					tempOrNot = "figures"
@@ -519,23 +519,23 @@ def threadplots(k, variables):
 					tempOrNot = "longtempfigures"
 
 			if plottype == "fft":
-				savestring = (dir_path + "\\Dataset_fft\\"
-								+ tempOrNot +"\\"+title +"\\"
+				savestring = (dir_path + slash + "Dataset_fft" + slash
+								+ tempOrNot + slash + title + slash
 								+ title+str(k) + ".png")
 			elif plottype == "raw":
-				savestring = (dir_path + "\\Dataset_raw\\"
-								+ tempOrNot +"\\"+title +"\\"
+				savestring = (dir_path + slash + "Dataset_raw" + slash
+								+ tempOrNot + slash+title + slash
 								+ title+str(k) + ".png")
 			else:
-				savestring = (dir_path + "\\Dataset_exports\\"
-								+ tempOrNot +"\\"+title +"\\"
+				savestring = (dir_path + slash + "Dataset_exports" + slash
+								+ tempOrNot +slash+title +slash
 								+ title+str(k) + ".png")
 			#print(savestring)
 
 			plt.subplots_adjust(hspace=0.6)
 			#with filelock:
 			plt.savefig(savestring, bbox_inches='tight')
-			
+
 			#plt.show()
 			plt.close()
 
@@ -585,7 +585,7 @@ def saveLongData():
 
 
 def clear(elementtype):
-	if elementtype == "shorttemp": 
+	if elementtype == "shorttemp":
 		targetfile = "temp.txt"
 	elif elementtype == "longtemp":
 		targetfile = "longtemp.txt"
@@ -605,7 +605,7 @@ def clear(elementtype):
 		tempfile.close()
 		print("All data in " + elementtype + " are deleted")
 	else:
-		print("Delete operation aborted")	
+		print("Delete operation aborted")
 
 
 
@@ -621,16 +621,19 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 		file = open((dir_path+glb.datasetFolder+filename), 'r')
 		AllData = file.read()
 		file.close()
-		
+
 	DataSet = []
 	DataSet = AllData.split(":")
 	#print(DataSet)
 	if filterType == "DC":
-		a = [1 , -0.9] 
+		a = [1 , -0.9]
 		b = [1,-1]
 	else:
-		b, a = filterlib.designfilter()
-	
+		b, a = filterlib.loadfilter()
+		if b.all() == None or a.all() == None:
+			print("Designing filter from scratch")
+			b, a = filterlib.designfilter()
+
 	for k in range(0, len(DataSet)):
 		#print("k = %d" %k)
 		care = True
@@ -643,9 +646,9 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 			channel = map(int, featuretype[2])
 			channel = channel[0]
 			feature.pop(0)
-			
-			y[channel].append(directioncode.index(label))							
-			
+
+			y[channel].append(directioncode.index(label))
+
 			featureData = map(float, feature)
 			#featureData = filterlib.plotfilter(featureData, b, a)
 			#print("Raw data: %0.2f\n" %featureData[0])
@@ -658,7 +661,7 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 
 		else:
 			print("Invalid datapoint")
-			
+
 	#plt.close('all')
 	#print(len(x[0][0]))
 	print("Finished loading dataset")
@@ -690,7 +693,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 	elif minValElement < length:
 		print("Given length is too long, max for this dataset is: %d" %minValElement)
 		length = minValElement
-	
+
 	returnCounts = [0]*len(classes)
 	for i in range(len(y[0])):
 		if y[0][i] in classes:
@@ -721,7 +724,7 @@ def datasetStats(filename="data.txt"):
 
 def deletesystem(elementtype="shorttemp"):
 	#Some system for setting variables according to file
-	if elementtype == "shorttemp": 
+	if elementtype == "shorttemp":
 		targetfile = "temp.txt"
 		file = "deletetemp.txt"
 	elif elementtype == "longtemp":
@@ -737,7 +740,7 @@ def deletesystem(elementtype="shorttemp"):
 		print("Error: wrong elementtype")
 		return
 
-	tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'r')
+	tempfile = open(dir_path+ slash +"Dataset_delete" + slash +file, 'r')
 	tempData = tempfile.read()
 	tempfile.close()
 
@@ -761,7 +764,7 @@ def deletesystem(elementtype="shorttemp"):
 				deleteelement(index = indexlist[i], filename=targetfile)
 				#print(indexlist[i])
 			print("Sucessfully deleted elements")
-			tempfile = open(dir_path+"\\Dataset_delete\\"+file, 'w')
+			tempfile = open(dir_path+slash+"Dataset_delete"+slash+file, 'w')
 			tempfile.truncate(0)
 			tempfile.close()
 		else:
@@ -797,7 +800,7 @@ def deleteelement(index, filename):
 
 
 def appenddelete(index, elementtype):
-	if elementtype == "shorttemp": 
+	if elementtype == "shorttemp":
 		filename = "deletetemp.txt"
 	elif elementtype == "longtemp":
 		filename = "deletelongtemp.txt"
@@ -809,7 +812,7 @@ def appenddelete(index, elementtype):
 		print("Error: wrong elementtype")
 		return
 
-	file = open(dir_path+"\\Dataset_delete\\"+filename, 'a')
+	file = open(dir_path+slash+"Dataset_delete"+slash+filename, 'a')
 	file.write(str(index))
 	file.write(",")
 	file.close()
@@ -818,7 +821,7 @@ def appenddelete(index, elementtype):
 
 
 def remove_appenddelete(index, elementtype):
-	if elementtype == "shorttemp": 
+	if elementtype == "shorttemp":
 		filename = "deletetemp.txt"
 	elif elementtype == "longtemp":
 		filename = "deletelongtemp.txt"
@@ -830,7 +833,7 @@ def remove_appenddelete(index, elementtype):
 		print("Error: wrong elementtype")
 		return
 
-	tempfile = open(dir_path+"\\Dataset_delete\\"+filename, 'r')
+	tempfile = open(dir_path+slash+"Dataset_delete"+slash+filename, 'r')
 	tempData = tempfile.read()
 	tempfile.close()
 
@@ -842,21 +845,21 @@ def remove_appenddelete(index, elementtype):
 		indexlist = np.unique(indexlist).tolist()
 		if index in indexlist:
 			indexlist.remove(index)
-			file = open(dir_path+"\\Dataset_delete\\"+filename, 'w')
-			for i in range(len(indexlist)):		
+			file = open(dir_path+slash+"Dataset_delete"+slash+filename, 'w')
+			for i in range(len(indexlist)):
 				file.write(str(indexlist[i]))
 				file.write(",")
 			file.close()
 			print("Removed index %d  "%index + "from " + elementtype)
 		else:
-			print("Index does not exist in " + elementtype) 
+			print("Index does not exist in " + elementtype)
 	else:
 		print(elementtype + " list is empty!")
 
 
 
 def print_appenddelete(elementtype):
-	if elementtype == "shorttemp": 
+	if elementtype == "shorttemp":
 		filename = "deletetemp.txt"
 	elif elementtype == "longtemp":
 		filename = "deletelongtemp.txt"
@@ -868,7 +871,7 @@ def print_appenddelete(elementtype):
 		print("Error: wrong elementtype")
 		return
 
-	tempfile = open(dir_path+"\\Dataset_delete\\"+filename, 'r')
+	tempfile = open(dir_path+slash+"Dataset_delete"+slash+filename, 'r')
 	tempData = tempfile.read()
 	tempfile.close()
 
@@ -916,7 +919,7 @@ def shapeArray(data, length, direction):
 	ready = False
 
 	temp = None
-	
+
 	while not ready:
 		with glb.mutex:
 			if len(glb.data[0][timestamp]) < (length + frontPadding + backPadding):
@@ -943,12 +946,12 @@ def shapeArray(data, length, direction):
 					if len(temp[i][timestamp]) != len(temp[i][rawdata]):
 						print("Uneven length between timestamp and rawdata")
 						return -1
-					
+
 
 	stopindex = len(temp[0][rawdata])-1
 
 
-	for i in range((len(temp[0][timestamp])-1), 0, -1): 
+	for i in range((len(temp[0][timestamp])-1), 0, -1):
 		#print(i)
 		if temp[0][timestamp][i]<=startTime:
 			stopindex = i

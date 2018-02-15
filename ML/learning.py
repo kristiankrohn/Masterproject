@@ -31,7 +31,7 @@ import dataset
 from globalconst import  *
 import globalvar
 import copy
-
+import mail
 
 yTestGUI = []
 predictionsGUI = []
@@ -298,7 +298,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     print(time.time() - start)
     return clf, None #clfPlot Uncomment this to be able to plot the classifier
 
-def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
+def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False):
     bestParams = []
     tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
                         'C': [1, 10, 50, 100, 500, 1000, 10000]},
@@ -310,26 +310,44 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest):
 
     #CV = ?????Increase CV = less variation, more computation time
     #comment in for loop and add score where scores[0] is atm, to make best parameters for prediction and recall
-    print("Starting to tune parameters")
-    print()
-
-    clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0])
+    if debug:
+        print("Starting to tune parameters")
+        print()
+    if fast:
+        clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
+        bestParams.append({'kernel': 'linear', 'C': 50})
+    else:
+        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=4, scoring='%s_macro' % scores[0])
+        bestParams.append(clf.best_params_)
     clf.fit(XLtrain, yTrain)
-    bestParams.append(clf.best_params_)
-    print("Best parameters set found on development set:")
-    print()
-    print(bestParams)
-    print()
-    print("Grid scores on development set:")
-    print()
-    means = clf.cv_results_['mean_test_score']
-    stds = clf.cv_results_['std_test_score']
 
-    #This loop prints out the mean from all the 10 fold combinations standarddeviation and lots of good stuff
 
-    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
-    print()
+    if debug:
+        print("Best parameters set found on development set:")
+        print()
+        print(bestParams)
+        print()
+        print("Grid scores on development set:")
+        print()
+        means = clf.cv_results_['mean_test_score']
+        stds = clf.cv_results_['std_test_score']
+
+        #This loop prints out the mean from all the 10 fold combinations standarddeviation and lots of good stuff
+
+        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+        print()
+
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        yPred = clf.predict(XLtest)
+        print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
+        print()
+        return bestParams[0]
+    else:
 
     print("Detailed classification report:")
     print()
@@ -350,6 +368,7 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     print()
 
     clf = GridSearchCV(tree.DecisionTreeClassifier(), sampleLeafPipeline, cv=10, scoring='%s_macro' % 'precision')
+
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)
     print("Best parameters set found on development set:")
@@ -429,23 +448,90 @@ def compareFeatures(XL, XLtrain, yTrain, XLtest, yTest):
         print("Accuracy f1 and preision for %d features: " %i)
 
 
+    #Constants
+    maxNumFeatures = 1
+    minNumFeatures = 1 #Must be bigger than 1
+    #Load dataset
+    X, y = dataset.loadDataset("longdata.txt")
+    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
+    #Calculate features
+    XL = extractAllFeatures(X, channel=0)
+    XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
 
+    features = range(len(XL[0]))
+    print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
+    for i in range(minNumFeatures, maxNumFeatures+1):
+        print i
+        for p in combinations(features, i): #If order matters use permutations, [XLtrain[j][k] for k in p] might needs changing
+            #print p
+            XLtrainPerm = np.empty([len(XLtrain), i])
+            XLtestPerm = np.empty([len(XLtest), i])
+            for j in range(len(XLtrain)):
+                #print j
+                XLtrainPerm[j] = [XLtrain[j][k] for k in p]
+            for j in range(len(XLtest)):
+                XLtestPerm[j] = [XLtest[j][k] for k in p]
+            #print(XLtrainPerm[0])
+            #print(XLtestPerm[0])
+            print("Starting to train with permutation: ")
+            print(p)
+            #print(len(XLtrainPerm))
+            #Optimize setting
+            bestParams, presc, r, f1, s = tuneSvmParameters(XLtrainPerm, yTrain, XLtestPerm, yTest, debug=False, fast=True)
 
+            #Append scores
+            allPermutations.append(p)
+            allParams.append(bestParams)
+            allP.append(presc)
+            allPavg.append(np.average(presc, weights=s))
+            allR.append(r)
+            allF1.append(f1)
+            allS.append(s)
+            winner = allPavg.index(max(allPavg)) #Check for max average precision
+            print("Best features so far are:")
+            print allPermutations[winner]
 
-        accuracyScore.append(tempAccuracy)
-        f1Score.append(tempf1Score)
-        precisionScore.append(tempPrecision)
-        #crossValScore.append(tempCrossValScore)
-    print("Feature comparison recap: ")
-    print()
-    print("Accuracy:")
-    print(accuracyScore)
-    print("F1 score:")
-    print(f1Score)
-    print("Precision")
-    print(precisionScore)
+    #Evaluate score
 
-    return accuracyScore, f1Score, precisionScore
+    winner = allPavg.index(max(allPavg)) #Check for max average precision
+    XLtrainPerm = np.empty([len(XLtrain), i])
+    XLtestPerm = np.empty([len(XLtest), i])
+    p = allPermutations[winner]
+    for j in range(len(XLtrain)):
+        XLtrainPerm[j] = [XLtrain[j][k] for k in p]
+    for j in range(len(XLtest)):
+        XLtestPerm[j] = [XLtest[j][k] for k in p]
+
+    print("Best features are:")
+    print allPermutations[winner]
+    #Test
+    bestParams = allParams[winner]
+    print("Best parameters are: ")
+    print(bestParams)
+
+    if bestParams['kernel'] == 'linear':
+        clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
+    else:
+        clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+
+    clf.fit(XLtrainPerm, yTrain)
+    saveMachinestate(clf, "BruteForceClassifier")
+    featuremask = open("featuremask.txt", 'w+')
+    featuremask.write(str(allPermutations[winner]))
+    #featuremask.write(",")
+    featuremask.close()
+
+    yPred = clf.predict(XLtestPerm)
+    print(classification_report(yTest, yPred))
+    mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
+                    to_addr_list = ['krishk@stud.ntnu.no'],
+                    cc_addr_list = ['adriari@ntnu.no'],
+                    subject      = 'Training finished',
+                    message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
+                                    + classification_report(yTest, yPred),
+                    login        = 'dronemasterprosjekt',
+                    password     = 'drone123')
+
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
@@ -593,11 +679,11 @@ def predictRealTime(X, clf):
     #f1Score = f1_score(yTest, predictions, average='macro')
 
 def saveMachinestate(clf, string):
-    joblib.dump(clf, "ML\\" + string + ".pkl")
+    joblib.dump(clf, "ML"+slash + string + ".pkl")
 
 def loadMachineState(string):
 
-    clf = joblib.load("ML\\" + string + ".pkl")
+    clf = joblib.load("ML"+slash + string + ".pkl")
     return clf
 
 def getBandAmplitudes(X, Band, Fs):
