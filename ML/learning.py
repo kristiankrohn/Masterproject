@@ -93,9 +93,9 @@ def startLearning():
 
 
         #Use this if predictor other than SVM is used.
-        clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        #clf = loadMachineState("learningState99HFDslopedSVM")
-        saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
+        #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+        clf = loadMachineState("learningState99HFDslopedSVM")
+        #saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
         #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
         #Use this if it is imporatnt to see the overall prediction, and not for only the test set
@@ -447,7 +447,7 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False):
         clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0])
         clf.fit(XLtrain, yTrain)
         bestParams.append(clf.best_params_)
-    
+
 
 
     if debug:
@@ -558,7 +558,7 @@ def evaluateFeatures(X, y):
     #return Xnew
 
 def compareFeatures():
-    
+
     allPermutations = []
     allParams = []
     allPavg = []
@@ -567,8 +567,8 @@ def compareFeatures():
     allF1 = []
     allS = []
     #Constants
-    maxNumFeatures = 8
-    minNumFeatures = 6 #Must be bigger than 1
+    maxNumFeatures = 5
+    minNumFeatures = 1 #Must be bigger than 1
     #Load dataset
     X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.sortDataset(X, y, length=1000, classes=[0,5,6,4,2,8]) #,6,4,2,8
@@ -578,7 +578,7 @@ def compareFeatures():
 
     features = range(len(XL[0]))
     print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
-    
+
     if len(features) < maxNumFeatures:
         maxNumFeatures = len(features)
     elif maxNumFeatures < minNumFeatures:
@@ -587,7 +587,7 @@ def compareFeatures():
     if minNumFeatures < 1:
         minNumFeatures = 1
     elif minNumFeatures > maxNumFeatures:
-        minNumFeatures = maxNumFeatures 
+        minNumFeatures = maxNumFeatures
     print("Testing with combinations of %d to %d" %(minNumFeatures, maxNumFeatures))
     for i in range(minNumFeatures, maxNumFeatures+1):
         print i
@@ -656,7 +656,7 @@ def compareFeatures():
 
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
-    
+
     mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
                     to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
                     cc_addr_list = [],
@@ -665,7 +665,7 @@ def compareFeatures():
                                     + classification_report(yTest, yPred),
                     login        = 'dronemasterprosjekt',
                     password     = 'drone123')
-    
+
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
