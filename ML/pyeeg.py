@@ -353,6 +353,7 @@ def hfd(X, Kmax):
 				Lmk += abs(X[m+i*k] - X[m+i*k-k])
 			Lmk = Lmk*(N - 1)/floor((N - m) / float(k)) / k
 			Lk.append(Lmk)
+		#print(k)
 		L.append(log(mean(Lk)))
 		x.append([log(float(1) / k), 1])
 

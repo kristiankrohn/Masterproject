@@ -37,7 +37,7 @@ from itertools import permutations
 from itertools import combinations
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.utils.multiclass import unique_labels
-
+from datetime import datetime
 yTestGUI = []
 predictionsGUI = []
 
@@ -49,7 +49,7 @@ def main():
     #partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
     #partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
     #extractFeatures(partialPathZ, partialPathO)
-    compareFeatures()
+    compareFeatures(n_jobs=-1)
 
 
 
@@ -148,124 +148,7 @@ def scaleAndSplit(XL, labels):
 
     return XLtrain, XLtest, yTrain, yTest
 
-def extractAllFeatures(X, channel):
-    XL = [[]]
-    frequencyBands = [0.1, 4, 8, 12,30]
-    Fs = 250
-    featureVector = []
 
-    for i in range(len(X[0])):
-        startTime = time.time()
-        power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
-        bandAvgAmplitudesCh1 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
-        bandAvgAmplitudesCh2 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
-        bandAvgAmplitudesCh3 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
-        bandAvgAmplitudesCh4 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
-        thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
-        thetaBetaRatioCh2 = bandAvgAmplitudesCh2[1]/bandAvgAmplitudesCh2[3]
-        thetaBetaRatioCh3 = bandAvgAmplitudesCh3[1]/bandAvgAmplitudesCh3[3]
-        thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
-
-        pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
-        pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
-        pearsonCoefficients23 = np.corrcoef(X[1][i], X[2][i])
-        pearsonCoefficients24 = np.corrcoef(X[1][i], X[3][i])
-        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
-        cov12 = np.cov(list(X[0][i]), list(X[1][i]))
-        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
-        corr12 = np.correlate(list(X[0][i]), list(X[1][i])),
-
-        maxIndex = np.argmax(list(X[channel][i]))
-        minIndex = np.argmin(list(X[channel][i]))
-        minValueCh1 = np.amin(list(X[0][i]))
-        maxValueCh1 = np.amax(list(X[0][i]))
-        slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
-        #print(power)
-        #print(channel)
-        #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
-        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
-        featureVector = [
-                        pyeeg.hfd(list(X[channel][i]), 200), #Okende tall gir viktigere feature, men mye lenger computation time
-                        np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
-                        np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
-                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        #pearsonCoefficients14[0][1],
-                        pearsonCoefficients14[1][0],
-                        np.std(list(X[channel][i])),
-                        slopeCh1,
-                        #np.amax(list(X[0][i])),
-                        #np.amax(list(X[1][i])),
-                        #np.amin(list(X[0][i])),
-                        #np.amin(list(X[1][i])),
-
-                        thetaBetaRatioCh1,
-                        #thetaBetaRatioCh2,
-                        #thetaBetaRatioCh3,
-                        #thetaBetaRatioCh4,
-                        #np.ptp(list(X[0][i])), #denne er bra
-                        #powerRatio[2],
-                        #powerRatio[1],
-
-
-
-
-                        #np.amin(list(X[0][i])),
-
-
-                        #corr12[0][0],
-                        #np.amax(list(X[0][i])) - np.amax(list(X[3][i])),
-                        #np.correlate(list(X[0][i]), list(X[2][i])),
-
-                        #cov12[0][1],
-                        #cov12[1][0],
-                        #np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
-
-                        #np.amax(list(X[1][i])) - np.amax(list(X[2][i])),
-                        #np.amax(list(X[1][i])) - np.amax(list(X[3][i])),
-                        #pearsonCoefficients13[0][1],
-                        #pearsonCoefficients13[1][0],
-                        #thetaBetaRatio,
-
-                        #powerRatio[0],
-                        #pyeeg.hurst(list(X[channel][i])),
-                        #np.std(list(X[channel][i])),
-                        #np.var(list(X[channel][i])),
-
-                        #np.correlate(list(X[0][i]), list(X[3][i])), #funker bare for decision tree???
-                        #np.correlate(list(X[2][i]), list(X[3][i])),
-
-                        #cov34[0][1],
-                        #cov34[1][0],
-
-                        #bandAvgAmplitudes[0],
-                        #bandAvgAmplitudes[1],
-                        #np.std(list(X[channel][i])),
-                        #pyeeg.hjorth(list(X[0][i])),
-
-
-                        #np.ptp(list(X[3][i])),
-
-
-
-
-
-                        #thetaBetaPowerRatio,
-                        #powerRatio[1],
-                        #powerRatio[2],
-                        #powerRatio[3],
-                        #power[0],
-                        #power[1],
-                        #power[2],
-                        #power[3],
-                        #pyeeg.pfd(list(X[0][i])),
-                        #pyeeg.dfa(list(X[0][i]), None, None),
-                        ]
-        XL.append(featureVector)
-        #print("Time taken to extract features for example %d: " % i)
-        #print(time.time() - startTime)
-        #print(XL)
-    XL.pop(0)
-    return XL
 
 
 def extractFeatures(X, channel):
@@ -423,67 +306,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     print(time.time() - start)
     return clf, None #clfPlot Uncomment this to be able to plot the classifier
 
-def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False):
-    bestParams = []
-    tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
-                        'C': [1, 10, 50, 100, 500, 1000, 10000]},
-                        {'kernel': ['linear'], 'C': [1, 10, 50, 100, 500, 1000, 10000]}]
 
-    scores = ['precision', 'recall']
-
-    #for score in scores:
-
-    #CV = ?????Increase CV = less variation, more computation time
-    #comment in for loop and add score where scores[0] is atm, to make best parameters for prediction and recall
-    if debug:
-        print("Starting to tune parameters")
-        print()
-
-    if fast:
-        clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
-        clf.fit(XLtrain, yTrain)
-        bestParams.append({'kernel': 'linear', 'C': 50})
-    else:
-        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0])
-        clf.fit(XLtrain, yTrain)
-        bestParams.append(clf.best_params_)
-    
-
-
-    if debug:
-        print("Best parameters set found on development set:")
-        print()
-        print(bestParams)
-        print()
-        print("Grid scores on development set:")
-        print()
-        means = clf.cv_results_['mean_test_score']
-        stds = clf.cv_results_['std_test_score']
-
-        #This loop prints out the mean from all the 10 fold combinations standarddeviation and lots of good stuff
-
-        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-            print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
-        print()
-
-        print("Detailed classification report:")
-        print()
-        print("The model is trained on the full development set.")
-        print("The scores are computed on the full evaluation set.")
-        print()
-        yPred = clf.predict(XLtest)
-        print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
-        print()
-        return bestParams[0]
-    else:
-        yPred = clf.predict(XLtest)
-        labels = unique_labels(yTest, yPred)
-        print(classification_report(yTest, yPred))
-        p, r, f1, s = precision_recall_fscore_support(yTest, yPred,
-                                                      labels=labels,
-                                                      average=None)
-
-        return bestParams[0], p, r, f1, s
 
 
 def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
@@ -557,115 +380,7 @@ def evaluateFeatures(X, y):
     #print(Xnew.shape)
     #return Xnew
 
-def compareFeatures():
-    
-    allPermutations = []
-    allParams = []
-    allPavg = []
-    allP = []
-    allR = []
-    allF1 = []
-    allS = []
-    #Constants
-    maxNumFeatures = 8
-    minNumFeatures = 6 #Must be bigger than 1
-    #Load dataset
-    X, y = dataset.loadDataset("longdata.txt")
-    X, y = dataset.sortDataset(X, y, length=1000, classes=[0,5,6,4,2,8]) #,6,4,2,8
-    #Calculate features
-    XL = extractAllFeatures(X, channel=0)
-    XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
 
-    features = range(len(XL[0]))
-    print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
-    
-    if len(features) < maxNumFeatures:
-        maxNumFeatures = len(features)
-    elif maxNumFeatures < minNumFeatures:
-        maxNumFeatures = minNumFeatures
-
-    if minNumFeatures < 1:
-        minNumFeatures = 1
-    elif minNumFeatures > maxNumFeatures:
-        minNumFeatures = maxNumFeatures 
-    print("Testing with combinations of %d to %d" %(minNumFeatures, maxNumFeatures))
-    for i in range(minNumFeatures, maxNumFeatures+1):
-        print i
-        for p in combinations(features, i): #If order matters use permutations, [XLtrain[j][k] for k in p] might needs changing
-            print p
-            XLtrainPerm = np.empty([len(XLtrain), i])
-            XLtestPerm = np.empty([len(XLtest), i])
-            for j in range(len(XLtrain)):
-                #print j
-                #print([XLtrain[j][k] for k in p])
-                XLtrainPerm[j] = [XLtrain[j][k] for k in p]
-            for j in range(len(XLtest)):
-                #print j
-                #print([XLtest[j][k] for k in p])
-                XLtestPerm[j] = [XLtest[j][k] for k in p]
-            #print(XLtrainPerm[0])
-            #print(XLtestPerm[0])
-            print("Starting to train with permutation: ")
-            print(p)
-            #print(len(XLtrainPerm))
-            #Optimize setting
-            bestParams, presc, r, f1, s = tuneSvmParameters(XLtrainPerm, yTrain, XLtestPerm, yTest, debug=False, fast=False)
-
-            #Append scores
-            allPermutations.append(p)
-            allParams.append(bestParams)
-            allP.append(presc)
-            allPavg.append(np.average(presc, weights=s))
-            allR.append(r)
-            allF1.append(f1)
-            allS.append(s)
-            winner = allPavg.index(max(allPavg)) #Check for max average precision
-            print("Best features so far are:")
-            print allPermutations[winner]
-
-    #Evaluate score
-
-    winner = allPavg.index(max(allPavg)) #Check for max average precision
-    p = allPermutations[winner]
-    XLtrainPerm = np.empty([len(XLtrain), len(p)])
-    XLtestPerm = np.empty([len(XLtest), len(p)])
-    p = allPermutations[winner]
-    for j in range(len(XLtrain)):
-        XLtrainPerm[j] = [XLtrain[j][k] for k in p]
-    for j in range(len(XLtest)):
-        XLtestPerm[j] = [XLtest[j][k] for k in p]
-
-    print("Best features are:")
-    print allPermutations[winner]
-    #Test
-    bestParams = allParams[winner]
-    print("Best parameters are: ")
-    print(bestParams)
-
-    if bestParams['kernel'] == 'linear':
-        clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
-    else:
-        clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
-
-    clf.fit(XLtrainPerm, yTrain)
-    saveMachinestate(clf, "BruteForceClassifier")
-    featuremask = open("featuremask.txt", 'w+')
-    featuremask.write(str(allPermutations[winner]))
-    #featuremask.write(",")
-    featuremask.close()
-
-    yPred = clf.predict(XLtestPerm)
-    print(classification_report(yTest, yPred))
-    
-    mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
-                    to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
-                    cc_addr_list = [],
-                    subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
-                    message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
-                                    + classification_report(yTest, yPred),
-                    login        = 'dronemasterprosjekt',
-                    password     = 'drone123')
-    
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
@@ -905,6 +620,332 @@ def plot_contours(ax, clf, xx, yy, **params):
     return out
 
 
+def extractAllFeatures(X, channel):
+    XL = [[]]
+    frequencyBands = [0.1, 4, 8, 12,30]
+    Fs = 250
+    featureVector = []
+
+    for i in range(len(X[0])):
+        startTime = time.time()
+        power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh1 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh2 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh3 = getBandAmplitudes(X[0][i], frequencyBands, Fs)
+        bandAvgAmplitudesCh4 = getBandAmplitudes(X[1][i], frequencyBands, Fs)
+        thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+        thetaBetaRatioCh2 = bandAvgAmplitudesCh2[1]/bandAvgAmplitudesCh2[3]
+        thetaBetaRatioCh3 = bandAvgAmplitudesCh3[1]/bandAvgAmplitudesCh3[3]
+        thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
+
+        pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
+        pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
+        pearsonCoefficients23 = np.corrcoef(X[1][i], X[2][i])
+        pearsonCoefficients24 = np.corrcoef(X[1][i], X[3][i])
+        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
+        cov12 = np.cov(list(X[0][i]), list(X[1][i]))
+        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
+        corr12 = np.correlate(list(X[0][i]), list(X[1][i])),
+
+        maxIndex = np.argmax(list(X[channel][i]))
+        minIndex = np.argmin(list(X[channel][i]))
+        minValueCh1 = np.amin(list(X[0][i]))
+        maxValueCh1 = np.amax(list(X[0][i]))
+        slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+        #print(power)
+        #print(channel)
+        #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
+        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
+        featureVector = [
+                        pyeeg.hfd(list(X[channel][i]), 100), #Okende tall gir viktigere feature, men mye lenger computation time
+                        np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
+                        np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
+                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
+                        #pearsonCoefficients14[0][1],
+                        pearsonCoefficients14[1][0],
+                        np.std(list(X[channel][i])),
+                        slopeCh1,
+                        #np.amax(list(X[0][i])),
+                        #np.amax(list(X[1][i])),
+                        #np.amin(list(X[0][i])),
+                        #np.amin(list(X[1][i])),
+
+                        thetaBetaRatioCh1,
+                        #thetaBetaRatioCh2,
+                        #thetaBetaRatioCh3,
+                        #thetaBetaRatioCh4,
+                        #np.ptp(list(X[0][i])), #denne er bra
+                        #powerRatio[2],
+                        #powerRatio[1],
+
+
+
+
+                        #np.amin(list(X[0][i])),
+
+
+                        #corr12[0][0],
+                        #np.amax(list(X[0][i])) - np.amax(list(X[3][i])),
+                        #np.correlate(list(X[0][i]), list(X[2][i])),
+
+                        #cov12[0][1],
+                        #cov12[1][0],
+                        #np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
+
+                        #np.amax(list(X[1][i])) - np.amax(list(X[2][i])),
+                        #np.amax(list(X[1][i])) - np.amax(list(X[3][i])),
+                        #pearsonCoefficients13[0][1],
+                        #pearsonCoefficients13[1][0],
+                        #thetaBetaRatio,
+
+                        #powerRatio[0],
+                        #pyeeg.hurst(list(X[channel][i])),
+                        #np.std(list(X[channel][i])),
+                        #np.var(list(X[channel][i])),
+
+                        #np.correlate(list(X[0][i]), list(X[3][i])), #funker bare for decision tree???
+                        #np.correlate(list(X[2][i]), list(X[3][i])),
+
+                        #cov34[0][1],
+                        #cov34[1][0],
+
+                        #bandAvgAmplitudes[0],
+                        #bandAvgAmplitudes[1],
+                        #np.std(list(X[channel][i])),
+                        #pyeeg.hjorth(list(X[0][i])),
+
+
+                        #np.ptp(list(X[3][i])),
+
+
+
+
+
+                        #thetaBetaPowerRatio,
+                        #powerRatio[1],
+                        #powerRatio[2],
+                        #powerRatio[3],
+                        #power[0],
+                        #power[1],
+                        #power[2],
+                        #power[3],
+                        #pyeeg.pfd(list(X[0][i])),
+                        #pyeeg.dfa(list(X[0][i]), None, None),
+                        ]
+        XL.append(featureVector)
+        #print("Time taken to extract features for example %d: " % i)
+        #print(time.time() - startTime)
+        #print(XL)
+    XL.pop(0)
+    return XL
+
+def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False, n_jobs=1):
+    bestParams = []
+    tunedParameters = [{'kernel': ['rbf'], 'gamma': [1e0, 1e-1, 1e-2, 1e-3, 1e-4],
+                        'C': [1, 10, 50, 100, 500, 1000, 10000]},
+                        {'kernel': ['linear'], 'C': [1, 10, 50, 100, 500, 1000, 10000]}]
+
+    scores = ['precision', 'recall']
+
+    #for score in scores:
+
+    #CV = ?????Increase CV = less variation, more computation time
+    #comment in for loop and add score where scores[0] is atm, to make best parameters for prediction and recall
+    if debug:
+        print("Starting to tune parameters")
+        print()
+
+    if fast:
+        clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
+        clf.fit(XLtrain, yTrain)
+        bestParams.append({'kernel': 'linear', 'C': 50})
+    else:
+        clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0], n_jobs=n_jobs)
+        clf.fit(XLtrain, yTrain)
+        bestParams.append(clf.best_params_)
+    
+
+
+    if debug:
+        print("Best parameters set found on development set:")
+        print()
+        print(bestParams)
+        print()
+        print("Grid scores on development set:")
+        print()
+        means = clf.cv_results_['mean_test_score']
+        stds = clf.cv_results_['std_test_score']
+
+        #This loop prints out the mean from all the 10 fold combinations standarddeviation and lots of good stuff
+
+        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+        print()
+
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        yPred = clf.predict(XLtest)
+        print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
+        print()
+        return bestParams[0]
+    else:
+        yPred = clf.predict(XLtest)
+        labels = unique_labels(yTest, yPred)
+        report = classification_report(yTest, yPred)
+        p, r, f1, s = precision_recall_fscore_support(yTest, yPred,
+                                                      labels=labels,
+                                                      average=None)
+
+        return bestParams[0], p, r, f1, s, report
+
+def compareFeatures(n_jobs=1):
+    #array declaration
+    allPermutations = []
+    allParams = []
+    allPavg = []
+    allP = []
+    allR = []
+    allF1 = []
+    allS = []
+    #Constants and configuration
+    maxNumFeatures = 8
+    minNumFeatures = 6 #Must be bigger than 1
+    datasetfile = "longdata.txt"
+    #datasetfile = "data.txt"
+    
+    #Load dataset
+    if datasetfile == "longdata.txt":
+        classes = [0,5,6,4,2,8]
+    else:
+        classes = [0,1,2,3,4,5,6,7,8,9]
+
+    X, y = dataset.loadDataset(datasetfile)
+    X, y = dataset.sortDataset(X, y, length=1000, classes=classes) #,6,4,2,8
+    #Calculate features
+    XL = extractAllFeatures(X, channel=0)
+    XLtrain, XLtest, yTrain, yTest = scaleAndSplit(XL, y[0])
+
+    features = range(len(XL[0]))
+    print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
+    
+    if len(features) < maxNumFeatures:
+        maxNumFeatures = len(features)
+    elif maxNumFeatures < minNumFeatures:
+        maxNumFeatures = minNumFeatures
+
+    if minNumFeatures < 1:
+        minNumFeatures = 1
+    elif minNumFeatures > maxNumFeatures:
+        minNumFeatures = maxNumFeatures 
+    print("Testing with combinations of %d to %d" %(minNumFeatures, maxNumFeatures))
+    numberOfCombinations = 0
+    for i in range(minNumFeatures, maxNumFeatures+1):
+        numberOfCombinations += len(list(combinations(features, i)))
+    print("Number of combinations to test %d" %numberOfCombinations)
+    for i in range(minNumFeatures, maxNumFeatures+1):
+        #print list(combinations(features, i))
+
+        for p in combinations(features, i): #If order matters use permutations
+            print p
+            start = datetime.now()
+            XLtrainPerm = np.empty([len(XLtrain), i])
+            XLtestPerm = np.empty([len(XLtest), i])
+            for j in range(len(XLtrain)):
+                #print j
+                #print([XLtrain[j][k] for k in p])
+                XLtrainPerm[j] = [XLtrain[j][k] for k in p]
+            for j in range(len(XLtest)):
+                #print j
+                #print([XLtest[j][k] for k in p])
+                XLtestPerm[j] = [XLtest[j][k] for k in p]
+            #print(XLtrainPerm[0])
+            #print(XLtestPerm[0])
+            print("Starting to train with combination: ")
+            print(p)
+            #print(len(XLtrainPerm))
+            #Optimize setting
+
+            #def crossValidation(p, XLtrainPerm, yTrain, XLtestPerm, yTest) 
+            
+            bestParams, presc, r, f1, s, report = tuneSvmParameters(XLtrainPerm, 
+                                                        yTrain, XLtestPerm, yTest, 
+                                                        debug=False, fast=False, 
+                                                        n_jobs = n_jobs)
+
+            #Append scores
+
+            logfile = open("Logfile.txt", 'a+')
+            logfile.write("Feature combination:")
+            logfile.write(str(p)+"\n")
+            logfile.write(report+"\n\n\n")
+            logfile.close()
+
+
+            allPermutations.append(p)
+            allParams.append(bestParams)
+            allP.append(presc)
+            allPavg.append(np.average(presc, weights=s))
+            allR.append(r)
+            allF1.append(f1)
+            allS.append(s)
+            winner = allPavg.index(max(allPavg)) #Check for max average precision
+            print(report)
+            print("Best features so far are:")
+            print allPermutations[winner]
+            print bestParams
+            stop = datetime.now()
+            numberOfCombinations -= 1
+            remainingTime = (stop-start)*numberOfCombinations
+            elapsedTime = (stop-start)
+            print("Elapsed time for training with this combination: " + str(elapsedTime))
+            print("Estimated remaining time: " + str(remainingTime))
+    #Evaluate score
+
+    winner = allPavg.index(max(allPavg)) #Check for max average precision
+    p = allPermutations[winner]
+    XLtrainPerm = np.empty([len(XLtrain), len(p)])
+    XLtestPerm = np.empty([len(XLtest), len(p)])
+    p = allPermutations[winner]
+    for j in range(len(XLtrain)):
+        XLtrainPerm[j] = [XLtrain[j][k] for k in p]
+    for j in range(len(XLtest)):
+        XLtestPerm[j] = [XLtest[j][k] for k in p]
+
+    print("Best features are:")
+    print allPermutations[winner]
+    #Test
+    bestParams = allParams[winner]
+    print("Best parameters are: ")
+    print(bestParams)
+
+    if bestParams['kernel'] == 'linear':
+        clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
+    else:
+        clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+
+    clf.fit(XLtrainPerm, yTrain)
+    saveMachinestate(clf, "BruteForceClassifier")
+    featuremask = open("featuremask.txt", 'w+')
+    featuremask.write(str(allPermutations[winner]))
+    #featuremask.write(",")
+    featuremask.close()
+
+    yPred = clf.predict(XLtestPerm)
+    print(classification_report(yTest, yPred))
+    
+    mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
+                    to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
+                    cc_addr_list = [],
+                    subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
+                    message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
+                                    + classification_report(yTest, yPred),
+                    login        = 'dronemasterprosjekt',
+                    password     = 'drone123')
+
+    
 
 if __name__ == '__main__':
 	main()
