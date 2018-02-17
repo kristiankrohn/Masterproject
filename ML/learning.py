@@ -2,6 +2,7 @@ import pyeeg
 import numpy as np
 from sklearn import svm
 from sklearn import preprocessing
+import itertools
 from sklearn import neighbors
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
@@ -18,6 +19,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
+from sklearn.metrics import confusion_matrix
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -106,7 +108,7 @@ def startLearning():
         #print(scores)
         #compareFeatures(XL, XLtrain, yTrain, XLtest, yTest)
 
-        tempAccuracyScore, tempClassificationReport, tempf1Score, tempPrecision = predict(XLtest, clf, yTest)
+        tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
         f1Score.append(tempf1Score)
         precision.append(tempPrecision)
@@ -379,6 +381,42 @@ def evaluateFeatures(X, y):
     #print(Xnew.shape)
     #return Xnew
 
+def plotConfusionMatrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    plt.figure()
+
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.show()
 
 
 def predict(Xtest, clf, yTest):
@@ -388,8 +426,8 @@ def predict(Xtest, clf, yTest):
     print("Time taken to predict with given examples:")
     print(time.time() - start)
     #Print the test data to see how well it performs.
-    print(yTest)
-    print(predictions)
+    confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,2,4,6,8])
+    plotConfusionMatrix(confusionMatrix, ["blink","straight", "down", "left", "right", "up"])
     #print("HALLO", clf.predict_proba(Xtest))
     accuracyScore = accuracy_score(yTest, predictions)
     precision = precision_score(yTest, predictions, average = 'macro')
@@ -404,6 +442,7 @@ def predict(Xtest, clf, yTest):
     #crossValScore = cross_val_score(clf, Xtest, yTest, cv=2)
     #print(classificationReport)
     #print(meanSquaredScore)
+    return accuracyScore, precision, classificationReport, f1Score
 
 
 
@@ -763,7 +802,7 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False, n_
         clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0], n_jobs=n_jobs)
         clf.fit(XLtrain, yTrain)
         bestParams.append(clf.best_params_)
-    
+
 
 
     if debug:
@@ -815,7 +854,7 @@ def compareFeatures(n_jobs=1):
     minNumFeatures = 6 #Must be bigger than 1
     datasetfile = "longdata.txt"
     #datasetfile = "data.txt"
-    
+
     #Load dataset
     if datasetfile == "longdata.txt":
         classes = [0,5,6,4,2,8]
@@ -830,7 +869,7 @@ def compareFeatures(n_jobs=1):
 
     features = range(len(XL[0]))
     print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
-    
+
     if len(features) < maxNumFeatures:
         maxNumFeatures = len(features)
     elif maxNumFeatures < minNumFeatures:
@@ -839,7 +878,7 @@ def compareFeatures(n_jobs=1):
     if minNumFeatures < 1:
         minNumFeatures = 1
     elif minNumFeatures > maxNumFeatures:
-        minNumFeatures = maxNumFeatures 
+        minNumFeatures = maxNumFeatures
     print("Testing with combinations of %d to %d" %(minNumFeatures, maxNumFeatures))
     numberOfCombinations = 0
     for i in range(minNumFeatures, maxNumFeatures+1):
@@ -868,11 +907,11 @@ def compareFeatures(n_jobs=1):
             #print(len(XLtrainPerm))
             #Optimize setting
 
-            #def crossValidation(p, XLtrainPerm, yTrain, XLtestPerm, yTest) 
-            
-            bestParams, presc, r, f1, s, report = tuneSvmParameters(XLtrainPerm, 
-                                                        yTrain, XLtestPerm, yTest, 
-                                                        debug=False, fast=False, 
+            #def crossValidation(p, XLtrainPerm, yTrain, XLtestPerm, yTest)
+
+            bestParams, presc, r, f1, s, report = tuneSvmParameters(XLtrainPerm,
+                                                        yTrain, XLtestPerm, yTest,
+                                                        debug=False, fast=False,
                                                         n_jobs = n_jobs)
 
             #Append scores
@@ -935,7 +974,7 @@ def compareFeatures(n_jobs=1):
 
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
-    
+
     mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
                     to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
                     cc_addr_list = [],
@@ -945,7 +984,7 @@ def compareFeatures(n_jobs=1):
                     login        = 'dronemasterprosjekt',
                     password     = 'drone123')
 
-    
+
 
 if __name__ == '__main__':
 	main()
