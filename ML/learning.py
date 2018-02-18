@@ -51,10 +51,10 @@ def main():
     #partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
     #partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
     #extractFeatures(partialPathZ, partialPathO)
-    cleanLogs()
-    compareFeatures(n_jobs=-1)
-    readLogs()
-
+    #cleanLogs()
+    #compareFeatures(n_jobs=-1)
+    #readLogs()
+    evaluateLogs()
 
 
 def startLearning():
@@ -1033,11 +1033,11 @@ def compareFeatures(n_jobs=1):
     for j in range(len(XLtest)):
         XLtestPerm[j] = [XLtest[j][k] for k in p]
 
-    print("Best features are:")
+    print("Best features for max average precision are:")
     print allPermutations[winner]
     #Test
     bestParams = allParams[winner]
-    print("Best parameters are: ")
+    print("Best parameters for max average precision are: ")
     print(bestParams)
 
     if bestParams['kernel'] == 'linear':
@@ -1068,61 +1068,47 @@ def readLogs():
     import ast
     permfile = open("Logs"+slash+"PermutationLog.txt", 'r')
     PermutationsString = permfile.read()
-    #print PermutationsString
     permfile.close()
     PermutationsList = PermutationsString.split(':')
     PermutationsList.pop(0)
-    #PermutationsList = [int(i[1]) for i in PermutationsList]
-    #print(PermutationsList)
+    #Might need some more processing, now returns a list of tuples
+
+
 
     permfile = open("Logs"+slash+"ParameterLog.txt", 'r')
     ParametersString = permfile.read()
-    #print(ParametersString)
-    #print("\n")
     permfile.close()
     ParametersList = ParametersString.split(';')
-    ParametersList.pop(0)
-    
+    ParametersList.pop(0)   
     ParametersList = [ast.literal_eval(i) for i in ParametersList]
-    #print(ParametersList)
 
     permfile = open("Logs"+slash+"PrecisionLog.txt", 'r')
     PrecisionString = permfile.read()
-    #print(PrecisionString)   
     permfile.close()
     PrecisionList = PrecisionString.split(":")
     PrecisionList.pop(0)
-    #print(PrecisionList)
 
     for j in range(len(PrecisionList)):
         PrecisionSubList = PrecisionList[j].split(',')
         PrecisionSubList.pop(0)
         PrecisionList[j] = list([float(i) for i in PrecisionSubList])
-       
-    #print(PrecisionList)
-
-
 
     permfile = open("Logs"+slash+"RecallLog.txt", 'r')
     RecallString = permfile.read()
     permfile.close()
     RecallList = RecallString.split(":")
     RecallList.pop(0)
-    #print(PrecisionList)
 
     for j in range(len(RecallList)):
         RecallSubList = RecallList[j].split(',')
         RecallSubList.pop(0)
         RecallList[j] = list([float(i) for i in RecallSubList])
 
-
-
     permfile = open("Logs"+slash+"F1Log.txt", 'r')
     f1String= permfile.read()
     permfile.close()
     f1List = f1String.split(":")
     f1List.pop(0)
-    #print(PrecisionList)
 
     for j in range(len(f1List)):
         f1SubList = f1List[j].split(',')
@@ -1134,16 +1120,38 @@ def readLogs():
     permfile.close()
     supportList = supportString.split(":")
     supportList.pop(0)
-    #print(PrecisionList)
 
     for j in range(len(supportList)):
         supportSubList = supportList[j].split(',')
         supportSubList.pop(0)
         supportList[j] = list([float(i) for i in supportSubList])
 
-    return ParametersList, PrecisionList, RecallList, f1List, supportList   
+    return PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList   
 
-
+def evaluateLogs(evaluationParam="maxminprecision"):
+    PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList = readLogs()
+    if evaluationParam == "averageprecision":
+        allPavg = []
+        for i in range(len(PrecisionList)):
+            allPavg.append(np.average(PrecisionList[i], weights=supportList[i]))
+        winner = allPavg.index(max(allPavg))
+        print("Best features are:")
+        print PermutationsList[winner]
+        bestParams = ParametersList[winner]
+        print("Best parameters are: ")
+        print(bestParams)
+    elif evaluationParam == "maxminprecision":
+        allPmin = []
+        for i in range(len(PrecisionList)):
+            allPmin.append(min(PrecisionList[i]))
+        winner = allPmin.index(max(allPmin))
+        print("Best features are:")
+        print PermutationsList[winner]
+        bestParams = ParametersList[winner]
+        print("Best parameters are: ")
+        print(bestParams)
+    else:
+        print("Invalid input")
 def cleanLogs():
     logfile = open("Logs"+slash+"Logfile.txt", 'w')
     logfile.truncate(0)
