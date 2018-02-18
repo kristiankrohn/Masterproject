@@ -853,7 +853,51 @@ def compareFeatures(n_jobs=1):
     maxNumFeatures = 8
     minNumFeatures = 6 #Must be bigger than 1
     datasetfile = "longdata.txt"
-    #datasetfile = "data.txt"
+    print("Setup for brute force testing of all feature combination")
+    print("Enter maximum number of features: ")
+    inputString = raw_input()
+    if inputString.isdigit():
+        inputval = int(inputString)
+    else:
+        print("Invalid input, exiting")
+        return
+    if inputval >= 1:
+        maxNumFeatures = inputval
+    else:
+        print("Invalid input, exiting")
+        return
+
+    print("Enter minimum number of features: ")
+    inputString = raw_input()
+    if inputString.isdigit():
+        inputval = int(inputString)
+    else:
+        print("Invalid input, exiting")
+        return
+    if inputval >= 1:
+        minNumFeatures = inputval
+    else:
+        print("Invalid input, exiting")
+        return
+
+    print("Do you want to send a mail notification when finished? [Y/n]")
+    inputString = raw_input()
+    if inputString == "Y":
+        sendMail = True
+        print("Sending mail when script is finished")
+    else:
+        print("Do not send mail when script is finished")
+        sendMail = False
+
+    print("Is this a debug session? [Y/n]")
+    inputString = raw_input()
+    if inputString == "Y":
+        debug = True
+        print("Debug session activated, results will not be valid.")
+    else:
+        debug = False
+        print("Normal session activated, results will be valid. ")    
+   #datasetfile = "data.txt"
 
     #Load dataset
     if datasetfile == "longdata.txt":
@@ -911,7 +955,7 @@ def compareFeatures(n_jobs=1):
 
             bestParams, presc, r, f1, s, report = tuneSvmParameters(XLtrainPerm,
                                                         yTrain, XLtestPerm, yTest,
-                                                        debug=False, fast=False,
+                                                        debug=False, fast=debug,
                                                         n_jobs = n_jobs)
 
             #Append scores
@@ -974,15 +1018,15 @@ def compareFeatures(n_jobs=1):
 
     yPred = clf.predict(XLtestPerm)
     print(classification_report(yTest, yPred))
-
-    mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
-                    to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
-                    cc_addr_list = [],
-                    subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
-                    message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
-                                    + classification_report(yTest, yPred),
-                    login        = 'dronemasterprosjekt',
-                    password     = 'drone123')
+    if sendMail:
+        mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
+                        to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
+                        cc_addr_list = [],
+                        subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
+                        message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
+                                        + classification_report(yTest, yPred),
+                        login        = 'dronemasterprosjekt',
+                        password     = 'drone123')
 
 
 
