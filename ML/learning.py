@@ -51,8 +51,9 @@ def main():
     #partialPathZ = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\Z\Z"
     #partialPathO = "c:\Users\Adrian Ribe\Desktop\Masteroppgave\Code\Machine learning trial\O\O"
     #extractFeatures(partialPathZ, partialPathO)
+    cleanLogs()
     compareFeatures(n_jobs=-1)
-
+    readLogs()
 
 
 
@@ -879,24 +880,25 @@ def compareFeatures(n_jobs=1):
     else:
         print("Invalid input, exiting")
         return
-
-    print("Do you want to send a mail notification when finished? [Y/n]")
-    inputString = raw_input()
-    if inputString == "Y":
-        sendMail = True
-        print("Sending mail when script is finished")
-    else:
-        print("Do not send mail when script is finished")
-        sendMail = False
-
     print("Is this a debug session? [Y/n]")
     inputString = raw_input()
     if inputString == "Y":
         debug = True
         print("Debug session activated, results will not be valid.")
+        sendMail = False
     else:
         debug = False
-        print("Normal session activated, results will be valid. ")    
+        print("Normal session activated, results will be valid. ")   
+        print("Do you want to send a mail notification when finished? [Y/n]")
+        inputString = raw_input()
+        if inputString == "Y":
+            sendMail = True
+            print("Sending mail when script is finished")
+        else:
+            print("Do not send mail when script is finished")
+            sendMail = False
+
+ 
    #datasetfile = "data.txt"
 
     #Load dataset
@@ -960,7 +962,7 @@ def compareFeatures(n_jobs=1):
 
             #Append scores
 
-            logfile = open("Logfile.txt", 'a+')
+            logfile = open("Logs"+slash+"Logfile.txt", 'a+')
             logfile.write("Feature combination:")
             logfile.write(str(p)+"\n")
             logfile.write(report+"\n\n\n")
@@ -968,12 +970,46 @@ def compareFeatures(n_jobs=1):
 
 
             allPermutations.append(p)
+            permfile = open("Logs"+slash+"PermutationLog.txt", 'a+')
+            permfile.write(":")
+            permfile.write(str(p))
+            permfile.close()
+
             allParams.append(bestParams)
+            permfile = open("Logs"+slash+"ParameterLog.txt", 'a+')
+            permfile.write(";")
+            permfile.write(str(bestParams))
+            permfile.close()
+
             allP.append(presc)
+            permfile = open("Logs"+slash+"PrecisionLog.txt", 'a+')
+            permfile.write(":")
+            for k in range(len(presc)):
+                permfile.write(','+str(presc[k]))
+            permfile.close()
             allPavg.append(np.average(presc, weights=s))
+            
             allR.append(r)
+            permfile = open("Logs"+slash+"RecallLog.txt", 'a+')
+            permfile.write(":")
+            for k in range(len(r)):
+                permfile.write(','+str(r[k]))
+            permfile.close()
+
             allF1.append(f1)
+            permfile = open("Logs"+slash+"F1Log.txt", 'a+')
+            permfile.write(":")
+            for k in range(len(f1)):
+                permfile.write(','+str(f1[k]))
+            permfile.close()
+            
             allS.append(s)
+            permfile = open("Logs"+slash+"SupportLog.txt", 'a+')
+            permfile.write(":")
+            for k in range(len(s)):
+                permfile.write(','+str(s[k]))
+            permfile.close()
+            
             winner = allPavg.index(max(allPavg)) #Check for max average precision
             print(report)
             print("Best features so far are:")
@@ -1028,7 +1064,114 @@ def compareFeatures(n_jobs=1):
                         login        = 'dronemasterprosjekt',
                         password     = 'drone123')
 
+def readLogs():
+    import ast
+    permfile = open("Logs"+slash+"PermutationLog.txt", 'r')
+    PermutationsString = permfile.read()
+    #print PermutationsString
+    permfile.close()
+    PermutationsList = PermutationsString.split(':')
+    PermutationsList.pop(0)
+    #PermutationsList = [int(i[1]) for i in PermutationsList]
+    #print(PermutationsList)
 
+    permfile = open("Logs"+slash+"ParameterLog.txt", 'r')
+    ParametersString = permfile.read()
+    #print(ParametersString)
+    #print("\n")
+    permfile.close()
+    ParametersList = ParametersString.split(';')
+    ParametersList.pop(0)
+    
+    ParametersList = [ast.literal_eval(i) for i in ParametersList]
+    #print(ParametersList)
+
+    permfile = open("Logs"+slash+"PrecisionLog.txt", 'r')
+    PrecisionString = permfile.read()
+    #print(PrecisionString)   
+    permfile.close()
+    PrecisionList = PrecisionString.split(":")
+    PrecisionList.pop(0)
+    #print(PrecisionList)
+
+    for j in range(len(PrecisionList)):
+        PrecisionSubList = PrecisionList[j].split(',')
+        PrecisionSubList.pop(0)
+        PrecisionList[j] = list([float(i) for i in PrecisionSubList])
+       
+    #print(PrecisionList)
+
+
+
+    permfile = open("Logs"+slash+"RecallLog.txt", 'r')
+    RecallString = permfile.read()
+    permfile.close()
+    RecallList = RecallString.split(":")
+    RecallList.pop(0)
+    #print(PrecisionList)
+
+    for j in range(len(RecallList)):
+        RecallSubList = RecallList[j].split(',')
+        RecallSubList.pop(0)
+        RecallList[j] = list([float(i) for i in RecallSubList])
+
+
+
+    permfile = open("Logs"+slash+"F1Log.txt", 'r')
+    f1String= permfile.read()
+    permfile.close()
+    f1List = f1String.split(":")
+    f1List.pop(0)
+    #print(PrecisionList)
+
+    for j in range(len(f1List)):
+        f1SubList = f1List[j].split(',')
+        f1SubList.pop(0)
+        f1List[j] = list([float(i) for i in f1SubList])
+
+    permfile = open("Logs"+slash+"SupportLog.txt", 'r')
+    supportString = permfile.read()
+    permfile.close()
+    supportList = supportString.split(":")
+    supportList.pop(0)
+    #print(PrecisionList)
+
+    for j in range(len(supportList)):
+        supportSubList = supportList[j].split(',')
+        supportSubList.pop(0)
+        supportList[j] = list([float(i) for i in supportSubList])
+
+    return ParametersList, PrecisionList, RecallList, f1List, supportList   
+
+
+def cleanLogs():
+    logfile = open("Logs"+slash+"Logfile.txt", 'w')
+    logfile.truncate(0)
+    logfile.close()
+
+    permfile = open("Logs"+slash+"PermutationLog.txt", 'w')
+    permfile.truncate(0)
+    permfile.close()
+
+    permfile = open("Logs"+slash+"ParameterLog.txt", 'w')
+    permfile.truncate(0)
+    permfile.close()
+
+    permfile = open("Logs"+slash+"PrecisionLog.txt", 'w')
+    permfile.truncate(0)
+    permfile.close()
+
+    permfile = open("Logs"+slash+"RecallLog.txt", 'w')
+    permfile.truncate(0)
+    permfile.close()
+
+    permfile = open("Logs"+slash+"F1Log.txt", 'w')
+    permfile.truncate(0)
+    permfile.close()
+
+    permfile = open("Logs"+slash+"SupportLog.txt", 'w')
+    permfile.truncate(0)
+    permfile.close()
 
 if __name__ == '__main__':
 	main()
