@@ -107,7 +107,6 @@ def startLearning():
         #print()
         #print("Scores")
         #print(scores)
-        #compareFeatures(XL, XLtrain, yTrain, XLtest, yTest)
 
         tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = predict(XLtest, clf, yTest)
         accuracyScore.append(tempAccuracyScore)
@@ -888,7 +887,7 @@ def compareFeatures(n_jobs=1):
         sendMail = False
     else:
         debug = False
-        print("Normal session activated, results will be valid. ")   
+        print("Normal session activated, results will be valid. ")
         print("Do you want to send a mail notification when finished? [Y/n]")
         inputString = raw_input()
         if inputString == "Y":
@@ -898,7 +897,7 @@ def compareFeatures(n_jobs=1):
             print("Do not send mail when script is finished")
             sendMail = False
 
- 
+
    #datasetfile = "data.txt"
 
     #Load dataset
@@ -988,7 +987,7 @@ def compareFeatures(n_jobs=1):
                 permfile.write(','+str(presc[k]))
             permfile.close()
             allPavg.append(np.average(presc, weights=s))
-            
+
             allR.append(r)
             permfile = open("Logs"+slash+"RecallLog.txt", 'a+')
             permfile.write(":")
@@ -1002,14 +1001,14 @@ def compareFeatures(n_jobs=1):
             for k in range(len(f1)):
                 permfile.write(','+str(f1[k]))
             permfile.close()
-            
+
             allS.append(s)
             permfile = open("Logs"+slash+"SupportLog.txt", 'a+')
             permfile.write(":")
             for k in range(len(s)):
                 permfile.write(','+str(s[k]))
             permfile.close()
-            
+
             winner = allPavg.index(max(allPavg)) #Check for max average precision
             print(report)
             print("Best features so far are:")
@@ -1079,7 +1078,7 @@ def readLogs():
     ParametersString = permfile.read()
     permfile.close()
     ParametersList = ParametersString.split(';')
-    ParametersList.pop(0)   
+    ParametersList.pop(0)
     ParametersList = [ast.literal_eval(i) for i in ParametersList]
 
     permfile = open("Logs"+slash+"PrecisionLog.txt", 'r')
@@ -1126,7 +1125,7 @@ def readLogs():
         supportSubList.pop(0)
         supportList[j] = list([float(i) for i in supportSubList])
 
-    return PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList   
+    return PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList
 
 def evaluateLogs(evaluationParam="maxminprecision"):
     PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList = readLogs()

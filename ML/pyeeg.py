@@ -357,7 +357,7 @@ def hfd(X, Kmax):
 		L.append(log(mean(Lk)))
 		x.append([log(float(1) / k), 1])
 
-	(p, r1, r2, s)=lstsq(x, L, rcond=None)
+	(p, r1, r2, s)=lstsq(x, L)
 	return p[0]
 
 def hjorth(X, D = None):
