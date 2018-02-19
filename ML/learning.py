@@ -180,11 +180,14 @@ def extractFeatures(X, channel):
         cov34 = np.cov(list(X[2][i]), list(X[3][i]))
         corr12 = np.correlate(list(X[0][i]), list(X[1][i])),
 
-        maxIndex = np.argmax(list(X[channel][i]))
-        minIndex = np.argmin(list(X[channel][i]))
+        maxIndex = np.argmax(list(X[0][i]))
+        minIndex = np.argmin(list(X[0][i]))
         minValueCh1 = np.amin(list(X[0][i]))
         maxValueCh1 = np.amax(list(X[0][i]))
+        
+
         slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+
         #print(power)
         #print(channel)
         #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
@@ -193,11 +196,13 @@ def extractFeatures(X, channel):
                         pyeeg.hfd(list(X[channel][i]), 200), #Okende tall gir viktigere feature, men mye lenger computation time
                         np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
                         np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
+                        #np.argmax(list(X[2][i])) - np.argmax(list(X[3][i])), #This seems promising, needs more testing. Index for max point
                         pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
                         #pearsonCoefficients14[0][1],
                         pearsonCoefficients14[1][0],
                         np.std(list(X[channel][i])),
                         slopeCh1,
+
                         #np.amax(list(X[0][i])),
                         #np.amax(list(X[1][i])),
                         #np.amin(list(X[0][i])),
