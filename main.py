@@ -560,7 +560,7 @@ def keys():
 
 		elif string == "hht":
 			if inputval != None and inputval < 10:
-				hht.testHHT(inputval)
+				hht.multiplottestHHT(inputval)
 
 		elif string == "help":
 			print("This is a list over essential commands, those ending with = need input values")
