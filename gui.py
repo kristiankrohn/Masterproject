@@ -1,4 +1,4 @@
-from Tkinter import *
+import Tkinter as tk
 #from mttkinter import *
 import time as tme
 import numpy as np
@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 from scipy import signal
 import os, shutil
 import dataset
-import ML.learning
-
+import learning
+import classifier
 
 size = 1000
 speed = 40
@@ -28,12 +28,12 @@ sleeping = False
 startMove = tme.time()
 endMode = tme.time()
 z = 3
-classifier = None
-classifier = ML.learning.loadMachineState(machinestate)
+clf = None
+clf = classifier.loadMachineState(machinestate)
 
 class Ball(object):
 	def __init__(self, canvas, *args, **kwargs):
-		global center, right, left, up, down, startSleep, startMove, endMove, sleeping, classifier
+		global center, right, left, up, down, startSleep, startMove, endMove, sleeping, clf
 		self.canvas = canvas
 		self.id = canvas.create_oval(*args, **kwargs)
 		#self.canvas.coords(self.id, [20, 260, 120, 360])
@@ -49,7 +49,7 @@ class Ball(object):
 		
 
 	def move(self):
-		global size, speed, center, right, left, up, down, startSleep, sleeping, startMove, endMove, classifier
+		global size, speed, center, right, left, up, down, startSleep, sleeping, startMove, endMove, clf
 		global timestamp
 		global z
 		global removeBall, startRemoveBall, wait, startWait
@@ -81,7 +81,7 @@ class Ball(object):
 				cmd = 2
 
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
+				predictionThread = threading.Thread(target=learning.predictGUI,args=(glb.data, clf, cmd, longLength))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -117,7 +117,7 @@ class Ball(object):
 			cmd = 0
 
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
+				predictionThread = threading.Thread(target=learning.predictGUI,args=(glb.data, clf, cmd, longLength))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -138,7 +138,7 @@ class Ball(object):
 			#print("Movementtime= ")
 			#print(tme.time())
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=ML.learning.predictGUI,args=(glb.data, classifier, cmd, longLength))
+				predictionThread = threading.Thread(target=learning.predictGUI,args=(glb.data, clf, cmd, longLength))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -225,27 +225,33 @@ class Ball(object):
 
 
 class App(object):
-	def __init__(self, root):
+	#def __init__(self, root):
 
 #class App(threading.Thread):
-	#def __init__(self):
+	def __init__(self):
 		#threading.Thread.__init__(self)
 		#self.start()
 		
 	#def run(self):
-		#self.root = Tk()
+		self.root = tk.Tk()
+	#def setup(self):
+		#root = tk.Tk()
+		#self.root = root
+		self.root.title("Training GUI")	
 
-		self.root = root		
-		self.w = Label(self.root, text="Look at the red dot, blink when it dissapears. Press start when ready!")
+
+		
+		self.w = tk.Label(self.root, text="Look at the red dot, blink when it dissapears. Press start when ready!")
 		self.w.pack()
-		self.startButton = Button(self.root, text='Start Training', width=25, command=self.startBall)
+		self.startButton = tk.Button(self.root, text='Start Training', width=25, command=self.startBall)
 		self.startButton.pack()
-		self.exitButton = Button(self.root, text='Exit', width=25, command=self.close_window)
+		self.exitButton = tk.Button(self.root, text='Exit', width=25, command=self.close_window)
 		self.exitButton.pack()
 		
+
 		#self.refresh()
 
-		#self.root.mainloop()
+		self.root.mainloop()
 
 	#def refresh(self):
 		#self.root.update()
@@ -260,20 +266,24 @@ class App(object):
 
 	def startBall(self):
 		print("StartBall")		
-		self.w.pack_forget()
+		#self.w.pack_forget()
 		self.startButton.pack_forget()
-		self.canvas = Canvas(self.root, width=size, height=size)
-		self.canvas.pack()
+		self.canvas = tk.Canvas(root, width=size, height=size)
+		self.canvas.pack(expand=True)
 		self.ball = Ball(self.canvas, (size/2) - ballsize, (size/2) - ballsize, (size/2) + ballsize, (size/2) + ballsize, outline='white', fill='red')
 		self.canvas.pack()				
 		self.root.after(0, self.animation)
 
 def guiloop():
-
-	root = Tk()
-	root.title("Training GUI")	
-	App(root)
-	root.mainloop()
+	#root = tk.Tk()
+	my_gui = App()
+	#root.mainloop()
+	#root = App()
+	#root.setup()
+	#root = tk.Tk()
+		
+	#App(root)
+	
 
 '''
 class Ball(object):

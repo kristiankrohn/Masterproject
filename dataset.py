@@ -223,7 +223,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 				return
 			else:
 
-				split = 128
+				split = 100
 				splitsize = numCh*split
 				numSplits = len(DataSet)//splitsize
 				if len(DataSet)%splitsize != 0:

@@ -21,16 +21,20 @@ import gui as ttk
 import plot as plotlib
 import filterlib 
 import dataset
-import ML.learning #this is moved to keys() -> "learn"
+import learning #this is moved to keys() -> "learn"
 import serial
 import hht
 #from serial import SerialException
 from datetime import datetime
 #mutex = Lock()
+import classifier
+
+
+
 
 ####TODO############################################
 ##
-##	Lag egen fil for realtime predict og gui predict
+##	
 ##	
 ####END TODO########################################
 
@@ -50,7 +54,7 @@ averageCondition = False
 predictioncondition = False
 predictioninterval = 250
 counterlock = Lock()
-classifier = None
+clf = None
 intervalcounter = 0
 
 
@@ -194,7 +198,7 @@ def printData(sample):
 				print("New predict:")
 				intervalcounter = 0
 				predictiondata = dataset.shapeArray(glb.data, longLength)	
-				predictionThread = threading.Thread(target=ML.learning.predictRealTime,args=(predictiondata, classifier))
+				predictionThread = threading.Thread(target=predict.predictRealTime,args=(predictiondata, clf))
 				predictionThread.start()
 
 	if len(glb.newSamples[0]) >= glb.window:
@@ -263,7 +267,7 @@ def graph():
 
 def keys():
 
-	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, classifier, predictioncondition
+	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, clf, predictioncondition
 	global guiVar
 	while True:
 		inputString = raw_input()
@@ -300,8 +304,8 @@ def keys():
 		if string == "exit":
 			print("Initiating exit sequence")
 			exit = True
-			if root != None:
-				root.destroy()
+			#if root != None:
+				#root.destroy()
 			#print("Quit gui")
 			if QtGui != None:
 				QtGui.QApplication.quit()
@@ -540,23 +544,23 @@ def keys():
 			dataset.saveLongTemp(0)
 		
 		elif string == "learn":
-			import ML.learning as learning
+
 			learnThread = threading.Thread(target=learning.startLearning, args=())
 			learnThread.setDaemon(True)
 			learnThread.start()
 		
 		elif string == "predict":
-			import ML.learning
+
 			predictioncondition = True
-			classifier = ML.learning.loadMachineState(machinestate)
+			clf = classifier.loadMachineState(machinestate)
 			print("Predictionsetup complete")
 
 		elif string == "notpredict":
 			predictioncondition = False
 
 		elif string == "report":
-			import ML.learning
-			ML.learning.classificationReportGUI()
+
+			predict.classificationReportGUI()
 
 		elif string == "hht":
 			if inputval != None and inputval < 10:
@@ -626,8 +630,8 @@ def main():
 		tme.sleep(0.1)
 	if not exit:
 		#graph()	
-		ttk.guiloop()
-		#app = ttk.App()
+		#ttk.guiloop()
+		app = ttk.App()
 
 	while not exit:
 		tme.sleep(0.1)

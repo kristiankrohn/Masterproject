@@ -7,10 +7,10 @@ import os, shutil
 
 if os.name == 'nt':
 	slash = "\\"
-	print("Running on Windows system")
+	#print("Running on Windows system")
 elif os.name == 'posix':
 	slash = "/"
-	print("Running on Linux system")
+	#print("Running on Linux system")
 else:
 	print("Running on " + os.name)
 
