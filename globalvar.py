@@ -7,6 +7,7 @@ from globalconst import*
 #rawdata = [],[],[],[],[],[],[],[]
 #data = [],[],[],[],[],[],[],[]
 #timeData = [],[],[],[],[],[],[],[]
+import getpass
 
 newTimeData = [],[],[],[],[],[],[],[],[]
 newSamples = [],[],[],[],[],[],[],[],[]
@@ -21,7 +22,20 @@ a = None
 window = 10
 Zi = np.zeros([numCh,window-1])
 mutex = Lock()
-datasetFolder = datasetFolders[0]
+
+if os.name == 'nt':
+	if getpass.getuser() == "Kristian":
+		datasetFolder = datasetFolders[0]
+	else:
+		datasetFolder = datasetFolders[1]
+	#print("Running on Windows system")
+elif os.name == 'posix':
+	datasetFolder = datasetFolders[0]
+	#print("Running on Linux system")
+else:
+	print("Running on " + os.name)
+	datasetFolder = datasetFolders[0]
+
 #data[channel][filterdata][sample]
 guipredict = False
 saveData = True

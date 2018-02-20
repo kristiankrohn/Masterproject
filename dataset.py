@@ -673,7 +673,7 @@ def removePadding(x):
 	return xReturn
 
 
-def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
+def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 	if (x or y) == None:
 		x, y = loadDataset()
 
@@ -694,16 +694,23 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 	elif minValElement < length:
 		print("Given length is too long, max for this dataset is: %d" %minValElement)
 		length = minValElement
-
+	MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
 	returnCounts = [0]*len(classes)
 	for i in range(len(y[0])):
 		if y[0][i] in classes:
 			classitemindex = classes.index(y[0][i])
-			if returnCounts[classitemindex] < length:
+			
+			if ((returnCounts[classitemindex] < length) or 
+				(merge and(((classitemindex == 0) and (returnCounts[0]<length*2)) 
+				or ((classitemindex == 5) and (returnCounts[5]<length*2))))):
+				
 				returnCounts[classitemindex] += 1
 				for j in range(numCh):
 					xReturn[j].append(x[j][i])
-					yReturn[j].append(y[j][i])
+					if merge:
+						yReturn[j].append(MergeDict[y[j][i]])
+					else:
+						yReturn[j].append(y[j][i])
 
 	counts = [None]*len(classes)
 	print("Statistics after sort: ")
@@ -715,7 +722,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 	return (xReturn, yReturn)
 
 def mergeLabels(y):
-	#["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
+	
 	classes = [0,1,2,3,4,5,6,7,8,9]
 	yReturn = [[],[],[],[],[],[],[],[]]
 	counts = [None]*len(classes)
@@ -724,8 +731,8 @@ def mergeLabels(y):
 		print("Number of occurances of class %d:" %classes[i])
 		counts[i] = y[0].count(classes[i])
 		print(counts[i])
-
-	MergeDict = {0:0, 1:4, 2:8, 3:2, 4:6, 5:5, 6:4, 7:8, 8:2, 9:6}
+	           #["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
+	MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
 	for i in range(len(y[0])):
 		for j in range(numCh):
 			yReturn[j].append(MergeDict[y[j][i]])

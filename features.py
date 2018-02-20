@@ -312,15 +312,15 @@ def compareFeatures(n_jobs=1):
 	if datasetfile == "longdata.txt":
 		classes = [0,5,6,4,2,8]
 	else:
+		classes = [0,1,2,3,4,5,6,7,8,9]
 
-		if merge:
-			classes = [0,5,6,4,2,8]
-			y = dataset.mergeLabels(y)
-		else:
-			classes = [0,1,2,3,4,5,6,7,8,9]
 
-	X, y = dataset.sortDataset(X, y, length=1000, classes=classes) #,6,4,2,8
-    
+	X, y = dataset.sortDataset(X, y, length=1000, classes=classes, merge=merge) #,6,4,2,8
+	if merge:
+		classes = [0,5,6,4,2,8]
+			#y = dataset.mergeLabels(y)
+	else:
+		classes = [0,1,2,3,4,5,6,7,8,9]
 	#Calculate features
 	#XL = extractAllFeatures(X, channel=0)
 	XL = extractFeaturesWithMask(X, channel = 0, featuremask=range(len(FUNC_MAP)))
