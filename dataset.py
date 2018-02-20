@@ -664,8 +664,9 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 
 	#plt.close('all')
 	#print(len(x[0][0]))
+	#print y
 	print("Finished loading dataset")
-	return x,y
+	return (x, y)
 
 def removePadding(x):
 	xReturn = x[frontPadding:-backPadding]
@@ -712,6 +713,30 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8]):
 		print(counts[i])
 
 	return (xReturn, yReturn)
+
+def mergeLabels(y):
+	#["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
+	classes = [0,1,2,3,4,5,6,7,8,9]
+	yReturn = [[],[],[],[],[],[],[],[]]
+	counts = [None]*len(classes)
+	print("Statistics before sort: ")
+	for i in range(len(classes)):
+		print("Number of occurances of class %d:" %classes[i])
+		counts[i] = y[0].count(classes[i])
+		print(counts[i])
+
+	MergeDict = {0:0, 1:4, 2:8, 3:2, 4:6, 5:5, 6:4, 7:8, 8:2, 9:6}
+	for i in range(len(y[0])):
+		for j in range(numCh):
+			yReturn[j].append(MergeDict[y[j][i]])
+
+	counts = [None]*len(classes)
+	print("Statistics after sort: ")
+	for i in range(len(classes)):
+		print("Number of occurances of class %d:" %classes[i])
+		counts[i] = yReturn[0].count(classes[i])
+		print(counts[i])
+	return yReturn
 
 def datasetStats(filename="data.txt"):
 	x,y = loadDataset(filename)

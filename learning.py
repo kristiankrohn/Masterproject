@@ -10,7 +10,7 @@ from sklearn.model_selection import cross_val_score
 #from sklearn.externals import joblib
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.decomposition import PCA
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 import matplotlib.pyplot as plt
@@ -67,9 +67,9 @@ def startLearning():
     precision = []
     classificationReport = []
     #crossValScore = []
-    X, y = dataset.loadDataset("longdata.txt")
-
-    #Length = how many examples of each class is desired.
+    #X, y = dataset.loadDataset("longdata.txt")
+    X, y = dataset.loadDataset("data.txt")
+    y = dataset.mergeLabels(y)
     X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
 
     #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8])
@@ -77,47 +77,58 @@ def startLearning():
 
 
     channelIndex = 0
-    for channel in range(1): #len(X) for aa ha med alle kanaler
-        XL = features.extractFeatures(X, channelIndex)
-        #Scale the data if needed and split dataset into training and testing
-        XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
+    '''
+    FUNC_MAP = {0: hfd, 
+            1: minDiff, 
+            2: maxDiff,
+            3: specEntropy,
+            4: pearsonCoeff,
+            5: stdDeviation,
+            6: slope,
+            7: thetaBeta1,
+            8: extrema}
+    '''
+    #XL = features.extractFeatures(X, channelIndex)
+    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
+    #Scale the data if needed and split dataset into training and testing
+    XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
 
-        #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
-        #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
+    #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
+    #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
 
-        #scaler = StandardScaler()
+    scaler = StandardScaler()
 
-        #pca = PCA(n_components = 2)
-        #XLtrain = scaler.fit_transform(XLtrain, yTrain)
-        #XLtest = scaler.fit_transform(XLtest, yTest)
-        #pca.fit_transform(XLtrain, yTrain)
-        #pca.fit_transform(XLtest, yTest)
-        #try this with tuning of parameters later today.
+    
+    XLtrain = scaler.fit_transform(XLtrain, yTrain)
+    XLtest = scaler.fit_transform(XLtest, yTest)
+    
+    
+    #try this with tuning of parameters later today.
 
-        #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
+    #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
 
 
 
-        #Use this if predictor other than SVM is used.
-        clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-        #clf = classifier.loadMachineState("learningState99HFDslopedSVM") #Med ny split tester du vel paa noe av den samme dataen du har trent paa?
-        classifier.saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
-        #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
+    #Use this if predictor other than SVM is used.
+    clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+    #clf = classifier.loadMachineState("learningState99HFDslopedSVM") 
+    #classifier.saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
+    #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
-        #Use this if it is imporatnt to see the overall prediction, and not for only the test set
-        #scores = cross_val_score(clf, XLtrain, yTrain, cv=5, scoring = 'precision_macro')
-        #print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-        #print()
-        #print("Scores")
-        #print(scores)
+    #Use this if it is imporatnt to see the overall prediction, and not for only the test set
+    #scores = cross_val_score(clf, XLtrain, yTrain, cv=5, scoring = 'precision_macro')
+    #print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    #print()
+    #print("Scores")
+    #print(scores)
 
-        tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest, clf, yTest)
-        accuracyScore.append(tempAccuracyScore)
-        f1Score.append(tempf1Score)
-        precision.append(tempPrecision)
-        classificationReport.append(tempClassificationReport)
+    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest, clf, yTest)
+    accuracyScore.append(tempAccuracyScore)
+    f1Score.append(tempf1Score)
+    precision.append(tempPrecision)
+    classificationReport.append(tempClassificationReport)
 
-        #crossValScore.append(tempCrossValScore)
+    #crossValScore.append(tempCrossValScore)
     #accuracyScore, classificationReport = compareFeatures(XL, XLtrain, yTrain, XLtest, yTest, bestParams)
 
     print()
@@ -169,7 +180,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #else:
     #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
     #C = 10000
-    C = 50
+    C = 500
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
     clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
 
