@@ -67,15 +67,13 @@ def startLearning():
     precision = []
     classificationReport = []
 
-    #crossValScore = []
+
     #X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.loadDataset("data.txt")
-    Xreturn = X
-    yreturn = y
-    X, y = dataset.sortDataset(X, y, length=100, classes=[0,2,4,5,6,8], merge = False) #,6,4,2,8
-    X, y = dataset.sortDataset(X, y, length=100, classes=[0,2,4,5,6,8], merge = False)
-    Xreturn, yreturn = dataset.sortDataset(Xreturn, yreturn, length=100, classes=[0,1,3,5,7,9], merge = True)
-    Xreturn, yreturn = dataset.sortDataset(Xreturn, yreturn, length=100, classes=[0,2,4,5,6,8], merge = False)
+
+    X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    #X, y = dataset.sortDataset(X, y, length=10000, classes=[6,8], merge = False)
+
 
     #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8])
     #if x or y is undefined, data.txt will be loaded
@@ -87,25 +85,26 @@ def startLearning():
             1: minDiff,
             2: maxDiff,
             3: specEntropy,
-            4: pearsonCoeff,
+            4: pearsonCoeff14,
             5: stdDeviation,
             6: slope,
             7: thetaBeta1,
-            8: extrema}
+            8: extrema
+            9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
-    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
-    XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
+    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,8,9], printTime=True)
+    #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
     XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
-    XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
+    #XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
 
 
     scaler = StandardScaler()
 
 
-    #XLtrain = scaler.fit_transform(XLtrain, yTrain)
-    #XLtest = scaler.fit_transform(XLtest, yTest)
+    XLtrain = scaler.fit_transform(XLtrain, yTrain)
+    XLtest = scaler.fit_transform(XLtest, yTest)
 
     #bestParams.append(classifier.tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
     #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
@@ -124,13 +123,13 @@ def startLearning():
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set
-    scores = cross_val_score(clf, XLtrain, yTrain, cv=5, scoring = 'precision_macro')
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'precision_macro')
     print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")
     print(scores)
 
-    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtestR, clf, yTestR)
+    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest, clf, yTest)
     accuracyScore.append(tempAccuracyScore)
     f1Score.append(tempf1Score)
     precision.append(tempPrecision)

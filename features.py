@@ -12,6 +12,7 @@ from itertools import combinations
 from datetime import datetime
 from numpy.fft import fft
 from numpy import zeros, floor
+from sklearn import svm
 
 
 
@@ -61,7 +62,7 @@ def extractFeatures(X, channel):
         minIndex = np.argmin(list(X[0][i]))
         minValueCh1 = np.amin(list(X[0][i]))
         maxValueCh1 = np.amax(list(X[0][i]))
-        
+
 
         slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
 
@@ -168,12 +169,17 @@ def maxDiff(X, channel):
 
 def specEntropy(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
-	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)	
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
 	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 7, 12,30], 250, powerRatio)
 
-def pearsonCoeff(X, channel):
+def pearsonCoeff14(X, channel):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
+	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients14[1][0]
+
+def pearsonCoeff13(X, channel):
+	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
+	return pearsonCoefficients13[1][0]
 
 def stdDeviation(X, channel):
 	return np.std(X[channel])
@@ -202,15 +208,16 @@ def extrema(X, channel):
 		extremaFeature = 0
 	return extremaFeature
 
-FUNC_MAP = {0: hfd, 
-			1: minDiff, 
+FUNC_MAP = {0: hfd,
+			1: minDiff,
 			2: maxDiff,
 			3: specEntropy,
-			4: pearsonCoeff,
+			4: pearsonCoeff14,
 			5: stdDeviation,
 			6: slope,
 			7: thetaBeta1,
-			8: extrema}
+			8: extrema,
+			9: pearsonCoeff13}
 
 def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 	XL = [[]]
@@ -233,7 +240,7 @@ def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 
 def convertPermutationToFeatureString(p):
 	returnString = ""
-	if isinstance(p, tuple): 
+	if isinstance(p, tuple):
 		for m in range(len(p)):
 			functionstring = str(FUNC_MAP.get(p[m]))
 			functionname = functionstring.split(" ")
