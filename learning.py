@@ -66,11 +66,16 @@ def startLearning():
     f1Score = []
     precision = []
     classificationReport = []
+
     #crossValScore = []
     #X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.loadDataset("data.txt")
-    y = dataset.mergeLabels(y)
-    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,5,6,4,2,8]) #,6,4,2,8
+    Xreturn = X
+    yreturn = y
+    X, y = dataset.sortDataset(X, y, length=100, classes=[0,2,4,5,6,8], merge = False) #,6,4,2,8
+    X, y = dataset.sortDataset(X, y, length=100, classes=[0,2,4,5,6,8], merge = False)
+    Xreturn, yreturn = dataset.sortDataset(Xreturn, yreturn, length=100, classes=[0,1,3,5,7,9], merge = True)
+    Xreturn, yreturn = dataset.sortDataset(Xreturn, yreturn, length=100, classes=[0,2,4,5,6,8], merge = False)
 
     #def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8])
     #if x or y is undefined, data.txt will be loaded
@@ -78,8 +83,8 @@ def startLearning():
 
     channelIndex = 0
     '''
-    FUNC_MAP = {0: hfd, 
-            1: minDiff, 
+    FUNC_MAP = {0: hfd,
+            1: minDiff,
             2: maxDiff,
             3: specEntropy,
             4: pearsonCoeff,
@@ -90,39 +95,42 @@ def startLearning():
     '''
     #XL = features.extractFeatures(X, channelIndex)
     XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
+    XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
     XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
+    XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
 
-    #bestParams.append(tuneSvmParameters(XLtrain, yTrain, XLtest, yTest))
-    #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
 
     scaler = StandardScaler()
 
-    
-    XLtrain = scaler.fit_transform(XLtrain, yTrain)
-    XLtest = scaler.fit_transform(XLtest, yTest)
-    
-    
+
+    #XLtrain = scaler.fit_transform(XLtrain, yTrain)
+    #XLtest = scaler.fit_transform(XLtest, yTest)
+
+    #bestParams.append(classifier.tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
+    #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
+
+
     #try this with tuning of parameters later today.
 
-    #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channel])
+    #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channelIndex])
 
 
 
     #Use this if predictor other than SVM is used.
     clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-    #clf = classifier.loadMachineState("learningState99HFDslopedSVM") 
+    #clf = classifier.loadMachineState("learningState99HFDslopedSVM")
     #classifier.saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set
-    #scores = cross_val_score(clf, XLtrain, yTrain, cv=5, scoring = 'precision_macro')
-    #print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-    #print()
-    #print("Scores")
-    #print(scores)
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=5, scoring = 'precision_macro')
+    print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    print()
+    print("Scores")
+    print(scores)
 
-    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest, clf, yTest)
+    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtestR, clf, yTestR)
     accuracyScore.append(tempAccuracyScore)
     f1Score.append(tempf1Score)
     precision.append(tempPrecision)
@@ -179,8 +187,9 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
     #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
-    #C = 10000
-    C = 500
+
+    C = 50
+    #C = 50
     #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
     clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
 
@@ -189,7 +198,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #clf = tree.DecisionTreeClassifier(max_depth = None, min_samples_leaf = bestParams['min_samples_leaf'])
     #randomForestClassifier.
     #clf = RandomForestClassifier(max_depth = None,  min_samples_leaf = 10, random_state = 40)
-    #clf = RandomForestClassifier(max_depth = None, min_samples_leaf = bestParams['min_samples_leaf'], random_state = 40)
+    #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
     #clf = neighbors.KNeighborsClassifier(5)
     clf.fit(XLtrain,yTrain)#skaler???
@@ -206,12 +215,15 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     bestParams = []
 
-    sampleLeafPipeline = [{'min_samples_leaf': [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 200, 500]}]
+    sampleLeafPipeline = [{
+           "n_estimators" : [9, 18, 27, 36, 45, 54, 63],
+           "max_depth" : [1, 5, 10, 15, 20, 25, 30],
+           "min_samples_leaf" : [1, 2, 4, 6, 8, 10]}]
 
     print("Starting to tune parameters")
     print()
 
-    clf = GridSearchCV(tree.DecisionTreeClassifier(), sampleLeafPipeline, cv=10, scoring='%s_macro' % 'precision')
+    clf = GridSearchCV(RandomForestClassifier(), sampleLeafPipeline, cv=5, scoring='%s_macro' % 'precision')
 
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)
