@@ -609,7 +609,7 @@ def clear(elementtype):
 
 
 
-def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch", removePadding=True):
+def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch", removePadding=True, shift=0):
 	global filelock
 	print("Starting to load dataset")
 	x = [[],[],[],[],[],[],[],[]]
@@ -655,7 +655,14 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 			if filterCondition:
 				featureData = filterlib.plotfilter(featureData, b, a)
 			if removePadding:
-				featureData = featureData[frontPadding:-backPadding] #Remove paddings
+				if shift and (label in [2,4,6,8]):
+					if isinstance(shift, int):
+						featureData = featureData[(frontPadding+shift):-(backPadding-shift)]
+					else:
+						print("Invalid shift")
+						return
+				else:	
+					featureData = featureData[frontPadding:-backPadding] #Remove paddings
 
 			x[channel].append(featureData)
 
@@ -733,7 +740,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 					else:
 						yReturn[j].append(y[j][i])
 
-
+	
 
 	
 
