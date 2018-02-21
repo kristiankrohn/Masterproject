@@ -609,7 +609,7 @@ def clear(elementtype):
 
 
 
-def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch", removePadding=True):
+def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch", removePadding=True, shift=0):
 	global filelock
 	print("Starting to load dataset")
 	x = [[],[],[],[],[],[],[],[]]
@@ -655,7 +655,14 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 			if filterCondition:
 				featureData = filterlib.plotfilter(featureData, b, a)
 			if removePadding:
-				featureData = featureData[frontPadding:-backPadding] #Remove paddings
+				if shift and (label in [2,4,6,8]):
+					if isinstance(shift, int):
+						featureData = featureData[(frontPadding+shift):-(backPadding-shift)]
+					else:
+						print("Invalid shift")
+						return
+				else:	
+					featureData = featureData[frontPadding:-backPadding] #Remove paddings
 
 			x[channel].append(featureData)
 
@@ -674,7 +681,7 @@ def removePadding(x):
 
 
 def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
-	if (x or y) == None:
+	if (x==None) or (y==None):
 		x, y = loadDataset()
 
 	xReturn = [[],[],[],[],[],[],[],[]]
@@ -694,15 +701,36 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 	elif minValElement < length:
 		print("Given length is too long, max for this dataset is: %d" %minValElement)
 		length = minValElement
-	MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
+	
 	returnCounts = [0]*len(classes)
+	
+
+	
+	MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
+	
+	if 0 in classes:
+		zeroIndex = classes.index(0)
+	else:
+		zeroIndex = -1
+		returnCounts.append(0)
+	
+	if 5 in classes:
+		fiveIndex = classes.index(5)
+	else:
+		if zeroIndex == -1:
+			fiveIndex = -2
+		else:
+			fiveIndex = -1
+		returnCounts.append(0)
+	
+
 	for i in range(len(y[0])):
 		if y[0][i] in classes:
 			classitemindex = classes.index(y[0][i])
-			
-			if ((returnCounts[classitemindex] < length) or 
-				(merge and(((classitemindex == 0) and (returnCounts[0]<length*2)) 
-				or ((classitemindex == 5) and (returnCounts[5]<length*2))))):
+			#This will fail if 5 or 0 is not in classes
+			if ((returnCounts[classitemindex] < length) 
+				or (merge and(((classitemindex == zeroIndex) and (returnCounts[zeroIndex] < length*2)) 
+				or ((classitemindex == fiveIndex) and (returnCounts[fiveIndex] < length*2))))): 
 				
 				returnCounts[classitemindex] += 1
 				for j in range(numCh):
@@ -711,6 +739,11 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 						yReturn[j].append(MergeDict[y[j][i]])
 					else:
 						yReturn[j].append(y[j][i])
+
+	
+
+	
+
 
 	counts = [None]*len(classes)
 	print("Statistics after sort: ")
@@ -721,29 +754,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 
 	return (xReturn, yReturn)
 
-def mergeLabels(y):
-	
-	classes = [0,1,2,3,4,5,6,7,8,9]
-	yReturn = [[],[],[],[],[],[],[],[]]
-	counts = [None]*len(classes)
-	print("Statistics before sort: ")
-	for i in range(len(classes)):
-		print("Number of occurances of class %d:" %classes[i])
-		counts[i] = y[0].count(classes[i])
-		print(counts[i])
-	           #["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
-	MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
-	for i in range(len(y[0])):
-		for j in range(numCh):
-			yReturn[j].append(MergeDict[y[j][i]])
 
-	counts = [None]*len(classes)
-	print("Statistics after sort: ")
-	for i in range(len(classes)):
-		print("Number of occurances of class %d:" %classes[i])
-		counts[i] = yReturn[0].count(classes[i])
-		print(counts[i])
-	return yReturn
 
 def datasetStats(filename="data.txt"):
 	x,y = loadDataset(filename)
