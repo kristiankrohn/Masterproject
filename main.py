@@ -366,7 +366,7 @@ def keys():
 
 		elif string == "exportdataplots":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("data", "time")) 
+												args=("data", "raw")) 
 			exportThread.start()
 			#dataset.exportPlots("data")
 		elif string == "exporttempplots":

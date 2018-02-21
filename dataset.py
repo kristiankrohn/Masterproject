@@ -706,8 +706,8 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 	
 
 	
-	MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
-	
+	#MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
+	MergeDict = {0:0,   1:8,  2:8,  3:6,  4:6,  5:5,  6:4,  7:4,  8:2,  9:2}
 	if 0 in classes:
 		zeroIndex = classes.index(0)
 	else:
@@ -740,7 +740,43 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 					else:
 						yReturn[j].append(y[j][i])
 
-	
+	if merge:
+		x = copy.deepcopy(xReturn)
+		y = copy.deepcopy(yReturn)
+		NewClasses = []
+		for i in range(len(classes)):
+			NewClasses.append(MergeDict[classes[i]])
+		classes = NewClasses
+		xReturn = [[],[],[],[],[],[],[],[]]
+		yReturn = [[],[],[],[],[],[],[],[]]
+		counts = [None]*len(classes)
+		#print("Statistics before sort: ")
+		for i in range(len(classes)):
+			#print("Number of occurances of class %d:" %classes[i])
+			counts[i] = y[0].count(classes[i])
+			#print(counts[i])
+		minValElement = min(counts)
+		#print("Lowest occurance of a class is: %d" %minValElement)
+		if minValElement == 0:
+			#print("List is empty or class cannot be found in set, returning empty arrays")
+			return xReturn, yReturn
+
+		elif minValElement < length:
+			#print("Given length is too long, max for this dataset is: %d" %minValElement)
+			length = minValElement
+
+		returnCounts = [0]*len(classes)
+
+		for i in range(len(y[0])):
+			if y[0][i] in classes:
+				classitemindex = classes.index(y[0][i])
+				#This will fail if 5 or 0 is not in classes
+				if (returnCounts[classitemindex] < length): 
+					
+					returnCounts[classitemindex] += 1
+					for j in range(numCh):
+						xReturn[j].append(x[j][i])
+						yReturn[j].append(y[j][i])
 
 	
 

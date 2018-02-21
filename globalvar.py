@@ -38,7 +38,7 @@ else:
 
 #data[channel][filterdata][sample]
 guipredict = False
-saveData = True
+saveData = False
 oldSampleID = 255
 if numCh == 8:
 	data = [[[],[],[]],

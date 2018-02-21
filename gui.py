@@ -79,7 +79,7 @@ class Ball(object):
 
 			elif down:
 				cmd = 2
-
+			print("Return command= %d"%cmd)
 			if glb.guipredict:	
 				predictionThread = threading.Thread(target=learning.predictGUI,args=(glb.data, clf, cmd, longLength))
 				predictionThread.start()
@@ -178,6 +178,7 @@ class Ball(object):
 			right = True
 			center = False
 			cmd = 3
+			print("Saving: %d" %cmd)
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)
@@ -190,6 +191,7 @@ class Ball(object):
 			left = True
 			center = False
 			cmd = 7
+			print("Saving: %d" %cmd)
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)
@@ -202,6 +204,7 @@ class Ball(object):
 			down = True
 			center = False
 			cmd = 9
+			print("Saving: %d" %cmd)
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)
@@ -214,6 +217,7 @@ class Ball(object):
 			up = True
 			center = False
 			cmd = 1
+			print("Saving: %d" %cmd)
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)

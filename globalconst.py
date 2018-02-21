@@ -33,11 +33,16 @@ movements = ["\\Center_blink", "\\Center_still",
 			"\\Up_direction", "\\Up_return",
 			"\\Left_direction", "\\Left_return", 
 			"\\Right_direction", "\\Right_return", "\\Garbage"]
-'''
+
 
 movements = [slash + "Center_blink", slash + "Left_direction", slash + "Down_return", slash + "Down_direction",
 			slash + "Left_return", slash + "Center_still", slash + "Right_return", slash + "Up_direction",
 			slash + "Up_return", slash + "Right_direction", slash + "Garbage"]			
+'''
+movements = [slash + "Center_blink", slash + "Up_direction", slash + "Down_return", slash + "Right_direction",
+			slash + "Left_return", slash + "Center_still", slash + "Right_return", slash + "Left_direction",
+			slash + "Up_return", slash + "Down_direction", slash + "Garbage"]	
+
 
 channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
 shortclasses = [0,1,2,3,4,5,6,7,8,9]
