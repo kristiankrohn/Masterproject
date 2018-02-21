@@ -13,9 +13,9 @@ from datetime import datetime
 from numpy.fft import fft
 from numpy import zeros, floor
 from sklearn import svm
-
-
-
+from sklearn.feature_selection import RFECV
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
 def getBandAmplitudes(X, Band):
 	Fs = glb.fs
@@ -250,6 +250,50 @@ def convertPermutationToFeatureString(p):
 		#p = tuple(map(int, p[1:-1].split(',')))
 		print(type(p))
 		return str(p)
+
+def compareFeatures2(n_jobs=1):
+	#datasetfile = "longdata.txt"
+	datasetfile = "data.txt"
+	merge = True
+	X, y = dataset.loadDataset(filename=datasetfile)
+	#print("After load")
+    #print X
+	if datasetfile == "longdata.txt":
+		classes = [0,5,6,4,2,8]
+	else:
+		classes = [0,1,2,3,4,5,6,7,8,9]
+		#classes = [9,7,3,1,0,5]
+
+	X, y = dataset.sortDataset(X, y, length=1000, classes=classes, merge=merge) #,6,4,2,8
+	if merge:
+		classes = [0,5,6,4,2,8]
+			#y = dataset.mergeLabels(y)
+	else:
+		classes = [0,1,2,3,4,5,6,7,8,9]
+	#Calculate features
+	#XL = extractAllFeatures(X, channel=0)
+	XL = extractFeaturesWithMask(X, channel = 0, featuremask=range(len(FUNC_MAP)))
+	XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
+	scaler = StandardScaler()
+	XL = scaler.fit_transform(XL, y[0])
+	#XLtest = scaler.fit_transform(XLtest, yTest)
+
+
+	svc = svm.SVC(kernel="linear", C = 50, decision_function_shape = 'ovr')
+	rfecv = RFECV(estimator=svc, step=1, cv=10, n_jobs=n_jobs,
+	              scoring='accuracy')
+	rfecv.fit(XL, y[0])
+
+	print("Optimal number of features : %d" % rfecv.n_features_)
+	print("Optimal features: ")
+	print(rfecv.support_)
+	# Plot number of features VS. cross-validation scores
+	plt.figure()
+	plt.xlabel("Number of features selected")
+	plt.ylabel("Cross validation score (nb of correct classifications)")
+	plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+	plt.show()
+
 def compareFeatures(n_jobs=1):
 	#array declaration
 	allPermutations = []
@@ -617,7 +661,7 @@ def cleanLogs():
 
 
 def main():
-	compareFeatures()
+	compareFeatures2(n_jobs=-1)
 	#evaluateLogs("maxminrecall")
 if __name__ == '__main__':
 	main()

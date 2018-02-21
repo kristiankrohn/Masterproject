@@ -758,7 +758,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 		for i in range(len(classes)):
 			#print("Number of occurances of class %d:" %classes[i])
 			counts[i] = y[0].count(classes[i])
-			print(counts[i])
+			#print(counts[i])
 		minValElement = min(counts)
 		#print("Lowest occurance of a class is: %d" %minValElement)
 
