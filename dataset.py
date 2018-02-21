@@ -740,30 +740,27 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 					else:
 						yReturn[j].append(y[j][i])
 
+
+
+
 	if merge:
 		x = copy.deepcopy(xReturn)
 		y = copy.deepcopy(yReturn)
 		NewClasses = []
 		for i in range(len(classes)):
 			NewClasses.append(MergeDict[classes[i]])
-		classes = NewClasses
+		classes = np.unique(NewClasses).tolist()
 		xReturn = [[],[],[],[],[],[],[],[]]
 		yReturn = [[],[],[],[],[],[],[],[]]
 		counts = [None]*len(classes)
+
 		#print("Statistics before sort: ")
 		for i in range(len(classes)):
 			#print("Number of occurances of class %d:" %classes[i])
 			counts[i] = y[0].count(classes[i])
-			#print(counts[i])
+			print(counts[i])
 		minValElement = min(counts)
 		#print("Lowest occurance of a class is: %d" %minValElement)
-		if minValElement == 0:
-			#print("List is empty or class cannot be found in set, returning empty arrays")
-			return xReturn, yReturn
-
-		elif minValElement < length:
-			#print("Given length is too long, max for this dataset is: %d" %minValElement)
-			length = minValElement
 
 		returnCounts = [0]*len(classes)
 
@@ -771,7 +768,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 			if y[0][i] in classes:
 				classitemindex = classes.index(y[0][i])
 				#This will fail if 5 or 0 is not in classes
-				if (returnCounts[classitemindex] < length): 
+				if (returnCounts[classitemindex] < minValElement): 
 					
 					returnCounts[classitemindex] += 1
 					for j in range(numCh):

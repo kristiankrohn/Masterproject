@@ -312,8 +312,8 @@ def compareFeatures(n_jobs=1):
 	if datasetfile == "longdata.txt":
 		classes = [0,5,6,4,2,8]
 	else:
-		#classes = [0,1,2,3,4,5,6,7,8,9]
-		classes = [9,7,3,1,0,5]
+		classes = [0,1,2,3,4,5,6,7,8,9]
+		#classes = [9,7,3,1,0,5]
 
 	X, y = dataset.sortDataset(X, y, length=1000, classes=classes, merge=merge) #,6,4,2,8
 	if merge:
