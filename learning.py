@@ -24,6 +24,7 @@ from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
+from sklearn import linear_model
 #from numpy.fft import fft
 #from numpy import zeros, floor
 import math
@@ -93,7 +94,7 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
-    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,8,9], printTime=True)
+    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=True)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
     XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
@@ -107,7 +108,7 @@ def startLearning():
     XLtest = scaler.fit_transform(XLtest, yTest)
 
     #bestParams.append(classifier.tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
-    #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest))
+    #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
 
 
     #try this with tuning of parameters later today.
@@ -119,12 +120,12 @@ def startLearning():
     #Use this if predictor other than SVM is used.
     clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
     #clf = classifier.loadMachineState("learningState99HFDslopedSVM")
-    #classifier.saveMachinestate(clf, "learningState99HFDslopedSVM")   #Uncomment this to save the machine state
+    #classifier.saveMachinestate(clf, "learning260RBFsvm22Features")   #Uncomment this to save the machine state
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set
-    scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'precision_macro')
-    print("Precision: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'accuracy')
+    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")
     print(scores)
@@ -189,14 +190,17 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     C = 50
     #C = 50
-    #clf = svm.SVC(kernel = 'rbf, gamma = 0.12, C = C, decision_function_shape = 'ovr')
-    clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
+    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
+    #clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
+    #clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
+    #clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
+
 
     #Decision tree classification. max_depth 8 and min_leaf = 5 gives good results, but varying.
     #clf = tree.DecisionTreeClassifier(max_depth = None, min_samples_leaf=5)
     #clf = tree.DecisionTreeClassifier(max_depth = None, min_samples_leaf = bestParams['min_samples_leaf'])
     #randomForestClassifier.
-    #clf = RandomForestClassifier(max_depth = None,  min_samples_leaf = 10, random_state = 40)
+    #clf = RandomForestClassifier(n_estimators = 54, max_depth = 5,  min_samples_leaf = 1, random_state = 40)
     #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
     #clf = neighbors.KNeighborsClassifier(5)
@@ -211,7 +215,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
 
 
-def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
+def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = 1):
     bestParams = []
 
     sampleLeafPipeline = [{
@@ -222,7 +226,7 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest):
     print("Starting to tune parameters")
     print()
 
-    clf = GridSearchCV(RandomForestClassifier(), sampleLeafPipeline, cv=5, scoring='%s_macro' % 'precision')
+    clf = GridSearchCV(RandomForestClassifier(), sampleLeafPipeline, cv=10, scoring='%s_macro' % 'precision')
 
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)

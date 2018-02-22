@@ -16,6 +16,8 @@ from sklearn import svm
 from sklearn.feature_selection import RFECV
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import linear_model
 
 def getBandAmplitudes(X, Band):
 	Fs = glb.fs
@@ -157,9 +159,40 @@ def extractFeatures(X, channel):
 
 
 
+def cov12(X, channel):
+	cov = np.cov(X[0], X[1])
+	return cov[0][1]
+def cov12a(X, channel):
+	cov = np.cov(X[0], X[1])
+	return cov[1][0]
+def cov14(X, channel):
+	cov = np.cov(X[0], X[3])
+	return cov[0][1]
+
+def cov14a(X, channel):
+	cov = np.cov(X[0], X[3])
+	return cov[1][0]
+
+def cov34(X, channel):
+	cov = np.cov(X[2], X[3])
+	return cov[0][1]
+def cov34a(X, channel):
+	cov = np.cov(X[2], X[3])
+	return cov[1][0]
+
+def ptp1(X, channel):
+	return np.ptp(X[0])
+def ptp4(X, channel):
+	return np.ptp(X[3])
+
+def pfd(X, channel):
+	return pyeeg.pfd(X[channel])
 
 def hfd(X, channel):
 	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+
+def max1(X, channel):
+	return np.amax(X[0])
 
 def minDiff(X, channel):
 	return np.amin(X[0]) - np.amin(X[2])
@@ -171,18 +204,36 @@ def specEntropy(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
 	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 7, 12,30], 250, powerRatio)
+def power1(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
+	return power[2]
+def power4(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
+	return power[2]
 
 def pearsonCoeff14(X, channel):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients14[1][0]
+def pearsonCoeff14a(X, channel):
+	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
+	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
+	return pearsonCoefficients14[0][1]
 
 def pearsonCoeff13(X, channel):
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients13[1][0]
+def pearsonCoeff13a(X, channel):
+	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
+	return pearsonCoefficients13[0][1]
 
 def stdDeviation(X, channel):
 	return np.std(X[channel])
+
+def stdDeviation4(X, channel):
+	return np.std(X[3])
 
 def slope(X, channel):
 	maxIndex = np.argmax(X[channel])
@@ -191,12 +242,25 @@ def slope(X, channel):
 	maxValueCh1 = np.amax(X[0])
 	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
 	return slopeCh1
+def slope4(X, channel):
+	channel = 3
+	maxIndex = np.argmax(X[channel])
+	minIndex = np.argmin(X[channel])
+	minValueCh4 = np.amin(X[3])
+	maxValueCh4 = np.amax(X[3])
+	slopeCh4 = (minValueCh4 - maxValueCh4)/ (minIndex - maxIndex)
+	return slopeCh4
 
 def thetaBeta1(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	bandAvgAmplitudesCh1 = getBandAmplitudes(X[0], frequencyBands)
 	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
 	return thetaBetaRatioCh1
+def thetaBeta4(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	bandAvgAmplitudesCh4 = getBandAmplitudes(X[3], frequencyBands)
+	thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
+	return thetaBetaRatioCh4
 
 def extrema(X, channel):
 	extremaFeature = None
@@ -217,7 +281,24 @@ FUNC_MAP = {0: hfd,
 			6: slope,
 			7: thetaBeta1,
 			8: extrema,
-			9: pearsonCoeff13}
+			9: pearsonCoeff13,
+			10: pearsonCoeff14a,
+			11: pearsonCoeff13a,
+			12: thetaBeta4,
+			13: max1,
+			14: pfd,
+			15: ptp1,
+			16: slope4,
+			17: cov12,
+			18: cov12a,
+			19: cov14,
+			20: cov14a,
+			21: cov34,
+			22: cov34a,
+			23: power1,
+			24: power4,
+			25: stdDeviation4,
+			26: ptp4}
 
 def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 	XL = [[]]
@@ -279,8 +360,12 @@ def compareFeatures2(n_jobs=1):
 	#XLtest = scaler.fit_transform(XLtest, yTest)
 
 
-	svc = svm.SVC(kernel="linear", C = 50, decision_function_shape = 'ovr')
-	rfecv = RFECV(estimator=svc, step=1, cv=10, n_jobs=n_jobs,
+	clf = svm.SVC(kernel="linear", C = 50, decision_function_shape = 'ovr')
+	#clf = RandomForestClassifier(n_estimators = 54, max_depth = 5,  min_samples_leaf = 1, random_state = 40)
+	#clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
+	#clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
+
+	rfecv = RFECV(estimator=clf, step=1, cv=10, n_jobs=n_jobs,
 	              scoring='accuracy')
 	rfecv.fit(XL, y[0])
 
