@@ -6,12 +6,13 @@ import itertools
 from sklearn import neighbors
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import StandardScaler
 #from sklearn.model_selection import train_test_split
 #from sklearn.externals import joblib
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.calibration import CalibratedClassifierCV
 
-from sklearn.preprocessing import StandardScaler
+
 from sklearn.pipeline import make_pipeline
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
@@ -72,7 +73,7 @@ def startLearning():
     #X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.loadDataset("data.txt")
 
-    X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
     #X, y = dataset.sortDataset(X, y, length=10000, classes=[6,8], merge = False)
 
 
@@ -101,12 +102,6 @@ def startLearning():
     #XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
 
 
-    scaler = StandardScaler()
-
-
-    XLtrain = scaler.fit_transform(XLtrain, yTrain)
-    XLtest = scaler.fit_transform(XLtest, yTest)
-
     #bestParams.append(classifier.tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
     #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
 
@@ -119,16 +114,20 @@ def startLearning():
 
     #Use this if predictor other than SVM is used.
     clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+    plotTrainingPredictions(clf, XLtrain, yTrain)
     #clf = classifier.loadMachineState("learningState99HFDslopedSVM")
     #classifier.saveMachinestate(clf, "learning260RBFsvm22Features")   #Uncomment this to save the machine state
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set
-    scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'accuracy')
+
+
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")
     print(scores)
+
 
     tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest, clf, yTest)
     accuracyScore.append(tempAccuracyScore)
@@ -184,7 +183,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     #This fits with the tested best parameters. Might want to manually write this
     #if bestParams['kernel'] == 'linear':
-    #    clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
+        #clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
     #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
 
@@ -308,31 +307,57 @@ def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
     return compareFeaturesTraining, compareFeaturesTesting
 
 
-def plotClassifier(clf, XLtrain):
-    title = 'SVC with RBF-kernel'
+def plotTrainingPredictions(clf, X, y):
+    from sklearn.decomposition import TruncatedSVD
+    X = TruncatedSVD().fit_transform(X)
 
-    Xtrain = np.array(XLtrain)
+    #fig = plt.figure(figsize=(9, 8))
+    #ax = plt.subplot(221)
+    #ax.scatter(X[:, 10], X[:, 2], c=y, s=50, edgecolor='k')
+    #ax.set_title("Original Data between two features(2d)")
+    #ax.set_xticks(())
+    #ax.set_yticks(())
 
-    # Set-up 2x2 grid for plotting.
-    fig, ax = plt.subplots()
+    #ax = plt.subplot(222)
+    #ax.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, s=50, edgecolor='k')
+    #ax.set_title("Truncated SVD reduction (2d) of transformed data (d)")
+    #ax.set_xticks(())
+    #ax.set_yticks(())
+    C = 50
+    models = (svm.SVC(kernel = 'rbf', gamma = 0.01, decision_function_shape = 'ovr'),
+          svm.LinearSVC(C=C),
+          svm.SVC(kernel='linear', C=C))
+    models = (clf.fit(X, y) for clf in models)
+
+    # title for the plots
+    titles = ('SVC with RBF kernel',
+          'LinearSVC (linear kernel)',
+          'SVC with linear kernel',)
+
+# Set-up 2x2 grid for plotting.
+    fig, sub = plt.subplots(3, 1)
     plt.subplots_adjust(wspace=0.4, hspace=0.4)
-    X0, X1 = Xtrain[:, 0], Xtrain[:, 1]
-    xx, yy = makeMeshgrid(X0, X1)
 
-    plot_contours(ax, clf, xx, yy,cmap=plt.cm.coolwarm, alpha=0.8)
-    ax.scatter(X0, X1, c=labels, cmap=plt.cm.coolwarm, s=20, edgecolors='k')
-    ax.set_xlim(xx.min(), xx.max())
-    ax.set_ylim(yy.min(), yy.max())
-    ax.set_xlabel('DFA')
-    ax.set_ylabel('STD')
-    ax.set_xticks(())
-    ax.set_yticks(())
-    ax.set_title(title)
+    X0, X1 = X[:, 0], X[:, 1] #two first features
+    xx, yy = make_meshgrid(X0, X1)
 
+    for clf, title, ax in zip(models, titles, sub.flatten()):
+        plot_contours(ax, clf, xx, yy,
+                      cmap=plt.cm.coolwarm, alpha=0.8)
+        ax.scatter(X0, X1, c=y, cmap=plt.cm.coolwarm, s=20, edgecolors='k')
+        ax.set_xlim(xx.min(), xx.max())
+        ax.set_ylim(yy.min(), yy.max())
+        ax.set_xlabel('Feature 1')
+        ax.set_ylabel('Feature 2')
+        ax.set_xticks(())
+        ax.set_yticks(())
+        ax.set_title(title)
+        plt.plot(label = y)
 
+    plt.legend()
     plt.show()
 
-def makeMeshgrid(x, y, h=.02):
+def make_meshgrid(x, y, h=.02):
     """Create a mesh of points to plot in
 
     Parameters
@@ -351,6 +376,7 @@ def makeMeshgrid(x, y, h=.02):
                          np.arange(y_min, y_max, h))
     return xx, yy
 
+
 def plot_contours(ax, clf, xx, yy, **params):
     """Plot the decision boundaries for a classifier.
 
@@ -366,8 +392,6 @@ def plot_contours(ax, clf, xx, yy, **params):
     Z = Z.reshape(xx.shape)
     out = ax.contourf(xx, yy, Z, **params)
     return out
-
-
 
 
 

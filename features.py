@@ -372,6 +372,11 @@ def compareFeatures2(n_jobs=1):
 	print("Optimal number of features : %d" % rfecv.n_features_)
 	print("Optimal features: ")
 	print(rfecv.support_)
+
+	print("The ranking of the features: ")
+	print(rfecv.ranking_)
+	print("The scores for each feature combination:")
+	print(rfecv.grid_scores_)
 	# Plot number of features VS. cross-validation scores
 	plt.figure()
 	plt.xlabel("Number of features selected")

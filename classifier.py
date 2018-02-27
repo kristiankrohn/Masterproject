@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils.multiclass import unique_labels
 from sklearn.model_selection import train_test_split
@@ -28,6 +29,7 @@ def predict(Xtest, clf, yTest):
     #Print the test data to see how well it performs.
     confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,2,4,6,8])
     plotConfusionMatrix(confusionMatrix, ["blink","straight", "down", "left", "right", "up"])
+
     #print("HALLO", clf.predict_proba(Xtest))
     accuracyScore = accuracy_score(yTest, predictions)
     precision = precision_score(yTest, predictions, average = 'macro')
@@ -143,8 +145,9 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False, n_
         return bestParams[0], p, r, f1, s, report
 
 def scaleAndSplit(XL, labels):
-    XLscaled = (np.array(XL))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 35, stratify = labels)
+    scaler = StandardScaler()
+    XLscaled = scaler.fit_transform(np.array(XL))
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 40, stratify = labels)
 
     return XLtrain, XLtest, yTrain, yTest
 
