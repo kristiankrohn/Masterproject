@@ -28,7 +28,7 @@ import hht
 from datetime import datetime
 #mutex = Lock()
 import classifier
-
+import predict
 
 
 
@@ -195,11 +195,12 @@ def printData(sample):
 			#print("got lock")
 			intervalcounter += 1
 			if intervalcounter >= predictioninterval:
-				print("New predict:")
+				#print("New predict:")
 				intervalcounter = 0
-				predictiondata = dataset.shapeArray(glb.data, longLength)	
-				predictionThread = threading.Thread(target=predict.predictRealTime,args=(predictiondata, clf))
-				predictionThread.start()
+				predict.predictRealTime(clf)
+				#predictionThread = threading.Thread(target=predict.predictRealTime,args=(clf,))
+				#predictionThread.start()
+
 
 	if len(glb.newSamples[0]) >= glb.window:
 		with glb.mutex:
@@ -622,7 +623,7 @@ def main():
 	#thread0.join()
 	#thread1.join()
 	#thread2.join()
-	#app = ttk.App()
+	app = ttk.App()
 	#print("Penis")
 	#while not graphVar:
 		#tme.sleep(0.1)

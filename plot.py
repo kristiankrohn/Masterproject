@@ -10,8 +10,8 @@ from sklearn.model_selection import learning_curve
 
 
 def plot():
-	global mutex
-	with(mutex):
+	#global mutex
+	with glb.mutex:
 		while len(glb.data[0][filterdata]) > nSamples:
 			for i in range(nPlots):
 				dataset.databufferPop()
@@ -35,7 +35,7 @@ def plotAll():
 		label = "Channel %d" %(i+1)
 		#print(label)
 		#label = tuple([label])
-		legend, = plt.plot(glb.data[i][filterdata], label=label)
+		legend, = plt.plot(glb.data[i][rawdata], label=label)
 		legends.append(legend)
 	plt.ylabel('uV')
 	plt.xlabel('Sample')

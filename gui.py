@@ -13,7 +13,7 @@ import os, shutil
 import dataset
 import learning
 import classifier
-
+import predict
 size = 1000
 speed = 40
 ballsize = 30
@@ -28,7 +28,8 @@ sleeping = False
 startMove = tme.time()
 endMode = tme.time()
 z = 3
-clf = None
+#clf = None
+print(machinestate)
 clf = classifier.loadMachineState(machinestate)
 
 class Ball(object):
@@ -79,9 +80,9 @@ class Ball(object):
 
 			elif down:
 				cmd = 2
-			print("Return command= %d"%cmd)
+			#print("Return command= %d"%cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=learning.predictGUI,args=(glb.data, clf, cmd, longLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -117,7 +118,7 @@ class Ball(object):
 			cmd = 0
 
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=learning.predictGUI,args=(glb.data, clf, cmd, longLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -138,7 +139,7 @@ class Ball(object):
 			#print("Movementtime= ")
 			#print(tme.time())
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=learning.predictGUI,args=(glb.data, clf, cmd, longLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -159,26 +160,29 @@ class Ball(object):
 			if z == 0:
 				self.vx = 0
 				self.vy = -speed
-				print("Up")
+				#print("Up")
 			elif z == 1:
 				self.vx = speed
 				self.vy = 0
-				print("Right")
+				#print("Right")
 			elif z == 2:
 				self.vx = 0
 				self.vy = speed
-				print("Down")
+				#print("Down")
 			else:
 				self.vx = -speed
 				self.vy = 0
-				print("Left")
+				#print("Left")
 
 		if x2 > size: #Down
 			self.vx = 0
 			right = True
 			center = False
 			cmd = 3
-			print("Saving: %d" %cmd)
+			#print("Saving: %d" %cmd)
+			if glb.guipredict:	
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)
@@ -191,7 +195,10 @@ class Ball(object):
 			left = True
 			center = False
 			cmd = 7
-			print("Saving: %d" %cmd)
+			#print("Saving: %d" %cmd)
+			if glb.guipredict:	
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)
@@ -204,7 +211,10 @@ class Ball(object):
 			down = True
 			center = False
 			cmd = 9
-			print("Saving: %d" %cmd)
+			#print("Saving: %d" %cmd)
+			if glb.guipredict:	
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)
@@ -217,7 +227,10 @@ class Ball(object):
 			up = True
 			center = False
 			cmd = 1
-			print("Saving: %d" %cmd)
+			#print("Saving: %d" %cmd)
+			if glb.guipredict:	
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
 				threadSave.setDaemon(True)

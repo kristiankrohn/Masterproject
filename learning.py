@@ -96,7 +96,8 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
-    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
+    XL = features.extractFeaturesWithMask(
+            X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
     XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0])
@@ -123,8 +124,8 @@ def startLearning():
     #plot.learningCurve(estimator, title, XL, y[0], (0.7, 1.01), cv=20, n_jobs=-1)
     #plt.show()
 
-    #clf = classifier.loadMachineState("learningState99HFDslopedSVM")
-    #classifier.saveMachinestate(clf, "learning260RBFsvm22Features")   #Uncomment this to save the machine state
+    #clf = classifier.loadMachineState("learning260RBFsvm22Features")
+    classifier.saveMachinestate(clf, "learning260RBFsvm22Features")   #Uncomment this to save the machine state
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set

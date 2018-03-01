@@ -37,7 +37,7 @@ else:
 	datasetFolder = datasetFolders[0]
 
 #data[channel][filterdata][sample]
-guipredict = False
+guipredict = True
 saveData = False
 oldSampleID = 255
 if numCh == 8:

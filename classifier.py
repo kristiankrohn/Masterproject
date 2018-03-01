@@ -151,6 +151,11 @@ def scaleAndSplit(XL, labels):
 
     return XLtrain, XLtest, yTrain, yTest, XLscaled
 
+def realTimeScale(XL):
+    scaler = StandardScaler()
+    XLscaled = scaler.fit_transform(np.array(XL))
+    return XLscaled
+    
 def saveMachinestate(clf, string):
     joblib.dump(clf, "Classifiers"+slash + string + ".pkl")
 
