@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import blackman
 import scipy.fftpack
+from sklearn.model_selection import learning_curve
+
 
 
 def plot():
@@ -91,7 +93,7 @@ def exportFftPlot(plotdata, title="", ax=None):
 	# sample spacing
 	T = 1.0 / glb.fs
 	x = np.linspace(0.0, N*T, N)
-	
+
 	w = blackman(N)
 	yf = scipy.fftpack.fft(plotdata*w)
 	xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
@@ -205,3 +207,162 @@ def ampandphase(b, a = 1):
 	ax[1].grid()
 	plt.show()
 
+def trainingPredictions(clf, X, y):
+	from sklearn.decomposition import TruncatedSVD
+	from sklearn.decomposition import PCA
+	from sklearn import svm
+	#X = TruncatedSVD().fit_transform(X)
+	X = PCA(n_components = 2).fit_transform(X)
+	#fig = plt.figure(figsize=(9, 8))
+	#ax = plt.subplot(221)
+	#ax.scatter(X[:, 10], X[:, 2], c=y, s=50, edgecolor='k')
+	#ax.set_title("Original Data between two features(2d)")
+	#ax.set_xticks(())
+	#ax.set_yticks(())
+
+	#ax = plt.subplot(222)
+	#ax.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, s=50, edgecolor='k')
+	#ax.set_title("Truncated SVD reduction (2d) of transformed data (d)")
+	#ax.set_xticks(())
+	#ax.set_yticks(())
+	C = 50
+	models = (svm.SVC(kernel = 'rbf', gamma = 0.01, decision_function_shape = 'ovr'),
+	      svm.LinearSVC(C=C),
+	      svm.SVC(kernel='linear', C=C))
+	models = (clf.fit(X, y) for clf in models)
+
+	# title for the plots
+	titles = ('SVC with RBF kernel',
+	      'LinearSVC (linear kernel)',
+	      'SVC with linear kernel',)
+
+	# Set-up 2x2 grid for plotting.
+	fig, sub = plt.subplots(3, 1)
+	plt.subplots_adjust(wspace=0.4, hspace=0.4)
+
+	X0, X1 = X[:, 0], X[:, 1] #two first features
+	xx, yy = make_meshgrid(X0, X1)
+
+	for clf, title, ax in zip(models, titles, sub.flatten()):
+	    plot_contours(ax, clf, xx, yy,
+	                  cmap=plt.cm.coolwarm, alpha=0.8)
+	    ax.scatter(X0, X1, c=y, cmap=plt.cm.coolwarm, s=20, edgecolors='k')
+	    ax.set_xlim(xx.min(), xx.max())
+	    ax.set_ylim(yy.min(), yy.max())
+	    ax.set_xlabel('Feature 1')
+	    ax.set_ylabel('Feature 2')
+	    ax.set_xticks(())
+	    ax.set_yticks(())
+	    ax.set_title(title)
+	    plt.plot(label = y)
+
+	plt.legend()
+	plt.show()
+
+def make_meshgrid(x, y, h=.02):
+	"""Create a mesh of points to plot in
+
+	Parameters
+	----------
+	x: data to base x-axis meshgrid on
+	y: data to base y-axis meshgrid on
+	h: stepsize for meshgrid, optional
+
+	Returns
+	-------
+	xx, yy : ndarray
+	"""
+	x_min, x_max = x.min() - 1, x.max() + 1
+	y_min, y_max = y.min() - 1, y.max() + 1
+	xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+	                     np.arange(y_min, y_max, h))
+	return xx, yy
+
+
+def plot_contours(ax, clf, xx, yy, **params):
+	"""Plot the decision boundaries for a classifier.
+
+	Parameters
+	----------
+	ax: matplotlib axes object
+	clf: a classifier
+	xx: meshgrid ndarray
+	yy: meshgrid ndarray
+	params: dictionary of params to pass to contourf, optional
+	"""
+	Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+	Z = Z.reshape(xx.shape)
+	out = ax.contourf(xx, yy, Z, **params)
+	return out
+
+def learningCurve(estimator, title, X, y, ylim=None, cv=None, n_jobs=1, train_sizes=np.linspace(.01, 1.0, 20)):
+
+	"""
+	Generate a simple plot of the test and training learning curve.
+
+	Parameters
+	----------
+	estimator : object type that implements the "fit" and "predict" methods
+	    An object of that type which is cloned for each validation.
+
+	title : string
+	    Title for the chart.
+
+	X : array-like, shape (n_samples, n_features)
+	    Training vector, where n_samples is the number of samples and
+	    n_features is the number of features.
+
+	y : array-like, shape (n_samples) or (n_samples, n_features), optional
+	    Target relative to X for classification or regression;
+	    None for unsupervised learning.
+
+	ylim : tuple, shape (ymin, ymax), optional
+	    Defines minimum and maximum yvalues plotted.
+
+	cv : int, cross-validation generator or an iterable, optional
+	    Determines the cross-validation splitting strategy.
+	    Possible inputs for cv are:
+	      - None, to use the default 3-fold cross-validation,
+	      - integer, to specify the number of folds.
+	      - An object to be used as a cross-validation generator.
+	      - An iterable yielding train/test splits.
+
+	    For integer/None inputs, if ``y`` is binary or multiclass,
+	    :class:`StratifiedKFold` used. If the estimator is not a classifier
+	    or if ``y`` is neither binary nor multiclass, :class:`KFold` is used.
+
+	    Refer :ref:`User Guide <cross_validation>` for the various
+	    cross-validators that can be used here.
+
+	n_jobs : integer, optional
+	    Number of jobs to run in parallel (default 1).
+	"""
+
+	plt.figure()
+	plt.title(title)
+	if ylim is not None:
+	    plt.ylim(*ylim)
+	plt.xlabel("Training examples")
+	plt.ylabel("Score")
+	train_sizes, train_scores, test_scores = learning_curve(
+	    estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+	train_scores_mean = np.mean(train_scores, axis=1)
+	train_scores_std = np.std(train_scores, axis=1)
+	test_scores_mean = np.mean(test_scores, axis=1)
+	test_scores_std = np.std(test_scores, axis=1)
+	print(test_scores_mean)
+	print(test_scores_std)
+	plt.grid()
+
+	plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+	                 train_scores_mean + train_scores_std, alpha=0.1,
+	                 color="r")
+	plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+	                 test_scores_mean + test_scores_std, alpha=0.1, color="g")
+	plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+	         label="Training score")
+	plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+	         label="Cross-validation score")
+
+	plt.legend(loc="best")
+	return plt

@@ -3,6 +3,7 @@ import numpy as np
 from sklearn import svm
 from sklearn import preprocessing
 import itertools
+import plot
 from sklearn import neighbors
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_val_score
@@ -95,10 +96,10 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
-    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=True)
+    XL = features.extractFeaturesWithMask(X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
-    XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
+    XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0])
     #XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
 
 
@@ -114,7 +115,14 @@ def startLearning():
 
     #Use this if predictor other than SVM is used.
     clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
-    plotTrainingPredictions(clf, XLtrain, yTrain)
+    #plot.trainingPredictions(clf, XL, y[0])
+
+    ###TO PLOT LEARNING CURVE UNCOMMENT THIS.
+    #title = "Learning Curves (SVM, RBF kernel, C = 50, $\gamma=0.001$)"
+    #estimator = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 50, decision_function_shape = 'ovr')
+    #plot.learningCurve(estimator, title, XL, y[0], (0.7, 1.01), cv=20, n_jobs=-1)
+    #plt.show()
+
     #clf = classifier.loadMachineState("learningState99HFDslopedSVM")
     #classifier.saveMachinestate(clf, "learning260RBFsvm22Features")   #Uncomment this to save the machine state
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
@@ -288,14 +296,6 @@ def evaluateFeatures(X, y):
     #print(Xnew.shape)
     #return Xnew
 
-
-
-
-
-
-
-
-
 def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
 
     compareFeaturesTraining = []
@@ -307,91 +307,8 @@ def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
     return compareFeaturesTraining, compareFeaturesTesting
 
 
-def plotTrainingPredictions(clf, X, y):
-    from sklearn.decomposition import TruncatedSVD
-    X = TruncatedSVD().fit_transform(X)
-
-    #fig = plt.figure(figsize=(9, 8))
-    #ax = plt.subplot(221)
-    #ax.scatter(X[:, 10], X[:, 2], c=y, s=50, edgecolor='k')
-    #ax.set_title("Original Data between two features(2d)")
-    #ax.set_xticks(())
-    #ax.set_yticks(())
-
-    #ax = plt.subplot(222)
-    #ax.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, s=50, edgecolor='k')
-    #ax.set_title("Truncated SVD reduction (2d) of transformed data (d)")
-    #ax.set_xticks(())
-    #ax.set_yticks(())
-    C = 50
-    models = (svm.SVC(kernel = 'rbf', gamma = 0.01, decision_function_shape = 'ovr'),
-          svm.LinearSVC(C=C),
-          svm.SVC(kernel='linear', C=C))
-    models = (clf.fit(X, y) for clf in models)
-
-    # title for the plots
-    titles = ('SVC with RBF kernel',
-          'LinearSVC (linear kernel)',
-          'SVC with linear kernel',)
-
-# Set-up 2x2 grid for plotting.
-    fig, sub = plt.subplots(3, 1)
-    plt.subplots_adjust(wspace=0.4, hspace=0.4)
-
-    X0, X1 = X[:, 0], X[:, 1] #two first features
-    xx, yy = make_meshgrid(X0, X1)
-
-    for clf, title, ax in zip(models, titles, sub.flatten()):
-        plot_contours(ax, clf, xx, yy,
-                      cmap=plt.cm.coolwarm, alpha=0.8)
-        ax.scatter(X0, X1, c=y, cmap=plt.cm.coolwarm, s=20, edgecolors='k')
-        ax.set_xlim(xx.min(), xx.max())
-        ax.set_ylim(yy.min(), yy.max())
-        ax.set_xlabel('Feature 1')
-        ax.set_ylabel('Feature 2')
-        ax.set_xticks(())
-        ax.set_yticks(())
-        ax.set_title(title)
-        plt.plot(label = y)
-
-    plt.legend()
-    plt.show()
-
-def make_meshgrid(x, y, h=.02):
-    """Create a mesh of points to plot in
-
-    Parameters
-    ----------
-    x: data to base x-axis meshgrid on
-    y: data to base y-axis meshgrid on
-    h: stepsize for meshgrid, optional
-
-    Returns
-    -------
-    xx, yy : ndarray
-    """
-    x_min, x_max = x.min() - 1, x.max() + 1
-    y_min, y_max = y.min() - 1, y.max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                         np.arange(y_min, y_max, h))
-    return xx, yy
 
 
-def plot_contours(ax, clf, xx, yy, **params):
-    """Plot the decision boundaries for a classifier.
-
-    Parameters
-    ----------
-    ax: matplotlib axes object
-    clf: a classifier
-    xx: meshgrid ndarray
-    yy: meshgrid ndarray
-    params: dictionary of params to pass to contourf, optional
-    """
-    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-    out = ax.contourf(xx, yy, Z, **params)
-    return out
 
 
 

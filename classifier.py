@@ -149,7 +149,7 @@ def scaleAndSplit(XL, labels):
     XLscaled = scaler.fit_transform(np.array(XL))
     XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 40, stratify = labels)
 
-    return XLtrain, XLtest, yTrain, yTest
+    return XLtrain, XLtest, yTrain, yTest, XLscaled
 
 def saveMachinestate(clf, string):
     joblib.dump(clf, "Classifiers"+slash + string + ".pkl")
