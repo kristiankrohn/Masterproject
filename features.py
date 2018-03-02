@@ -315,10 +315,10 @@ def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 		if printTime:
 			print("Time taken to extract features for example %d: " % i)
 			print(time.time() - startTime)
-		print(XL)
+		#print(XL)
 
 	XL.pop(0)
-	print XL
+	#print XL
 	return XL
 
 def convertPermutationToFeatureString(p):

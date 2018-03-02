@@ -70,11 +70,13 @@ def startLearning():
     precision = []
     classificationReport = []
 
+    classifierstring = "learning260RBFsvm22Features"
+
 
     #X, y = dataset.loadDataset("longdata.txt")
     X, y = dataset.loadDataset("data.txt")
 
-    X, y = dataset.sortDataset(X, y, length=100000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
     #X, y = dataset.sortDataset(X, y, length=10000, classes=[6,8], merge = False)
 
 
@@ -100,7 +102,22 @@ def startLearning():
             X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
-    XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0])
+    '''
+    for i in range(len(XL)):
+        L = np.arange(0, len(XL[i]))
+        plt.ion()
+        plt.show()
+        plt.clf()
+        #for i in range(numCh):
+        plt.plot(L, XL[i])
+        plt.ylabel('uV')
+        plt.xlabel('Seconds')
+        plt.draw()
+        plt.pause(0.001)
+        time.sleep(0.1)
+    '''
+    XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
+
     #XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
 
 
@@ -124,8 +141,9 @@ def startLearning():
     #plot.learningCurve(estimator, title, XL, y[0], (0.7, 1.01), cv=20, n_jobs=-1)
     #plt.show()
 
-    #clf = classifier.loadMachineState("learning260RBFsvm22Features")
-    classifier.saveMachinestate(clf, "learning260RBFsvm22Features")   #Uncomment this to save the machine state
+    #clf = classifier.loadMachineState(classifierstring)
+    classifier.saveMachinestate(clf, classifierstring)   #Uncomment this to save the machine state
+    classifier.saveScaler(scaler, classifierstring)
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set

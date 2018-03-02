@@ -149,13 +149,19 @@ def scaleAndSplit(XL, labels):
     XLscaled = scaler.fit_transform(np.array(XL))
     XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 40, stratify = labels)
 
-    return XLtrain, XLtest, yTrain, yTest, XLscaled
+    return XLtrain, XLtest, yTrain, yTest, XLscaled, scaler
 
-def realTimeScale(XL):
-    scaler = StandardScaler()
-    XLscaled = scaler.fit_transform(np.array(XL))
+def realTimeScale(XL, scaler):
+    XLscaled = scaler.transform(np.array(XL))
     return XLscaled
-    
+
+def saveScaler(scaler, string):
+    joblib.dump(scaler, "Scalers"+slash + string + ".pkl")
+
+def loadScaler(string):
+    scaler = joblib.load("Scalers"+slash + string + ".pkl")
+    return scaler
+
 def saveMachinestate(clf, string):
     joblib.dump(clf, "Classifiers"+slash + string + ".pkl")
 

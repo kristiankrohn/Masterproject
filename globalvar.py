@@ -12,8 +12,8 @@ import getpass
 newTimeData = [],[],[],[],[],[],[],[],[]
 newSamples = [],[],[],[],[],[],[],[],[]
 
-
-
+predictionslock = Lock()
+predictions = []
 
 xt = tme.time()
 fs = 250.0

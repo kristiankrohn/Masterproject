@@ -30,7 +30,10 @@ endMode = tme.time()
 z = 3
 #clf = None
 print(machinestate)
-clf = classifier.loadMachineState(machinestate)
+
+clf=None
+scaler=None
+
 
 class Ball(object):
 	def __init__(self, canvas, *args, **kwargs):
@@ -82,7 +85,7 @@ class Ball(object):
 				cmd = 2
 			#print("Return command= %d"%cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -118,7 +121,7 @@ class Ball(object):
 			cmd = 0
 
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -139,7 +142,7 @@ class Ball(object):
 			#print("Movementtime= ")
 			#print(tme.time())
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -181,7 +184,7 @@ class Ball(object):
 			cmd = 3
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -197,7 +200,7 @@ class Ball(object):
 			cmd = 7
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -213,7 +216,7 @@ class Ball(object):
 			cmd = 9
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -229,7 +232,7 @@ class Ball(object):
 			cmd = 1
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -283,7 +286,10 @@ class App(object):
 
 	def startBall(self):
 		print("StartBall")		
+		global clf, scaler
 		#self.w.pack_forget()
+		clf = classifier.loadMachineState(machinestate)
+		scaler = classifier.loadScaler(machinestate)
 		self.startButton.pack_forget()
 		self.canvas = tk.Canvas(root, width=size, height=size)
 		self.canvas.pack(expand=True)

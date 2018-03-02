@@ -29,8 +29,8 @@ from datetime import datetime
 #mutex = Lock()
 import classifier
 import predict
-
-
+import webbrowser
+import controller
 
 ####TODO############################################
 ##
@@ -52,9 +52,10 @@ exit = False
 filtering = True
 averageCondition = False
 predictioncondition = False
-predictioninterval = 250
+predictioninterval = 125
 counterlock = Lock()
 clf = None
+scaler = None
 intervalcounter = 0
 
 
@@ -197,9 +198,9 @@ def printData(sample):
 			if intervalcounter >= predictioninterval:
 				#print("New predict:")
 				intervalcounter = 0
-				predict.predictRealTime(clf)
-				#predictionThread = threading.Thread(target=predict.predictRealTime,args=(clf,))
-				#predictionThread.start()
+				#predict.predictRealTime(clf, scaler)
+				predictionThread = threading.Thread(target=predict.predictRealTime,args=(clf, scaler))
+				predictionThread.start()
 
 
 	if len(glb.newSamples[0]) >= glb.window:
@@ -268,7 +269,7 @@ def graph():
 
 def keys():
 
-	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, clf, predictioncondition
+	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, clf, predictioncondition, scaler
 	global guiVar
 	while True:
 		inputString = raw_input()
@@ -554,6 +555,7 @@ def keys():
 
 			predictioncondition = True
 			clf = classifier.loadMachineState(machinestate)
+			scaler = classifier.loadScaler(machinestate)
 			print("Predictionsetup complete")
 
 		elif string == "notpredict":
@@ -566,6 +568,13 @@ def keys():
 		elif string == "hht":
 			if inputval != None and inputval < 10:
 				hht.multiplottestHHT(inputval)
+
+		elif string == "mujaffa":
+			webbrowser.open('http://www.123spill.no/spill/spill-spillet/448/Mujaffa-1.6', new = 2)
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			mujaffaThread = threading.Thread(target=controller.mujaffaController, args=())
+			mujaffaThread.start()	
 
 		elif string == "help":
 			print("This is a list over essential commands, those ending with = need input values")
@@ -623,7 +632,7 @@ def main():
 	#thread0.join()
 	#thread1.join()
 	#thread2.join()
-	app = ttk.App()
+	#app = ttk.App()
 	#print("Penis")
 	#while not graphVar:
 		#tme.sleep(0.1)
