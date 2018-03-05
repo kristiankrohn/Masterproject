@@ -193,6 +193,8 @@ def hfd(X, channel):
 
 def max1(X, channel):
 	return np.amax(X[0])
+def min1(X, channel):
+	return np.amin(X[0])
 
 def minDiff(X, channel):
 	return np.amin(X[0]) - np.amin(X[2])
@@ -228,6 +230,12 @@ def pearsonCoeff13(X, channel):
 def pearsonCoeff13a(X, channel):
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients13[0][1]
+def pearsonCoeff12(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
+	return pearsonCoefficients12[1][0]
+def pearsonCoeff12a(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
+	return pearsonCoefficients13[0][1]
 
 def stdDeviation(X, channel):
 	return np.std(X[channel])
@@ -243,7 +251,7 @@ def slope(X, channel):
 	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
 	return slopeCh1
 def slope4(X, channel):
-	channel = 3
+	channel = 2
 	maxIndex = np.argmax(X[channel])
 	minIndex = np.argmin(X[channel])
 	minValueCh4 = np.amin(X[3])
@@ -298,7 +306,10 @@ FUNC_MAP = {0: hfd,
 			23: power1,
 			24: power4,
 			25: stdDeviation4,
-			26: ptp4}
+			26: ptp4,
+			27: min1,
+			28: pearsonCoeff12,
+			29: pearsonCoeff12a}
 
 def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 	XL = [[]]
