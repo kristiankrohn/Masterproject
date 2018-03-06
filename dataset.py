@@ -346,6 +346,7 @@ def exportPlots(command, plottype="time", speed="slow"):
 							if plottype != "raw":
 								featureData1 = filterlib.plotfilter(featureData1, b, a)
 								featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+								
 							if plottype == "fft":
 								plot.exportFftPlot(featureData1, channels[l], ax1)
 							elif plottype == "raw":

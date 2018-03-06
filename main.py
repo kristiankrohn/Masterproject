@@ -52,7 +52,7 @@ exit = False
 filtering = True
 averageCondition = False
 predictioncondition = False
-predictioninterval = 125
+predictioninterval = 50
 counterlock = Lock()
 clf = None
 scaler = None
@@ -368,7 +368,7 @@ def keys():
 
 		elif string == "exportdataplots":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("data", "raw")) 
+												args=("data", "time")) 
 			exportThread.start()
 			#dataset.exportPlots("data")
 		elif string == "exporttempplots":
@@ -574,8 +574,15 @@ def keys():
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			housekeepThread.start()
 			mujaffaThread = threading.Thread(target=controller.mujaffaController, args=())
-			mujaffaThread.start()	
+			mujaffaThread.start()
 
+		elif string == "supermario":	
+			webbrowser.open('http://nrksuper.no/super/spill/super-mario-flash/', new = 2)
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			superMarioThread = threading.Thread(target=controller.superMarioController, args=())
+			superMarioThread.start()	
+		
 		elif string == "help":
 			print("This is a list over essential commands, those ending with = need input values")
 			print("exit - exits the system")

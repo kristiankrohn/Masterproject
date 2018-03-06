@@ -133,7 +133,7 @@ def predictRealTime(clf, scaler, debug=False):
             print("Starting to predict")
         
         prediction = clf.predict(Xtest)
-        print("The prediction is: %d" %prediction[0])
+        #print("The prediction is: %d" %prediction[0])
         with glb.predictionslock:
             glb.predictions.append(prediction[0])
 
