@@ -172,6 +172,13 @@ def cov14(X, channel):
 def cov14a(X, channel):
 	cov = np.cov(X[0], X[3])
 	return cov[1][0]
+def cov13(X, channel):
+	cov = np.cov(X[0], X[2])
+	return cov[0][1]
+
+def cov13a(X, channel):
+	cov = np.cov(X[0], X[2])
+	return cov[1][0]
 
 def cov34(X, channel):
 	cov = np.cov(X[2], X[3])
@@ -179,22 +186,90 @@ def cov34(X, channel):
 def cov34a(X, channel):
 	cov = np.cov(X[2], X[3])
 	return cov[1][0]
+def cov24a(X, channel):
+	cov = np.cov(X[1], X[3])
+	return cov[1][0]
+def cov24(X, channel):
+	cov = np.cov(X[1], X[3])
+	return cov[0][1]
+def cov23(X, channel):
+	cov = np.cov(X[1], X[2])
+	return cov[0][1]
+def cov23a(X, channel):
+	cov = np.cov(X[1], X[2])
+	return cov[1][0]
 
 def ptp1(X, channel):
 	return np.ptp(X[0])
+def ptp2(X, channel):
+	return np.ptp(X[1])
+def ptp3(X, channel):
+	return np.ptp(X[2])
 def ptp4(X, channel):
 	return np.ptp(X[3])
+def ptp5(X, channel):
+	return np.ptp(X[4])
+def ptp6(X, channel):
+	return np.ptp(X[5])
+def ptp7(X, channel):
+	return np.ptp(X[6])
+def ptp8(X, channel):
+	return np.ptp(X[7])
 
 def pfd(X, channel):
 	return pyeeg.pfd(X[channel])
+def pfd2(X, channel):
+	channel = 1
+	return pyeeg.pfd(X[channel])
+def pfd3(X, channel):
+	channel = 2
+	return pyeeg.pfd(X[channel])
+def pfd4(X, channel):
+	channel = 3
+	return pyeeg.pfd(X[channel])
+def pfd5(X, channel):
+	channel = 4
+	return pyeeg.pfd(X[channel])
+def pfd6(X, channel):
+	channel = 5
+	return pyeeg.pfd(X[channel])
+def pfd7(X, channel):
+	channel = 6
+	return pyeeg.pfd(X[channel])
+def pfd8(X, channel):
+	channel = 7
+	return pyeeg.pfd(X[channel])
 
 def hfd(X, channel):
+	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def hfd2(X, channel):
+	channel = 1
+	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def hfd3(X, channel):
+	channel = 2
+	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def hfd4(X, channel):
+	channel = 3
+	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def hfd5(X, channel):
+	channel = 4
+	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def hfd6(X, channel):
+	channel = 5
+	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def hfd7(X, channel):
+	channel = 6
+	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def hfd8(X, channel):
+	channel = 7
 	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
 
 def max1(X, channel):
 	return np.amax(X[0])
 def min1(X, channel):
 	return np.amin(X[0])
+
+
 
 def minDiff(X, channel):
 	return np.amin(X[0]) - np.amin(X[2])
@@ -205,15 +280,67 @@ def maxDiff(X, channel):
 def specEntropy(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
-	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 7, 12,30], 250, powerRatio)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+def specEntropy2(X, channel):
+	channel = 2
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+def specEntropy3(X, channel):
+	channel = 3
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+def specEntropy4(X, channel):
+	channel = 3
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+def specEntropy5(X, channel):
+	channel = 4
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+def specEntropy6(X, channel):
+	channel = 5
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+def specEntropy7(X, channel):
+	channel = 6
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+def specEntropy8(X, channel):
+	channel = 7
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 8, 12,30], 250, powerRatio)
+
 def power1(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
 	return power[2]
+def power1a(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
+	return power[1]
+def power1b(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
+	return power[0]
 def power4(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
 	return power[2]
+def power4a(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
+	return power[1]
+def power4b(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
+	return power[0]
 
 def pearsonCoeff14(X, channel):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
@@ -223,7 +350,6 @@ def pearsonCoeff14a(X, channel):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients14[0][1]
-
 def pearsonCoeff13(X, channel):
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients13[1][0]
@@ -235,13 +361,42 @@ def pearsonCoeff12(X, channel):
 	return pearsonCoefficients12[1][0]
 def pearsonCoeff12a(X, channel):
 	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
-	return pearsonCoefficients13[0][1]
+	return pearsonCoefficients12[0][1]
+def pearsonCoeff24(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[1], X[3])
+	return pearsonCoefficients12[0][1]
+def pearsonCoeff24a(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[1], X[3])
+	return pearsonCoefficients12[1][0]
+def pearsonCoeff23(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[1], X[3])
+	return pearsonCoefficients12[0][1]
+def pearsonCoeff23a(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[1], X[2])
+	return pearsonCoefficients12[1][0]
+def pearsonCoeff34(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[2], X[3])
+	return pearsonCoefficients12[0][1]
+def pearsonCoeff34a(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[2], X[3])
+	return pearsonCoefficients12[1][0]
 
 def stdDeviation(X, channel):
 	return np.std(X[channel])
-
+def stdDeviation2(X, channel):
+	return np.std(X[1])
+def stdDeviation3(X, channel):
+	return np.std(X[2])
 def stdDeviation4(X, channel):
 	return np.std(X[3])
+def stdDeviation5(X, channel):
+	return np.std(X[4])
+def stdDeviation6(X, channel):
+	return np.std(X[5])
+def stdDeviation7(X, channel):
+	return np.std(X[6])
+def stdDeviation8(X, channel):
+	return np.std(X[7])
 
 def slope(X, channel):
 	maxIndex = np.argmax(X[channel])
@@ -250,8 +405,25 @@ def slope(X, channel):
 	maxValueCh1 = np.amax(X[0])
 	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
 	return slopeCh1
-def slope4(X, channel):
+def slope2(X, channel):
+	channel = 1
+	maxIndex = np.argmax(X[channel])
+	minIndex = np.argmin(X[channel])
+	minValueCh1 = np.amin(X[1])
+	maxValueCh1 = np.amax(X[1])
+	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+	return slopeCh1
+def slope3(X, channel):
 	channel = 2
+	maxIndex = np.argmax(X[channel])
+	minIndex = np.argmin(X[channel])
+	minValueCh1 = np.amin(X[2])
+	maxValueCh1 = np.amax(X[2])
+	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+	return slopeCh1
+
+def slope4(X, channel):
+	channel = 3
 	maxIndex = np.argmax(X[channel])
 	minIndex = np.argmin(X[channel])
 	minValueCh4 = np.amin(X[3])
@@ -259,9 +431,56 @@ def slope4(X, channel):
 	slopeCh4 = (minValueCh4 - maxValueCh4)/ (minIndex - maxIndex)
 	return slopeCh4
 
-def thetaBeta1(X, channel):
+def slope5(X, channel):
+	channel = 4
+	maxIndex = np.argmax(X[channel])
+	minIndex = np.argmin(X[channel])
+	minValueCh1 = np.amin(X[4])
+	maxValueCh1 = np.amax(X[4])
+	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+	return slopeCh1
+
+def slope6(X, channel):
+	channel = 5
+	maxIndex = np.argmax(X[channel])
+	minIndex = np.argmin(X[channel])
+	minValueCh1 = np.amin(X[5])
+	maxValueCh1 = np.amax(X[5])
+	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+	return slopeCh1
+
+def slope7(X, channel):
+	channel = 6
+	maxIndex = np.argmax(X[channel])
+	minIndex = np.argmin(X[channel])
+	minValueCh1 = np.amin(X[6])
+	maxValueCh1 = np.amax(X[6])
+	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+	return slopeCh1
+def slope8(X, channel):
+	channel = 7
+	maxIndex = np.argmax(X[channel])
+	minIndex = np.argmin(X[channel])
+	minValueCh1 = np.amin(X[7])
+	maxValueCh1 = np.amax(X[7])
+	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
+	return slopeCh1
+
+
+
+def thetaBeta(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	bandAvgAmplitudesCh1 = getBandAmplitudes(X[0], frequencyBands)
+	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+	return thetaBetaRatioCh1
+def thetaBeta2(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	bandAvgAmplitudesCh1 = getBandAmplitudes(X[1], frequencyBands)
+	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+	return thetaBetaRatioCh1
+def thetaBeta3(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	bandAvgAmplitudesCh1 = getBandAmplitudes(X[2], frequencyBands)
 	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
 	return thetaBetaRatioCh1
 def thetaBeta4(X, channel):
@@ -269,6 +488,26 @@ def thetaBeta4(X, channel):
 	bandAvgAmplitudesCh4 = getBandAmplitudes(X[3], frequencyBands)
 	thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
 	return thetaBetaRatioCh4
+def thetaBeta5(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	bandAvgAmplitudesCh1 = getBandAmplitudes(X[4], frequencyBands)
+	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+	return thetaBetaRatioCh1
+def thetaBeta6(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	bandAvgAmplitudesCh1 = getBandAmplitudes(X[5], frequencyBands)
+	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+	return thetaBetaRatioCh1
+def thetaBeta7(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	bandAvgAmplitudesCh1 = getBandAmplitudes(X[6], frequencyBands)
+	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+	return thetaBetaRatioCh1
+def thetaBeta8(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	bandAvgAmplitudesCh1 = getBandAmplitudes(X[7], frequencyBands)
+	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
+	return thetaBetaRatioCh1
 
 def extrema(X, channel):
 	extremaFeature = None
@@ -281,35 +520,41 @@ def extrema(X, channel):
 	return extremaFeature
 
 FUNC_MAP = {0: hfd,
-			1: minDiff,
-			2: maxDiff,
-			3: specEntropy,
-			4: pearsonCoeff14,
-			5: stdDeviation,
-			6: slope,
-			7: thetaBeta1,
-			8: extrema,
-			9: pearsonCoeff13,
-			10: pearsonCoeff14a,
-			11: pearsonCoeff13a,
-			12: thetaBeta4,
-			13: max1,
-			14: pfd,
-			15: ptp1,
-			16: slope4,
-			17: cov12,
-			18: cov12a,
-			19: cov14,
-			20: cov14a,
-			21: cov34,
-			22: cov34a,
-			23: power1,
-			24: power4,
-			25: stdDeviation4,
-			26: ptp4,
-			27: min1,
-			28: pearsonCoeff12,
-			29: pearsonCoeff12a}
+			1: hfd4,
+			2: specEntropy,
+			3: specEntropy4,
+			4: pearsonCoeff12,
+			5: pearsonCoeff12a,
+			6: pearsonCoeff13,
+			7: pearsonCoeff13a,
+			8: pearsonCoeff14,
+			9: pearsonCoeff14a,
+			10: cov12,
+			11: cov12a,
+			12: cov13,
+			13: cov13a,
+			14: cov14,
+			15: cov14a,
+			16: power1,
+			17: power1a,
+			18: power1b,
+			19: power4,
+			20: power4a,
+			21: power4b,
+			22: thetaBeta,
+			23: thetaBeta4,
+			24: slope,
+			25: slope4,
+			26: stdDeviation,
+			27: stdDeviation4,
+			28: pfd,
+			29: pfd4,
+			30: ptp1,
+			31: ptp4,
+			32: max1,
+			33: min1,
+			34: minDiff,
+			35: maxDiff}
 
 def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 	XL = [[]]
@@ -346,6 +591,7 @@ def convertPermutationToFeatureString(p):
 		return str(p)
 
 def compareFeatures2(n_jobs=1):
+	from sklearn.model_selection import cross_val_score
 	#datasetfile = "longdata.txt"
 	datasetfile = "data.txt"
 	merge = True
@@ -367,8 +613,7 @@ def compareFeatures2(n_jobs=1):
 	#Calculate features
 	#XL = extractAllFeatures(X, channel=0)
 	XL = extractFeaturesWithMask(X, channel = 0, featuremask=range(len(FUNC_MAP)))
-	XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
-	scaler = StandardScaler()
+	XLtrain, XLtest, yTrain, yTest, XLscaled, scaler = classifier.scaleAndSplit(XL, y[0])
 	XL = scaler.fit_transform(XL, y[0])
 	#XLtest = scaler.fit_transform(XLtest, yTest)
 
@@ -396,6 +641,13 @@ def compareFeatures2(n_jobs=1):
 	plt.ylabel("Cross validation score (nb of correct classifications)")
 	plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
 	plt.show()
+
+	print("After feature selection: ")
+	scores = cross_val_score(rfecv.estimator_, XLtrain, yTrain, cv=50, scoring = 'accuracy')
+	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+	print()
+	print("Scores")
+	print(scores)
 
 def compareFeatures(n_jobs=1):
 	#array declaration

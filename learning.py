@@ -99,7 +99,7 @@ def startLearning():
     '''
     #XL = features.extractFeatures(X, channelIndex)
     XL = features.extractFeaturesWithMask(
-            X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
+            X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,32,33], printTime=False)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
     '''
@@ -142,8 +142,8 @@ def startLearning():
     #plt.show()
 
     #clf = classifier.loadMachineState(classifierstring)
-    classifier.saveMachinestate(clf, classifierstring)   #Uncomment this to save the machine state
-    classifier.saveScaler(scaler, classifierstring)
+    #classifier.saveMachinestate(clf, classifierstring)   #Uncomment this to save the machine state
+    #classifier.saveScaler(scaler, classifierstring)
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set
