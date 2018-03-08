@@ -29,7 +29,7 @@ def predictGUI(clf, y, windowLength, scaler):
 
     Xtest = features.extractFeaturesWithMask(
                 X, 0, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
-    Xtest = classifier.realTimeScale(Xtest)
+    Xtest = classifier.realTimeScale(Xtest, scaler)
     predictions = clf.predict(Xtest)
     #print("Time taken to predict with given examples in GUI:")
     #print(time.time() - start)

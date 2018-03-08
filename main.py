@@ -52,7 +52,7 @@ exit = False
 filtering = True
 averageCondition = False
 predictioncondition = False
-predictioninterval = 50
+predictioninterval = 25
 counterlock = Lock()
 clf = None
 scaler = None
@@ -565,6 +565,9 @@ def keys():
 
 			predict.classificationReportGUI()
 
+		elif string == "clearreport":
+			predict.resetClassificationReport()
+
 		elif string == "hht":
 			if inputval != None and inputval < 10:
 				hht.multiplottestHHT(inputval)
@@ -581,7 +584,14 @@ def keys():
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			housekeepThread.start()
 			superMarioThread = threading.Thread(target=controller.superMarioController, args=())
-			superMarioThread.start()	
+			superMarioThread.start()
+
+		elif string == "tetris":
+			webbrowser.open('https://tetris.com/play-tetris/', new = 2)
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			superMarioThread = threading.Thread(target=controller.tetrisController, args=())
+			superMarioThread.start()
 		
 		elif string == "help":
 			print("This is a list over essential commands, those ending with = need input values")
