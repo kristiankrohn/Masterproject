@@ -142,8 +142,8 @@ def startLearning():
     #plt.show()
 
     #clf = classifier.loadMachineState(classifierstring)
-    classifier.saveMachinestate(clf, classifierstring)   #Uncomment this to save the machine state
-    classifier.saveScaler(scaler, classifierstring)
+    #classifier.saveMachinestate(clf, classifierstring)   #Uncomment this to save the machine state
+    #classifier.saveScaler(scaler, classifierstring)
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set

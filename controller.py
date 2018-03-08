@@ -10,7 +10,7 @@ def mujaffaController():
 	keypress = False
 	release = False
 	while True:
-		
+
 		#Process commands
 		lastprediction = glb.predictions[-1]
 		#Statemachine
@@ -19,8 +19,8 @@ def mujaffaController():
 			keypress=True
 
 		if opposite[pressedkey] == lastprediction:
-			release = True	
-		
+			release = True
+
 		#Do actions
 		if keypress:
 			keyboard.press(translate[pressedkey])
@@ -39,7 +39,7 @@ def superMarioController():
 	keypress = False
 	previousPrediction = 0
 	while True:
-		
+
 		#Process commands
 		if len(glb.predictions) > 1:
 			with glb.predictionslock:
@@ -51,7 +51,7 @@ def superMarioController():
 				keyboard.press(translate[pressedkey])
 				print("Pressed " + str(translate[pressedkey]))
 				keypress = True
-				
+
 			if prediction == 0:
 				if previousPrediction != 0:
 					keyboard.press_and_release(translate[prediction])
@@ -65,7 +65,7 @@ def superMarioController():
 					print("Release " + str(translate[pressedkey]))
 
 				elif prediction in otherkey[pressedkey]: #Release and press new
-					keypress = True	
+					keypress = True
 					oldkey = copy.copy(pressedkey)
 					pressedkey = prediction
 					keyboard.release(translate[oldkey])
@@ -76,9 +76,59 @@ def superMarioController():
 			previousPrediction = prediction
 
 		tme.sleep(0.01)
+def tetrisController():
+	translate = {0:'space', 2:'down', 4:'left', 6:'right',8:'up'}
+	opposite = {2:8, 4:6, 6:4, 8:2, 0:0}
+	otherkey = {2:[4,6], 4:[2,8], 6:[2,8], 8:[4,6], 0:[2,4,6,8]}
+	pressedkey = None
+	keypress = False
+	previousPrediction = 0
+
+
+	if len(glb.predictions) > 1:
+		with glb.predictionslock:
+			prediction = glb.predictions[0]
+			glb.predictions.pop(0)
+	if (prediction in [2,4,6]) and (keypress == False): #Press
+		pressedKey = prediction[0]
+		keyboard.press(translate[pressedKey])
+		print("Pressed " + str(translate[pressedKey]))
+		keypress = True
+
+	elif (prediction in [8]) and (keypress == False): #Press and release
+		keyboard.press_and_release(translate[pressedKey])
+
+	if prediction == 0:
+		if previousPrediction == 0: #double blink for space
+			keyboard.press_and_release(translate[prediction])
+			print("Press and release " + str(translate[prediction]))
+
+	if (pressedkey != None) and (prediction in [2,4,6]):
+
+		if prediction == opposite[pressedkey]: #Release
+			keypress = False
+			keyboard.release(translate[pressedkey])
+			print("Release " + str(translate[pressedkey]))
+
+		elif prediction in otherkey[pressedkey]: #Release and press new
+			keypress = True
+			oldkey = copy.copy(pressedkey)
+			pressedkey = prediction
+			if pressedkey == 8:
+				 keyboard.release(translate[oldkey])
+				 keyboard.press_and_release(translate[pressedkey])
+				 keypress = False
+				 print("Release "+ str(translate[oldkey])+"Press and release " + str(translate[pressedkey]))
+			else:
+				keyboard.release(translate[oldkey])
+				keyboard.press(translate[pressedkey])
+				print("Release "+ str(translate[oldkey])+"Press " + str(translate[pressedkey]))
+
+
+	previousPrediction = prediction
 
 def housekeeper():
-	
+
 	longsleep = False
 	pop = False
 	maxSizePredictions = 20
@@ -88,4 +138,4 @@ def housekeeper():
 			if len(glb.predictions) > maxSizePredictions:
 				longsleep = False
 				glb.predictions.pop(0)
-			tme.sleep(0.01)	
+			tme.sleep(0.01)
