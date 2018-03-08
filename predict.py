@@ -81,7 +81,7 @@ def classificationReportGUI():
     yTestGUI = AllY.split(",")
 
     pfile = open("p.txt", 'r')
-    AllP = yfile.read()
+    AllP = pfile.read()
     pfile.close()
     predictionsGUI = []
     predictionsGUI = AllP.split(",")
