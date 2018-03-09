@@ -147,7 +147,7 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False, n_
 def scaleAndSplit(XL, labels):
     scaler = StandardScaler()
     XLscaled = scaler.fit_transform(np.array(XL))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 40, stratify = labels)
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 42, stratify = labels)
 
     return XLtrain, XLtest, yTrain, yTest, XLscaled, scaler
 

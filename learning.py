@@ -98,8 +98,12 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
+    featuremask = features.readFeatureMask()
     XL = features.extractFeaturesWithMask(
-            X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
+            X, channelIndex, featuremask=featuremask, printTime=False)
+    
+    #XL = features.extractFeaturesWithMask(
+            #X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
     '''

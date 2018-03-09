@@ -31,6 +31,7 @@ import classifier
 import predict
 import webbrowser
 import controller
+import features
 
 ####TODO############################################
 ##
@@ -50,14 +51,14 @@ ptr = 0
 p = None
 exit = False
 filtering = True
-averageCondition = False
+
 predictioncondition = False
 predictioninterval = 25
 counterlock = Lock()
 clf = None
 scaler = None
 intervalcounter = 0
-
+featuremask = None
 
 
 #app = QtGui.QApplication([])
@@ -199,7 +200,7 @@ def printData(sample):
 				#print("New predict:")
 				intervalcounter = 0
 				#predict.predictRealTime(clf, scaler)
-				predictionThread = threading.Thread(target=predict.predictRealTime,args=(clf, scaler))
+				predictionThread = threading.Thread(target=predict.predictRealTime,args=(clf, scaler, featuremask))
 				predictionThread.start()
 
 
@@ -269,7 +270,7 @@ def graph():
 
 def keys():
 
-	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, clf, predictioncondition, scaler
+	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, clf, predictioncondition, scaler, featuremask
 	global guiVar
 	while True:
 		inputString = raw_input()
@@ -536,7 +537,7 @@ def keys():
 				plt.show()
 		
 		elif string == "loaddataset":
-			x,y = dataset.loadDataset("longtemp.txt")
+			x,y = dataset.loadDataset("data.txt")
 			#x,y = dataset.sortDataset(x, y, classes=[0,5,2,4,6,8])
 			print(x[0][0])
 		elif string == "stats":
@@ -556,6 +557,8 @@ def keys():
 			predictioncondition = True
 			clf = classifier.loadMachineState(machinestate)
 			scaler = classifier.loadScaler(machinestate)
+			featuremask = features.readFeatureMask()
+			print featuremask
 			print("Predictionsetup complete")
 
 		elif string == "notpredict":

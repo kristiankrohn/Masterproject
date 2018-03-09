@@ -103,19 +103,19 @@ def classificationReportGUI():
 
 
 
-def predictRealTime(clf, scaler, debug=False):
+def predictRealTime(clf, scaler, featuremask, debug=False):
     #print(X)
     start = time.time()
     X = dataset.shapeArray(shortLength, checkTimestamp=False)
     #print(len(X[0][0]))
-    if (X == -1) or ((len(X[0][0]) < 250) and (len(glb.data[0][filterdata]) > 1500)):
+    if (X == -1) or ((len(X[0][0]) < shortLength) and (len(glb.data[0][filterdata]) > 1500)):
         print("Error from shape array")
     else:
         #Xtest = features.extractFeatures(X, 0)
         #L = np.arange(0, len(X[0][0])/glb.fs, 1/glb.fs)
    
         Xtest = features.extractFeaturesWithMask(
-                X, 0, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
+                X, 0, featuremask=featuremask, printTime=False)
         Xtest = classifier.realTimeScale(Xtest, scaler)
         #print Xtest[0]
         if debug:

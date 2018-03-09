@@ -10,6 +10,7 @@ import time as tme
 import copy
 import multiprocessing
 import itertools
+from scipy import signal
 printlock = Lock()
 filelock = Lock()
 
@@ -344,9 +345,20 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 							ax1 = plt.subplot(subplotnum)
 							if plottype != "raw":
+
 								featureData1 = filterlib.plotfilter(featureData1, b, a)
-								featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+
+								if l == 0:
+									peakIndex = findPeakIndex(featureData1)
+
+								if len(featureData1) > 1600:
+									featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+									print("Statically remove padding")
+								else: #Short set
+									featureData1 = rmPadding(featureData1, peakIndex)
 								
+								#featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
+
 							if plottype == "fft":
 								plot.exportFftPlot(featureData1, channels[l], ax1)
 							elif plottype == "raw":
@@ -656,6 +668,10 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 			if filterCondition:
 				featureData = filterlib.plotfilter(featureData, b, a)
 			if removePadding:
+
+				if channel == 0:
+					peakIndex = findPeakIndex(featureData)
+
 				if shift and (label in [2,4,6,8]):
 					if isinstance(shift, int):
 						featureData = featureData[(frontPadding+shift):-(backPadding-shift)]
@@ -663,8 +679,12 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 						print("Invalid shift")
 						return
 				else:	
-					featureData = featureData[frontPadding:-backPadding] #Remove paddings
-
+					if len(featureData) > 1600:
+						featureData = featureData[frontPadding:-backPadding] #Remove paddings
+						print("Statically remove padding")
+					else: #Short set
+						featureData = rmPadding(featureData, peakIndex)
+					
 			x[channel].append(featureData)
 
 		else:
@@ -676,9 +696,7 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 	print("Finished loading dataset")
 	return (x, y)
 
-def removePadding(x):
-	xReturn = x[frontPadding:-backPadding]
-	return xReturn
+
 
 
 def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
@@ -1055,3 +1073,53 @@ def shapeArray(length, direction=0, checkTimestamp=True):
 	for i in range(numCh):
 		returnlist[i].append(temp[i][filterdata][start:stop])
 	return returnlist
+
+
+def findPeakIndex(data, plot=False):
+
+	golayData = signal.savgol_filter(x=data, window_length=35, polyorder = 2)
+	originalWindow = golayData[frontPadding:-backPadding]
+	maxPeakIndex = np.argmax(originalWindow)
+	minPeakIndex = np.argmin(originalWindow)
+
+	if abs(originalWindow[maxPeakIndex]) > abs(originalWindow[minPeakIndex]):
+		peakIndex = maxPeakIndex
+	else: 
+		peakIndex = minPeakIndex
+
+	if plot:
+		peakPlot = np.zeros(len(originalWindow))
+		peakPlot[peakIndex] = 100
+		legends = []
+		legend, = plt.plot(data[frontPadding:-backPadding], label="Original data")
+		legends.append(legend)
+		legend, = plt.plot(golayData[frontPadding:-backPadding], label="Golay")
+		legends.append(legend)
+		legend, = plt.plot(peakPlot, label="Peakfinder")
+		legends.append(legend)
+
+		plt.ylabel('uV')
+		plt.xlabel('Sample')
+		plt.legend(handles=legends)
+		
+		plt.show()
+	#print(peakIndex)
+	return peakIndex
+
+def rmPadding(data, peakIndex):
+	#print(len(data))
+	windowLength = shortLength
+	centerIndex = frontPadding + peakIndex
+
+	halfWindow = windowLength // 2
+	startIndex = centerIndex - halfWindow
+	stopIndex = centerIndex + halfWindow
+	#if len(windowLength) % 2 == 0: #window is even length
+
+	#else: #window is odd length
+	#print("Start Index: %d " %startIndex)
+	#print("Stop Index: %d " %stopIndex)			
+
+	data = data[startIndex:stopIndex]
+	#print("Length of Data: %d" %len(data))
+	return data

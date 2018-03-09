@@ -9,6 +9,7 @@ import mail
 import classifier
 from itertools import permutations
 from itertools import combinations
+from itertools import compress
 from datetime import datetime
 from numpy.fft import fft
 from numpy import zeros, floor
@@ -18,6 +19,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import linear_model
+from sklearn.model_selection import cross_val_score
 
 def getBandAmplitudes(X, Band):
 	Fs = glb.fs
@@ -31,133 +33,6 @@ def getBandAmplitudes(X, Band):
 		#Endret til Int for aa faa det til aa gaa igjennom
 		avgAmplitude[Freq_Index] = sum(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))]) / len(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))])
 	return avgAmplitude
-
-
-def extractFeatures(X, channel):
-    XL = [[]]
-    frequencyBands = [0.1, 4, 8, 12,30]
-    Fs = 250
-    featureVector = []
-
-    for i in range(len(X[0])):
-        startTime = time.time()
-        power, powerRatio = pyeeg.bin_power(X[channel][i], frequencyBands, Fs)
-        bandAvgAmplitudesCh1 = getBandAmplitudes(X[0][i], frequencyBands)
-        bandAvgAmplitudesCh2 = getBandAmplitudes(X[1][i], frequencyBands)
-        bandAvgAmplitudesCh3 = getBandAmplitudes(X[0][i], frequencyBands)
-        bandAvgAmplitudesCh4 = getBandAmplitudes(X[1][i], frequencyBands)
-        thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
-        thetaBetaRatioCh2 = bandAvgAmplitudesCh2[1]/bandAvgAmplitudesCh2[3]
-        thetaBetaRatioCh3 = bandAvgAmplitudesCh3[1]/bandAvgAmplitudesCh3[3]
-        thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
-
-        pearsonCoefficients13 = np.corrcoef(X[0][i], X[2][i])
-        pearsonCoefficients14 = np.corrcoef(X[0][i], X[3][i])
-        pearsonCoefficients23 = np.corrcoef(X[1][i], X[2][i])
-        pearsonCoefficients24 = np.corrcoef(X[1][i], X[3][i])
-        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
-        cov12 = np.cov(list(X[0][i]), list(X[1][i]))
-        cov34 = np.cov(list(X[2][i]), list(X[3][i]))
-        corr12 = np.correlate(list(X[0][i]), list(X[1][i])),
-
-        maxIndex = np.argmax(list(X[0][i]))
-        minIndex = np.argmin(list(X[0][i]))
-        minValueCh1 = np.amin(list(X[0][i]))
-        maxValueCh1 = np.amax(list(X[0][i]))
-
-
-        slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
-
-        #print(power)
-        #print(channel)
-        #thetaBetaPowerRatio = power[1]/power[3] denne sugde tror jeg
-        #featureVector = [power[1], pyeeg.hurst(list(X[0][i])), np.std(list(X[0][i])),  np.ptp(list(X[0][i])), np.amax(list(X[0][i])), np.amin(list(X[0][i]))]
-        featureVector = [
-                        pyeeg.hfd(list(X[channel][i]), 200), #Okende tall gir viktigere feature, men mye lenger computation time
-                        np.amin(list(X[0][i])) - np.amin(list(X[2][i])),
-                        np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
-                        #np.argmax(list(X[2][i])) - np.argmax(list(X[3][i])), #This seems promising, needs more testing. Index for max point
-                        pyeeg.spectral_entropy(list(X[channel][i]), [0.1, 4, 7, 12,30], 250, powerRatio),
-                        #pearsonCoefficients14[0][1],
-                        pearsonCoefficients14[1][0],
-                        np.std(list(X[channel][i])),
-                        slopeCh1,
-
-                        #np.amax(list(X[0][i])),
-                        #np.amax(list(X[1][i])),
-                        #np.amin(list(X[0][i])),
-                        #np.amin(list(X[1][i])),
-
-                        #thetaBetaRatioCh1,
-                        #thetaBetaRatioCh2,
-                        #thetaBetaRatioCh3,
-                        #thetaBetaRatioCh4,
-                        #np.ptp(list(X[0][i])), #denne er bra
-                        #powerRatio[2],
-                        #powerRatio[1],
-
-
-
-
-                        #np.amin(list(X[0][i])),
-
-
-                        #corr12[0][0],
-                        #np.amax(list(X[0][i])) - np.amax(list(X[3][i])),
-                        #np.correlate(list(X[0][i]), list(X[2][i])),
-
-                        #cov12[0][1],
-                        #cov12[1][0],
-                        #np.amax(list(X[0][i])) - np.amax(list(X[2][i])),
-
-                        #np.amax(list(X[1][i])) - np.amax(list(X[2][i])),
-                        #np.amax(list(X[1][i])) - np.amax(list(X[3][i])),
-                        #pearsonCoefficients13[0][1],
-                        #pearsonCoefficients13[1][0],
-                        #thetaBetaRatio,
-
-                        #powerRatio[0],
-                        #pyeeg.hurst(list(X[channel][i])),
-                        #np.std(list(X[channel][i])),
-                        #np.var(list(X[channel][i])),
-
-                        #np.correlate(list(X[0][i]), list(X[3][i])), #funker bare for decision tree???
-                        #np.correlate(list(X[2][i]), list(X[3][i])),
-
-                        #cov34[0][1],
-                        #cov34[1][0],
-
-                        #bandAvgAmplitudes[0],
-                        #bandAvgAmplitudes[1],
-                        #np.std(list(X[channel][i])),
-                        #pyeeg.hjorth(list(X[0][i])),
-
-
-                        #np.ptp(list(X[3][i])),
-
-
-
-
-
-                        #thetaBetaPowerRatio,
-                        #powerRatio[1],
-                        #powerRatio[2],
-                        #powerRatio[3],
-                        #power[0],
-                        #power[1],
-                        #power[2],
-                        #power[3],
-                        #pyeeg.pfd(list(X[0][i])),
-                        #pyeeg.dfa(list(X[0][i]), None, None),
-                        ]
-        XL.append(featureVector)
-        print("Time taken to extract features for example %d: " % i)
-        print(time.time() - startTime)
-        #print(XL)
-    XL.pop(0)
-    return XL
-
-
 
 def cov12(X, channel):
 	cov = np.cov(X[0], X[1])
@@ -235,7 +110,7 @@ def pearsonCoeff12(X, channel):
 	return pearsonCoefficients12[1][0]
 def pearsonCoeff12a(X, channel):
 	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
-	return pearsonCoefficients13[0][1]
+	return pearsonCoefficients12[0][1]
 
 def stdDeviation(X, channel):
 	return np.std(X[channel])
@@ -367,9 +242,9 @@ def compareFeatures2(n_jobs=1):
 	#Calculate features
 	#XL = extractAllFeatures(X, channel=0)
 	XL = extractFeaturesWithMask(X, channel = 0, featuremask=range(len(FUNC_MAP)))
-	XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
-	scaler = StandardScaler()
-	XL = scaler.fit_transform(XL, y[0])
+	XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
+	#scaler = StandardScaler()
+	#XL = scaler.fit_transform(XL, y[0])
 	#XLtest = scaler.fit_transform(XLtest, yTest)
 
 
@@ -386,6 +261,12 @@ def compareFeatures2(n_jobs=1):
 	print("Optimal features: ")
 	print(rfecv.support_)
 
+	features = range(len(FUNC_MAP))
+	featuremaskList = list(compress(features, rfecv.support_))
+	featuremask = open("featuremask.txt", 'w+')
+	featuremask.write(str(featuremaskList))
+	featuremask.close()
+
 	print("The ranking of the features: ")
 	print(rfecv.ranking_)
 	print("The scores for each feature combination:")
@@ -396,6 +277,24 @@ def compareFeatures2(n_jobs=1):
 	plt.ylabel("Cross validation score (nb of correct classifications)")
 	plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
 	plt.show()
+
+	print("After feature selection: ")
+	scores = cross_val_score(rfecv.estimator_, XLtrain, yTrain, cv=50, scoring = 'accuracy')
+	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+	print()
+	print("Scores")
+	print(scores)
+
+def readFeatureMask():
+	featuremaskFile = open("featuremask.txt", 'r')
+	featuremaskString = featuremaskFile.read()
+	featuremaskFile.close()
+	featuremaskString = featuremaskString[1:-1]
+	#featuremaskString.pop(0)
+	#featuremaskString.pop(-1)
+	featuremaskList = map(int, featuremaskString.split(', '))
+	print featuremaskList
+	return featuremaskList
 
 def compareFeatures(n_jobs=1):
 	#array declaration
