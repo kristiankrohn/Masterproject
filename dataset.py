@@ -622,7 +622,7 @@ def clear(elementtype):
 
 
 
-def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch", removePadding=True, shift=0):
+def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch", removePadding=True, shift=True, windowLength = 250):
 	global filelock
 	print("Starting to load dataset")
 	x = [[],[],[],[],[],[],[],[]]
@@ -669,21 +669,12 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 				featureData = filterlib.plotfilter(featureData, b, a)
 			if removePadding:
 
-				if channel == 0:
-					peakIndex = findPeakIndex(featureData)
+				if (channel == 0) and shift and (len(featureData) < 1600):
+					peakIndex = findPeakIndex(featureData, plot=False, label = y[channel])
+				else: 
+					peakIndex = (len(featureData) - frontPadding - backPadding) // 2
 
-				if shift and (label in [2,4,6,8]):
-					if isinstance(shift, int):
-						featureData = featureData[(frontPadding+shift):-(backPadding-shift)]
-					else:
-						print("Invalid shift")
-						return
-				else:	
-					if len(featureData) > 1600:
-						featureData = featureData[frontPadding:-backPadding] #Remove paddings
-						print("Statically remove padding")
-					else: #Short set
-						featureData = rmPadding(featureData, peakIndex)
+				featureData = rmPadding(featureData, peakIndex, windowLength)
 					
 			x[channel].append(featureData)
 
@@ -723,10 +714,7 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 	
 	returnCounts = [0]*len(classes)
 	
-
 	
-	#MergeDict = {0:0,   1:4,  2:8,  3:2,  4:6,  5:5,  6:4,  7:8,  8:2,  9:6}
-	MergeDict = {0:0,   1:8,  2:8,  3:6,  4:6,  5:5,  6:4,  7:4,  8:2,  9:2}
 	if 0 in classes:
 		zeroIndex = classes.index(0)
 	else:
@@ -1075,7 +1063,7 @@ def shapeArray(length, direction=0, checkTimestamp=True):
 	return returnlist
 
 
-def findPeakIndex(data, plot=False):
+def findPeakIndex(data, plot=False, label=""):
 
 	golayData = signal.savgol_filter(x=data, window_length=35, polyorder = 2)
 	originalWindow = golayData[frontPadding:-backPadding]
@@ -1088,12 +1076,18 @@ def findPeakIndex(data, plot=False):
 		peakIndex = minPeakIndex
 
 	if plot:
+		movement = MergeDict[int(label[-1])]
+		movementString = movements[movement]
+		movementString = movementString.replace('_',' ')
+		
+		plt.suptitle(movementString[1:])
+		
 		peakPlot = np.zeros(len(originalWindow))
 		peakPlot[peakIndex] = 100
 		legends = []
-		legend, = plt.plot(data[frontPadding:-backPadding], label="Original data")
+		legend, = plt.plot(data[frontPadding:-backPadding], label="Original data x[n]")
 		legends.append(legend)
-		legend, = plt.plot(golayData[frontPadding:-backPadding], label="Golay")
+		legend, = plt.plot(golayData[frontPadding:-backPadding], label="Savitzky-Golay filter")
 		legends.append(legend)
 		legend, = plt.plot(peakPlot, label="Peakfinder")
 		legends.append(legend)
@@ -1106,9 +1100,10 @@ def findPeakIndex(data, plot=False):
 	#print(peakIndex)
 	return peakIndex
 
-def rmPadding(data, peakIndex):
+def rmPadding(data, peakIndex, windowLength=250):
 	#print(len(data))
-	windowLength = shortLength
+	if windowLength == None:
+		windowLength = shortLength
 	centerIndex = frontPadding + peakIndex
 
 	halfWindow = windowLength // 2

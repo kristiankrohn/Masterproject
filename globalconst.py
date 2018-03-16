@@ -44,6 +44,8 @@ movements = [slash + "Center_blink", slash + "Up_direction", slash + "Down_retur
 			slash + "Up_return", slash + "Down_direction", slash + "Garbage"]	
 
 
+MergeDict = {0:0,   1:8,  2:8,  3:6,  4:6,  5:5,  6:4,  7:4,  8:2,  9:2}
+
 channels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
 shortclasses = [0,1,2,3,4,5,6,7,8,9]
 longclasses = [0,5,2,4,6,8]

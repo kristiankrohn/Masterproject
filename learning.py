@@ -27,6 +27,9 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn import linear_model
+from sklearn.feature_selection import RFECV
+from sklearn.decomposition import PCA
+
 #from numpy.fft import fft
 #from numpy import zeros, floor
 import math
@@ -60,6 +63,7 @@ def main():
     #features.cleanLogs()
     #features.compareFeatures(n_jobs=-1)
     #features.readLogs()
+    features.compareFeatures2(8)
     startLearning()
 
 
@@ -74,8 +78,12 @@ def startLearning():
 
 
     #X, y = dataset.loadDataset("longdata.txt")
-    X, y = dataset.loadDataset("data.txt")
-
+    '''
+    X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
+    '''
+    X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
     X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
     #X, y = dataset.sortDataset(X, y, length=10000, classes=[6,8], merge = False)
 
@@ -101,6 +109,19 @@ def startLearning():
     featuremask = features.readFeatureMask()
     XL = features.extractFeaturesWithMask(
             X, channelIndex, featuremask=featuremask, printTime=False)
+    
+    #uncomment for using samples as features
+    '''
+    XL = X[0]
+    print(len(X[0]))
+    for i in range(len(X[0])):
+        XL[i] = np.concatenate((XL[i], X[1][i], X[3][i])) 
+        #np.append(XL[i], X[1][i])
+        #np.append(XL[i], X[2][i])
+        #np.append(XL[i], X[3][i])
+    print(len(XL[0]))
+    '''
+    #XL = PCA(n_components = 10).fit_transform(XL)
     
     #XL = features.extractFeaturesWithMask(
             #X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
@@ -146,8 +167,8 @@ def startLearning():
     #plt.show()
 
     #clf = classifier.loadMachineState(classifierstring)
-    #classifier.saveMachinestate(clf, classifierstring)   #Uncomment this to save the machine state
-    #classifier.saveScaler(scaler, classifierstring)
+    classifier.saveMachinestate(clf, classifierstring)   #Uncomment this to save the machine state
+    classifier.saveScaler(scaler, classifierstring)
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
     #Use this if it is imporatnt to see the overall prediction, and not for only the test set
@@ -183,7 +204,7 @@ def startLearning():
     print("Classification Report of channel %d:" %channelIndex) #String, weird if you print whole array with string, and predicting over several channels.
     print(classificationReport[0])
 
-    evaluateFeatures(XLtrain, yTrain)
+    #evaluateFeatures(XLtrain, yTrain)
 
     #print("The cross-validation score is:")
     #print(crossValScore)

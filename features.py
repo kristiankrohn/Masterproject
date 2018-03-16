@@ -224,7 +224,8 @@ def compareFeatures2(n_jobs=1):
 	#datasetfile = "longdata.txt"
 	datasetfile = "data.txt"
 	merge = True
-	X, y = dataset.loadDataset(filename=datasetfile)
+	X, y = dataset.loadDataset(filename=datasetfile, filterCondition=True, 
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
 	#print("After load")
     #print X
 	if datasetfile == "longdata.txt":

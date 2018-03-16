@@ -43,12 +43,12 @@ def designfilter(Q=50, filtertype="notch"):
 		bTot = signal.convolve(b, bNotch50, mode='full')
 		bTot = signal.convolve(bTot, bNotch50, mode='full')
 		bTot = signal.convolve(bTot, bNotch50, mode='full')
-		#bTot = signal.convolve(bTot, bNotch50, mode='full')
+		bTot = signal.convolve(bTot, bNotch50, mode='full')
 
 		aTot = signal.convolve(a, aNotch50, mode='full')
 		aTot = signal.convolve(aTot, aNotch50, mode='full')
 		aTot = signal.convolve(aTot, aNotch50, mode='full')
-		#aTot = signal.convolve(aTot, aNotch50, mode='full')
+		aTot = signal.convolve(aTot, aNotch50, mode='full')
 
 		if glb.fs > 200:
 			f100 = 100.0

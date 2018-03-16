@@ -171,7 +171,7 @@ def tetrisController():
 					'''
 				
 			previousPrediction = prediction
-		tme.sleep(0.01)
+		tme.sleep(0.05)
 
 def housekeeper():
 
