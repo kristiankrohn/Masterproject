@@ -20,6 +20,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import linear_model
 from sklearn.model_selection import cross_val_score
+import math
 
 def getBandAmplitudes(X, Band):
 	Fs = glb.fs
@@ -60,11 +61,17 @@ def ptp1(X, channel):
 def ptp4(X, channel):
 	return np.ptp(X[3])
 
-def pfd(X, channel):
-	return pyeeg.pfd(X[channel])
+def pfd1(X, channel):
+	return pyeeg.pfd(X[0])
 
-def hfd(X, channel):
-	return pyeeg.hfd(X[channel], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+def pfd4(X, channel):
+	return pyeeg.pfd(X[3])
+
+def hfd1(X, channel):
+	return pyeeg.hfd(X[0], 50) #Okende tall gir viktigere feature, men mye lenger computation time
+
+def hfd4(X, channel):
+	return pyeeg.hfd(X[3], 50) #Okende tall gir viktigere feature, men mye lenger computation time
 
 def max1(X, channel):
 	return np.amax(X[0])
@@ -72,19 +79,21 @@ def min1(X, channel):
 	return np.amin(X[0])
 
 def minDiff(X, channel):
-	return np.amin(X[0]) - np.amin(X[2])
+	return np.amin(X[1]) - np.amin(X[3])
 
 def maxDiff(X, channel):
-	return np.amax(X[0]) - np.amax(X[2])
+	return np.amax(X[1]) - np.amax(X[3])
 
 def specEntropy(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
 	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 7, 12,30], 250, powerRatio)
+
 def power1(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
 	return power[2]
+
 def power4(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
@@ -92,22 +101,24 @@ def power4(X, channel):
 
 def pearsonCoeff14(X, channel):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
-	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients14[1][0]
+
 def pearsonCoeff14a(X, channel):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
-	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients14[0][1]
 
 def pearsonCoeff13(X, channel):
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients13[1][0]
+
 def pearsonCoeff13a(X, channel):
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients13[0][1]
+
 def pearsonCoeff12(X, channel):
 	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
 	return pearsonCoefficients12[1][0]
+
 def pearsonCoeff12a(X, channel):
 	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
 	return pearsonCoefficients12[0][1]
@@ -125,6 +136,7 @@ def slope(X, channel):
 	maxValueCh1 = np.amax(X[0])
 	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
 	return slopeCh1
+
 def slope4(X, channel):
 	channel = 2
 	maxIndex = np.argmax(X[channel])
@@ -139,23 +151,15 @@ def thetaBeta1(X, channel):
 	bandAvgAmplitudesCh1 = getBandAmplitudes(X[0], frequencyBands)
 	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
 	return thetaBetaRatioCh1
+
 def thetaBeta4(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	bandAvgAmplitudesCh4 = getBandAmplitudes(X[3], frequencyBands)
 	thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
 	return thetaBetaRatioCh4
 
-def extrema(X, channel):
-	extremaFeature = None
-	if (np.argmax(X[2]) - np.argmax(X[3])) > 15:
-		extremaFeature = 1
-	elif(np.argmax(X[2]) - np.argmax(X[3])) < -15:
-		extremaFeature = -1
-	else:
-		extremaFeature = 0
-	return extremaFeature
-
-FUNC_MAP = {0: hfd,
+'''
+FUNC_MAP = {0: hfd1,
 			1: minDiff,
 			2: maxDiff,
 			3: specEntropy,
@@ -185,6 +189,36 @@ FUNC_MAP = {0: hfd,
 			27: min1,
 			28: pearsonCoeff12,
 			29: pearsonCoeff12a}
+'''
+
+FUNC_MAP = {0: hfd1,
+			1: hfd4,
+			2: minDiff,
+			3: maxDiff,
+			4: specEntropy,
+			5: pearsonCoeff13,
+			6: pearsonCoeff13a,	
+			7: pearsonCoeff14,
+			8: pearsonCoeff14a,
+			9: cov14,
+			10: cov14a,
+			11: cov34,
+			12: cov34a,
+			13: stdDeviation,
+			14: stdDeviation4,	
+			15: slope,
+			16: slope4,
+			17: thetaBeta1,
+			18: thetaBeta4,
+			19: power1,
+			20: power4,			
+			21: pfd1,
+			22: pfd4,
+			23: ptp1,
+			24: ptp4,
+			25: min1,
+			26: max1
+			}
 
 def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 	XL = [[]]
@@ -250,6 +284,7 @@ def compareFeatures2(n_jobs=1):
 
 
 	clf = svm.SVC(kernel="linear", C = 50, decision_function_shape = 'ovr')
+	#clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
 	#clf = RandomForestClassifier(n_estimators = 54, max_depth = 5,  min_samples_leaf = 1, random_state = 40)
 	#clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
 	#clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
@@ -297,8 +332,15 @@ def readFeatureMask():
 	print featuremaskList
 	return featuremaskList
 
+
+
+def nCr(n,r):
+    f = math.factorial
+    return f(n) / f(r) / f(n-r)
+
 def compareFeatures(n_jobs=1):
 	#array declaration
+	trainings = 0
 	allPermutations = []
 	allParams = []
 	allPavg = []
@@ -313,33 +355,46 @@ def compareFeatures(n_jobs=1):
 	#datasetfile = "longdata.txt"
 	datasetfile = "data.txt"
 	merge = True
-
-	print("Setup for brute force testing of all feature combination")
-	print("Enter maximum number of features: ")
+	skip = False
+	logging = False
+	print("Setup for brute force testing of all feature combination, features in list: %d" %len(FUNC_MAP))
+	print("Enter maximum number of features: (\"all\" for all combinations)")
 	inputString = raw_input()
 	if inputString.isdigit():
 		inputval = int(inputString)
+		if inputval > len(FUNC_MAP):
+			print("Invalid input, exiting")
+			return
+		if inputval >= 1:
+			maxNumFeatures = inputval
+		else:
+			print("Invalid input, exiting")
+			return
 	else:
-		print("Invalid input, exiting")
-		return
-	if inputval >= 1:
-		maxNumFeatures = inputval
-	else:
-		print("Invalid input, exiting")
-		return
+		if inputString == "all":
+			maxNumFeatures = len(FUNC_MAP)
+			minNumFeatures = 1
+			skip = True
+		else:
+			print("Invalid input, exiting")
+			return
 
-	print("Enter minimum number of features: ")
-	inputString = raw_input()
-	if inputString.isdigit():
-		inputval = int(inputString)
-	else:
-		print("Invalid input, exiting")
-		return
-	if inputval >= 1:
-		minNumFeatures = inputval
-	else:
-		print("Invalid input, exiting")
-		return
+	if not skip:
+		print("Enter minimum number of features: ")
+		inputString = raw_input()
+		if inputString.isdigit():
+			inputval = int(inputString)
+			if inputval <= 0:
+				print("Invalid input, exiting")
+				return
+		else:
+			print("Invalid input, exiting")
+			return
+		if inputval >= 1:
+			minNumFeatures = inputval
+		else:
+			print("Invalid input, exiting")
+			return
 	print("Is this a debug session? [Y/n]")
 	inputString = raw_input()
 	if inputString == "Y":
@@ -358,9 +413,18 @@ def compareFeatures(n_jobs=1):
 			print("Do not send mail when script is finished")
 			sendMail = False
 
+		print("Do you want to save logs? [Y/n]")
+		inputString = raw_input()
+		if inputString == "Y":
+			logging = True
+			print("Saving logs")
+		else:
+			print("Do not save logs")
+			logging = False
 	#Load dataset
 	#print("Before load")
-	X, y = dataset.loadDataset(filename=datasetfile)
+	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
+                                filterType="DcNotch", removePadding=True, shift=True, windowLength=100)
 	#print("After load")
     #print X
 	if datasetfile == "longdata.txt":
@@ -378,8 +442,8 @@ def compareFeatures(n_jobs=1):
 	#Calculate features
 	#XL = extractAllFeatures(X, channel=0)
 	XL = extractFeaturesWithMask(X, channel = 0, featuremask=range(len(FUNC_MAP)))
-	XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
-
+	#XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
+	XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
 	features = range(len(XL[0]))
 	print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
 
@@ -395,13 +459,18 @@ def compareFeatures(n_jobs=1):
 	print("Testing with combinations of %d to %d" %(minNumFeatures, maxNumFeatures))
 	numberOfCombinations = 0
 	for i in range(minNumFeatures, maxNumFeatures+1):
-		numberOfCombinations += len(list(combinations(features, i)))
+		#numberOfCombinations += len(list(combinations(features, i))) #Dette sprenger minnet :/
+		comb = nCr(len(features),i)
+		print("Number of iterations for combinations of length %d: %d" %(i, comb))
+		numberOfCombinations += comb
+	
 	print("Number of combinations to test %d" %numberOfCombinations)
-	for i in range(minNumFeatures, maxNumFeatures+1):
-	    #print list(combinations(features, i))
+
+	#for i in range(minNumFeatures, maxNumFeatures+1):
+	for i in range(maxNumFeatures, minNumFeatures-1, -1):
 
 		for p in combinations(features, i): #If order matters use permutations
-            #print p
+
 			start = datetime.now()
 			XLtrainPerm = np.empty([len(XLtrain), i])
 			XLtestPerm = np.empty([len(XLtest), i])
@@ -415,78 +484,82 @@ def compareFeatures(n_jobs=1):
 				XLtestPerm[j] = [XLtest[j][k] for k in p]
 			#print(XLtrainPerm[0])
 			#print(XLtestPerm[0])
-			print("Starting to train with combination: "+convertPermutationToFeatureString(p))
-			#print(p)
+			#print("Starting to train with combination: "+convertPermutationToFeatureString(p))
 
-			#print(len(XLtrainPerm))
-			#Optimize setting
-
-			#def crossValidation(p, XLtrainPerm, yTrain, XLtestPerm, yTest)
 
 			bestParams, presc, r, f1, s, report = classifier.tuneSvmParameters(XLtrainPerm,
 			                                            yTrain, XLtestPerm, yTest,
-			                                            debug=False, fast=debug,
+			                                            debug=False, fast=True,
 			                                            n_jobs = n_jobs)
 
 			#Append scores
-
-			logfile = open("Logs"+slash+"Logfile.txt", 'a+')
-			logfile.write("Feature combination:")
-			logfile.write(str(p)+"\n")
-			logfile.write(report+"\n\n\n")
-			logfile.close()
-
-
 			allPermutations.append(p)
-			permfile = open("Logs"+slash+"PermutationLog.txt", 'a+')
-			permfile.write(":")
-			permfile.write(str(p))
-			permfile.close()
-
 			allParams.append(bestParams)
-			permfile = open("Logs"+slash+"ParameterLog.txt", 'a+')
-			permfile.write(";")
-			permfile.write(str(bestParams))
-			permfile.close()
-
 			allP.append(presc)
-			permfile = open("Logs"+slash+"PrecisionLog.txt", 'a+')
-			permfile.write(":")
-			for k in range(len(presc)):
-				permfile.write(','+str(presc[k]))
-			permfile.close()
 			allPavg.append(np.average(presc, weights=s))
-
 			allR.append(r)
-			permfile = open("Logs"+slash+"RecallLog.txt", 'a+')
-			permfile.write(":")
-			for k in range(len(r)):
-				permfile.write(','+str(r[k]))
-			permfile.close()
-
 			allF1.append(f1)
-			permfile = open("Logs"+slash+"F1Log.txt", 'a+')
-			permfile.write(":")
-			for k in range(len(f1)):
-				permfile.write(','+str(f1[k]))
-			permfile.close()
-
 			allS.append(s)
-			permfile = open("Logs"+slash+"SupportLog.txt", 'a+')
-			permfile.write(":")
-			for k in range(len(s)):
-				permfile.write(','+str(s[k]))
-			permfile.close()
+
+			if logging:
+				logfile = open("Logs"+slash+"Logfile.txt", 'a+')
+				logfile.write("Feature combination:")
+				logfile.write(str(p)+"\n")
+				logfile.write(report+"\n\n\n")
+				logfile.close()
+
+
+				
+				permfile = open("Logs"+slash+"PermutationLog.txt", 'a+')
+				permfile.write(":")
+				permfile.write(str(p))
+				permfile.close()
+
+				
+				permfile = open("Logs"+slash+"ParameterLog.txt", 'a+')
+				permfile.write(";")
+				permfile.write(str(bestParams))
+				permfile.close()
+
+				
+				permfile = open("Logs"+slash+"PrecisionLog.txt", 'a+')
+				permfile.write(":")
+				for k in range(len(presc)):
+					permfile.write(','+str(presc[k]))
+				permfile.close()
+
+				permfile = open("Logs"+slash+"RecallLog.txt", 'a+')
+				permfile.write(":")
+				for k in range(len(r)):
+					permfile.write(','+str(r[k]))
+				permfile.close()
+
+				
+				permfile = open("Logs"+slash+"F1Log.txt", 'a+')
+				permfile.write(":")
+				for k in range(len(f1)):
+					permfile.write(','+str(f1[k]))
+				permfile.close()
+
+				
+				permfile = open("Logs"+slash+"SupportLog.txt", 'a+')
+				permfile.write(":")
+				for k in range(len(s)):
+					permfile.write(','+str(s[k]))
+				permfile.close()
 
 			winner = allPavg.index(max(allPavg)) #Check for max average precision
 			print(report)
 			print("Best features so far are: " + convertPermutationToFeatureString(allPermutations[winner]))
-
-			print("Pest parameters for this feature combination: " + str(bestParams))
+			print("Best result so far are: ", allPavg[winner])
+			#print("Pest parameters for this feature combination: " + str(bestParams))
 			stop = datetime.now()
 			numberOfCombinations -= 1
+			trainings += 1
 			remainingTime = (stop-start)*numberOfCombinations
 			elapsedTime = (stop-start)
+			print("Training number: %d" %trainings)
+			print("Remaining combinations: %d" %numberOfCombinations)
 			print("Elapsed time for training with this combination: " + str(elapsedTime))
 			print("Estimated remaining time: " + str(remainingTime))
     #Evaluate score
@@ -664,7 +737,9 @@ def cleanLogs():
 
 
 def main():
-	compareFeatures2(n_jobs=-1)
+	#cleanLogs()
+	#compareFeatures2(n_jobs=-1)
+	compareFeatures(-1)
 	#evaluateLogs("maxminrecall")
 if __name__ == '__main__':
 	main()

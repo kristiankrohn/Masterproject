@@ -63,7 +63,7 @@ def main():
     #features.cleanLogs()
     #features.compareFeatures(n_jobs=-1)
     #features.readLogs()
-    features.compareFeatures2(8)
+    #features.compareFeatures2(8)
     startLearning()
 
 
@@ -106,12 +106,12 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
-    featuremask = features.readFeatureMask()
-    XL = features.extractFeaturesWithMask(
-            X, channelIndex, featuremask=featuremask, printTime=False)
+    #featuremask = features.readFeatureMask()
+    #XL = features.extractFeaturesWithMask(
+            #X, channelIndex, featuremask=featuremask, printTime=False)
     
     #uncomment for using samples as features
-    '''
+    
     XL = X[0]
     print(len(X[0]))
     for i in range(len(X[0])):
@@ -120,7 +120,7 @@ def startLearning():
         #np.append(XL[i], X[2][i])
         #np.append(XL[i], X[3][i])
     print(len(XL[0]))
-    '''
+    
     #XL = PCA(n_components = 10).fit_transform(XL)
     
     #XL = features.extractFeaturesWithMask(
@@ -242,8 +242,8 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     C = 50
     #C = 50
     clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
+    #clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
     #clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
-    #clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
     #clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
 
 

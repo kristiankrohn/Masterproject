@@ -101,9 +101,10 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False, n_
         print()
 
     if fast:
-        clf = svm.SVC(kernel = 'linear', C = 50, decision_function_shape = 'ovr')
+        #clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
+        clf = svm.SVC(kernel = 'linear', C = 10, decision_function_shape = 'ovr')
         clf.fit(XLtrain, yTrain)
-        bestParams.append({'kernel': 'linear', 'C': 50})
+        bestParams.append({'kernel': 'linear', 'C': 10})
     else:
         clf = GridSearchCV(svm.SVC(), tunedParameters, cv=10, scoring='%s_macro' % scores[0], n_jobs=n_jobs)
         clf.fit(XLtrain, yTrain)
