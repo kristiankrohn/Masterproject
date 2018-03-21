@@ -25,6 +25,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn import tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn import neighbors
 from sklearn.feature_selection import SelectFromModel
 from sklearn import linear_model
 from sklearn.feature_selection import RFECV
@@ -106,12 +107,12 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
-    #featuremask = features.readFeatureMask()
-    #XL = features.extractFeaturesWithMask(
-            #X, channelIndex, featuremask=featuremask, printTime=False)
+    featuremask = features.readFeatureMask()
+    XL = features.extractFeaturesWithMask(
+            X, channelIndex, featuremask=featuremask, printTime=False)
     
     #uncomment for using samples as features
-    
+    '''
     XL = X[0]
     print(len(X[0]))
     for i in range(len(X[0])):
@@ -120,7 +121,7 @@ def startLearning():
         #np.append(XL[i], X[2][i])
         #np.append(XL[i], X[3][i])
     print(len(XL[0]))
-    
+    '''
     #XL = PCA(n_components = 10).fit_transform(XL)
     
     #XL = features.extractFeaturesWithMask(
@@ -147,17 +148,17 @@ def startLearning():
 
 
     #bestParams.append(classifier.tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
-    #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
+    bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
 
 
     #try this with tuning of parameters later today.
 
-    #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[channelIndex])
+    clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[0])
 
 
 
     #Use this if predictor other than SVM is used.
-    clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+    #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
     #plot.trainingPredictions(clf, XL, y[0])
 
     ###TO PLOT LEARNING CURVE UNCOMMENT THIS.
@@ -171,7 +172,7 @@ def startLearning():
     classifier.saveScaler(scaler, classifierstring)
     #clf = CalibratedClassifierCV(svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr'), cv=5, method='sigmoid')
 
-    #Use this if it is imporatnt to see the overall prediction, and not for only the test set
+    #Use this if it is important to see the overall prediction, and not for only the test set
 
 
     scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
@@ -241,7 +242,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     C = 50
     #C = 50
-    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
+    #clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
     #clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
     #clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
     #clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
@@ -254,7 +255,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #clf = RandomForestClassifier(n_estimators = 54, max_depth = 5,  min_samples_leaf = 1, random_state = 40)
     #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
-    #clf = neighbors.KNeighborsClassifier(5)
+    clf = neighbors.KNeighborsClassifier(n_neighbors = bestParams['n_neighbors'], n_jobs = -1)
     clf.fit(XLtrain,yTrain)#skaler???
 
     #Create classifier to be able to visualize it
@@ -274,10 +275,13 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = 1):
            "max_depth" : [1, 5, 10, 15, 20, 25, 30],
            "min_samples_leaf" : [1, 2, 4, 6, 8, 10]}]
 
+
+    neighborsPipeline = [{"n_neighbors" : [1, 5, 10, 25, 50]}]
+
     print("Starting to tune parameters")
     print()
 
-    clf = GridSearchCV(RandomForestClassifier(), sampleLeafPipeline, cv=10, scoring='%s_macro' % 'precision')
+    clf = GridSearchCV(neighbors.KNeighborsClassifier(), neighborsPipeline, cv=10, scoring='%s_macro' % 'precision')
 
     clf.fit(XLtrain, yTrain)
     bestParams.append(clf.best_params_)

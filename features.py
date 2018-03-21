@@ -14,6 +14,7 @@ from datetime import datetime
 from numpy.fft import fft
 from numpy import zeros, floor
 from sklearn import svm
+from sklearn import neighbors
 from sklearn.feature_selection import RFECV
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
@@ -41,6 +42,14 @@ def cov12(X, channel):
 def cov12a(X, channel):
 	cov = np.cov(X[0], X[1])
 	return cov[1][0]
+
+def cov13(X, channel):
+	cov = np.cov(X[0], X[2])
+	return cov[0][1]
+def cov13a(X, channel):
+	cov = np.cov(X[0], X[2])
+	return cov[1][0]
+
 def cov14(X, channel):
 	cov = np.cov(X[0], X[3])
 	return cov[0][1]
@@ -84,17 +93,42 @@ def minDiff(X, channel):
 def maxDiff(X, channel):
 	return np.amax(X[1]) - np.amax(X[3])
 
-def specEntropy(X, channel):
+def specEntropy1(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
-	power, powerRatio = pyeeg.bin_power(X[channel], frequencyBands, glb.fs)
-	return pyeeg.spectral_entropy(X[channel], [0.1, 4, 7, 12,30], 250, powerRatio)
+	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[0], [0.1, 4, 7, 12,30], 250, powerRatio)
 
-def power1(X, channel):
+def specEntropy4(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
+	return pyeeg.spectral_entropy(X[3], [0.1, 4, 7, 12,30], 250, powerRatio)
+
+def power1a(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
+	return power[0]
+
+def power1b(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
+	return power[1]
+
+def power1c(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
 	return power[2]
 
-def power4(X, channel):
+def power4a(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
+	return power[0]
+
+def power4b(X, channel):
+	frequencyBands = [0.1, 4, 8, 12,30]
+	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
+	return power[1]
+
+def power4c(X, channel):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
 	return power[2]
@@ -121,6 +155,14 @@ def pearsonCoeff12(X, channel):
 
 def pearsonCoeff12a(X, channel):
 	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
+	return pearsonCoefficients12[0][1]
+
+def pearsonCoeff34(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[2], X[3])
+	return pearsonCoefficients12[1][0]
+
+def pearsonCoeff34a(X, channel):
+	pearsonCoefficients12 = np.corrcoef(X[2], X[3])
 	return pearsonCoefficients12[0][1]
 
 def stdDeviation(X, channel):
@@ -158,6 +200,16 @@ def thetaBeta4(X, channel):
 	thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
 	return thetaBetaRatioCh4
 
+def extrema(X, channel):
+	extremaFeature = None
+	if (np.argmax(X[2]) - np.argmax(X[3])) > 15:
+		extremaFeature = 1
+	elif(np.argmax(X[2]) - np.argmax(X[3])) < -15:
+		extremaFeature = -1
+	else:
+		extremaFeature = 0
+	return extremaFeature
+
 '''
 FUNC_MAP = {0: hfd1,
 			1: minDiff,
@@ -173,7 +225,7 @@ FUNC_MAP = {0: hfd1,
 			11: pearsonCoeff13a,
 			12: thetaBeta4,
 			13: max1,
-			14: pfd,
+			14: pfd1,
 			15: ptp1,
 			16: slope4,
 			17: cov12,
@@ -195,29 +247,34 @@ FUNC_MAP = {0: hfd1,
 			1: hfd4,
 			2: minDiff,
 			3: maxDiff,
-			4: specEntropy,
-			5: pearsonCoeff13,
-			6: pearsonCoeff13a,	
-			7: pearsonCoeff14,
-			8: pearsonCoeff14a,
-			9: cov14,
-			10: cov14a,
-			11: cov34,
-			12: cov34a,
-			13: stdDeviation,
-			14: stdDeviation4,	
-			15: slope,
-			16: slope4,
-			17: thetaBeta1,
-			18: thetaBeta4,
-			19: power1,
-			20: power4,			
-			21: pfd1,
-			22: pfd4,
-			23: ptp1,
-			24: ptp4,
-			25: min1,
-			26: max1
+			4: specEntropy1,
+			5: specEntropy4,
+			6: pearsonCoeff34,
+			7: pearsonCoeff34a,	
+			8: pearsonCoeff14,
+			9: pearsonCoeff14a,
+			10: cov34,
+			11: cov34a,
+			12: cov14,
+			13: cov14a,
+			14: stdDeviation,
+			15: stdDeviation4,	
+			16: slope,
+			17: slope4,
+			18: thetaBeta1,
+			19: thetaBeta4,
+			#20: power1a,
+			#21: power1b,
+			#22: power1c,			
+			#20: power4a,
+			#24: power4b,
+			#25: power4c,			
+			20: pfd1,
+			21: pfd4,
+			22: ptp1,
+			23: ptp4,
+			24: min1,
+			25: max1
 			}
 
 def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
@@ -285,9 +342,10 @@ def compareFeatures2(n_jobs=1):
 
 	clf = svm.SVC(kernel="linear", C = 50, decision_function_shape = 'ovr')
 	#clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
-	#clf = RandomForestClassifier(n_estimators = 54, max_depth = 5,  min_samples_leaf = 1, random_state = 40)
+	#clf = RandomForestClassifier(n_estimators = 45, max_depth = 10,  min_samples_leaf = 1, random_state = 40)
 	#clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
 	#clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
+	
 
 	rfecv = RFECV(estimator=clf, step=1, cv=10, n_jobs=n_jobs,
 	              scoring='accuracy')
