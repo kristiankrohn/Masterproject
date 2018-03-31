@@ -38,23 +38,25 @@ import globalvar
 
 
 
-def createModel(numFeatures = 23, numClasses = 10):
+def createModel(numFeatures = 23, numClasses = 6):
 	#create the model
 	model = Sequential()
 	model.add(Dense(numFeatures, input_dim = numFeatures, kernel_initializer = 'normal', activation = 'relu'))
+	model.add(Dense(100, kernel_initializer  = 'normal', activation = 'relu'))
+	model.add(Dense(10, kernel_initializer = 'normal', activation = 'relu'))
 	model.add(Dense(numClasses, kernel_initializer = 'normal', activation = 'softmax'))
 	model.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 	return model
 
 def main():
-	startLearning():
+	startLearning()
 
 def startLearning():
 	bestParams = []
-    accuracyScore = []
-    f1Score = []
-    precision = []
-    classificationReport = []
+	accuracyScore = []
+    	f1Score = []
+    	precision = []
+    	classificationReport = []
 	classifierstring = "learning260RBFsvm22Features"
 	#Make sure that the result can be reproduced
 	seed = 7
@@ -62,34 +64,34 @@ def startLearning():
 
 	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
-    X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True)
-
+	X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True)
+	#numClasses = 6
 	channelIndex = 0
+
 	featuremask = features.readFeatureMask()
 	#Use number of features as input layer
-	numFeatures = len(featureMask)
-    XL = features.extractFeaturesWithMask(
+	#numFeatures = len(featuremask)
+	XL = features.extractFeaturesWithMask(
             X, channelIndex, featuremask=featuremask, printTime=False)
 
 	XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
 	#One hot encoding of the classes
-	yTrain = np_utils.to_categorical(yTrain)
-	yTest = np_utils.to_categorical(yTest)
+	#yTrain = np_utils.to_categorical(yTrain)
+	#yTest = np_utils.to_categorical(yTest)
 	#Define variable with number of classes
-	#numClasses = yTest.shape[1]
-	clf = KerasClassifier(build_fn = createModel, epochs = 10, batch_size = 200, verbose = 2)
-	#clf.fit(Xtrain, yTrain, validation_data = (Xtest, yTest), epochs = 10, batch_size = 200, verbose = 2)
-
+	clf = KerasClassifier(build_fn = createModel, epochs = 10, batch_size = 50, verbose = 0)
+	#clf.fit(XLtrain, yTrain, validation_data = (XLtest, yTest), epochs = 10, batch_size = 200, verbose = 2)
 	clf.fit(XLtrain, yTrain)
+	#clf.fit(XLtrain, yTrain, validation_data = (XLtest, yTest), epochs = 10, batch_size = 50)
 
 	#scores = model.evaluate(Xtest, yTest, verbose = 0)
-    #print('Baseline Error: %.2f%%' %(100 - scores[1]*100))
+	#print('Baseline Error: %.2f%%' %(100 - scores[1]*100))
 
 	scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-    print()
-    print("Scores")
-    print(scores)
+	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+	print()
+	print("Scores")
+	print(scores)
 
 
 
