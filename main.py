@@ -366,7 +366,7 @@ def keys():
 		elif string == "setfilter":
 			if inputval != None:
 				filterlib.set_filter_q(inputval)
-			else
+			else:
 				print("Invalid input")	
 
 		elif string == "exportdataplots":

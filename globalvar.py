@@ -37,8 +37,8 @@ else:
 	datasetFolder = datasetFolders[0]
 
 #data[channel][filterdata][sample]
-guipredict = True
-saveData = False
+guipredict = False
+saveData = True
 oldSampleID = 255
 if numCh == 8:
 	data = [[[],[],[]],
