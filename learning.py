@@ -148,17 +148,17 @@ def startLearning():
 
 
     #bestParams.append(classifier.tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
-    bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
+    #bestParams.append(tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
 
 
     #try this with tuning of parameters later today.
 
-    clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[0])
+    #clf, clfPlot = createAndTrain(XLtrain, yTrain, bestParams[0])
 
 
 
     #Use this if predictor other than SVM is used.
-    #clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+    clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
     #plot.trainingPredictions(clf, XL, y[0])
 
     ###TO PLOT LEARNING CURVE UNCOMMENT THIS.
@@ -238,13 +238,13 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #if bestParams['kernel'] == 'linear':
         #clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
     #else:
-    #    clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+        #clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
 
-    C = 50
+    C = 10
     #C = 50
     #clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
     #clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
-    #clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
+    clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
     #clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
 
 
@@ -255,7 +255,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #clf = RandomForestClassifier(n_estimators = 54, max_depth = 5,  min_samples_leaf = 1, random_state = 40)
     #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
-    clf = neighbors.KNeighborsClassifier(n_neighbors = bestParams['n_neighbors'], n_jobs = -1)
+    #clf = neighbors.KNeighborsClassifier(n_neighbors = bestParams['n_neighbors'], n_jobs = -1)
     clf.fit(XLtrain,yTrain)#skaler???
 
     #Create classifier to be able to visualize it

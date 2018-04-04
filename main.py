@@ -366,6 +366,8 @@ def keys():
 		elif string == "setfilter":
 			if inputval != None:
 				filterlib.set_filter_q(inputval)
+			else
+				print("Invalid input")	
 
 		elif string == "exportdataplots":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
@@ -652,7 +654,7 @@ def main():
 	#thread0.join()
 	#thread1.join()
 	#thread2.join()
-	#app = ttk.App()
+	app = ttk.App()
 	#print("Penis")
 	#while not graphVar:
 		#tme.sleep(0.1)

@@ -214,7 +214,7 @@ def extrema(X, channel):
 FUNC_MAP = {0: hfd1,
 			1: minDiff,
 			2: maxDiff,
-			3: specEntropy,
+			3: specEntropy1,
 			4: pearsonCoeff14,
 			5: stdDeviation,
 			6: slope,
@@ -234,8 +234,8 @@ FUNC_MAP = {0: hfd1,
 			20: cov14a,
 			21: cov34,
 			22: cov34a,
-			23: power1,
-			24: power4,
+			23: power1c,
+			24: power4c,
 			25: stdDeviation4,
 			26: ptp4,
 			27: min1,
@@ -340,7 +340,7 @@ def compareFeatures2(n_jobs=1):
 	#XLtest = scaler.fit_transform(XLtest, yTest)
 
 
-	clf = svm.SVC(kernel="linear", C = 50, decision_function_shape = 'ovr')
+	clf = svm.SVC(kernel="linear", C = 10, decision_function_shape = 'ovr')
 	#clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
 	#clf = RandomForestClassifier(n_estimators = 45, max_depth = 10,  min_samples_leaf = 1, random_state = 40)
 	#clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
@@ -355,11 +355,7 @@ def compareFeatures2(n_jobs=1):
 	print("Optimal features: ")
 	print(rfecv.support_)
 
-	features = range(len(FUNC_MAP))
-	featuremaskList = list(compress(features, rfecv.support_))
-	featuremask = open("featuremask.txt", 'w+')
-	featuremask.write(str(featuremaskList))
-	featuremask.close()
+	writeFeatureMask(rfecv.support_)
 
 	print("The ranking of the features: ")
 	print(rfecv.ranking_)
@@ -378,6 +374,13 @@ def compareFeatures2(n_jobs=1):
 	print()
 	print("Scores")
 	print(scores)
+
+def writeFeatureMask(mask):	
+	features = range(len(FUNC_MAP))
+	featuremaskList = list(compress(features, mask))
+	featuremask = open("featuremask.txt", 'w+')
+	featuremask.write(str(featuremaskList))
+	featuremask.close()
 
 def readFeatureMask():
 	featuremaskFile = open("featuremask.txt", 'r')
@@ -459,6 +462,7 @@ def compareFeatures(n_jobs=1):
 		debug = True
 		print("Debug session activated, results will not be valid.")
 		sendMail = False
+		logging = False
 	else:
 		debug = False
 		print("Normal session activated, results will be valid. ")
@@ -484,7 +488,7 @@ def compareFeatures(n_jobs=1):
 	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
                                 filterType="DcNotch", removePadding=True, shift=True, windowLength=100)
 	#print("After load")
-    #print X
+	#print X
 	if datasetfile == "longdata.txt":
 		classes = [0,5,6,4,2,8]
 	else:
@@ -526,169 +530,216 @@ def compareFeatures(n_jobs=1):
 
 	#for i in range(minNumFeatures, maxNumFeatures+1):
 	for i in range(maxNumFeatures, minNumFeatures-1, -1):
+		
+		print("Starting to read PermutationLog")
+		try:
+			permfile = open("Logs"+slash+"PermutationLog"+ str(i)+".txt", 'r')
+			#permfile = open("Logs"+slash+"PermutationLog.txt", 'r')
 
+		except IOError:
+			print("PermutationLog file does not exist")
+			skip = False
+		else:
+			print("Performing operations on PermutationLog buffer")
+			PermutationsString = permfile.read()
+			permfile.close()
+			PermutationsList = PermutationsString.split(':')
+			PermutationsList.pop(0)
+			#PermutationsList = tuple(PermutationsList)
+			#Might need some more processing, now returns a list of tuples
+			#print PermutationsList[28]
+
+			for q in range(len(PermutationsList)):
+				#print(eval(PermutationsList[i]))
+				#PermutationsList[i] = tuple(map(int, PermutationsList[i][1:-1].split(',')))
+				PermutationsList[q] = tuple(eval(PermutationsList[q]))
+			print("Finished with operations")
+			skip = True
+		start = datetime.now()
+		print("Finished reading permutations file")
+		lastTrainings = 1000
 		for p in combinations(features, i): #If order matters use permutations
 
-			start = datetime.now()
-			XLtrainPerm = np.empty([len(XLtrain), i])
-			XLtestPerm = np.empty([len(XLtest), i])
-			for j in range(len(XLtrain)):
-				#print j
-				#print([XLtrain[j][k] for k in p])
-				XLtrainPerm[j] = [XLtrain[j][k] for k in p]
-			for j in range(len(XLtest)):
-				#print j
-				#print([XLtest[j][k] for k in p])
-				XLtestPerm[j] = [XLtest[j][k] for k in p]
-			#print(XLtrainPerm[0])
-			#print(XLtestPerm[0])
-			#print("Starting to train with combination: "+convertPermutationToFeatureString(p))
-
-
-			bestParams, presc, r, f1, s, report = classifier.tuneSvmParameters(XLtrainPerm,
-			                                            yTrain, XLtestPerm, yTest,
-			                                            debug=False, fast=True,
-			                                            n_jobs = n_jobs)
-
-			#Append scores
-			allPermutations.append(p)
-			allParams.append(bestParams)
-			allP.append(presc)
-			allPavg.append(np.average(presc, weights=s))
-			allR.append(r)
-			allF1.append(f1)
-			allS.append(s)
-
-			if logging:
-				logfile = open("Logs"+slash+"Logfile.txt", 'a+')
-				logfile.write("Feature combination:")
-				logfile.write(str(p)+"\n")
-				logfile.write(report+"\n\n\n")
-				logfile.close()
-
-
+			if skip == True:
 				
-				permfile = open("Logs"+slash+"PermutationLog.txt", 'a+')
-				permfile.write(":")
-				permfile.write(str(p))
-				permfile.close()
-
+				if p in PermutationsList:
+					#print("Combination exists")
+					numberOfCombinations -= 1
+					trainings += 1
+					if trainings == lastTrainings:
+						lastTrainings = trainings + 1000
+						print("Training number: %d" %trainings)
+						print("Remaining combinations: %d" %numberOfCombinations)
+						print("Elapsed time for checking that this combination exists: " + str(elapsedTime))
+					
+					stop = datetime.now()
+					elapsedTime = (stop-start)
+					start = stop
+				else:
+					print("Found Starting point")
+					skip = False
 				
-				permfile = open("Logs"+slash+"ParameterLog.txt", 'a+')
-				permfile.write(";")
-				permfile.write(str(bestParams))
-				permfile.close()
-
 				
-				permfile = open("Logs"+slash+"PrecisionLog.txt", 'a+')
-				permfile.write(":")
-				for k in range(len(presc)):
-					permfile.write(','+str(presc[k]))
-				permfile.close()
-
-				permfile = open("Logs"+slash+"RecallLog.txt", 'a+')
-				permfile.write(":")
-				for k in range(len(r)):
-					permfile.write(','+str(r[k]))
-				permfile.close()
-
+			if skip == False:
 				
-				permfile = open("Logs"+slash+"F1Log.txt", 'a+')
-				permfile.write(":")
-				for k in range(len(f1)):
-					permfile.write(','+str(f1[k]))
-				permfile.close()
+				start = datetime.now()
+				XLtrainPerm = np.empty([len(XLtrain), i])
+				XLtestPerm = np.empty([len(XLtest), i])
+				for j in range(len(XLtrain)):
+					#print j
+					#print([XLtrain[j][k] for k in p])
+					XLtrainPerm[j] = [XLtrain[j][k] for k in p]
+				for j in range(len(XLtest)):
+					#print j
+					#print([XLtest[j][k] for k in p])
+					XLtestPerm[j] = [XLtest[j][k] for k in p]
+				#print(XLtrainPerm[0])
+				#print(XLtestPerm[0])
+				#print("Starting to train with combination: "+convertPermutationToFeatureString(p))
 
-				
-				permfile = open("Logs"+slash+"SupportLog.txt", 'a+')
-				permfile.write(":")
-				for k in range(len(s)):
-					permfile.write(','+str(s[k]))
-				permfile.close()
 
-			winner = allPavg.index(max(allPavg)) #Check for max average precision
-			print(report)
-			print("Best features so far are: " + convertPermutationToFeatureString(allPermutations[winner]))
-			print("Best result so far are: ", allPavg[winner])
-			#print("Pest parameters for this feature combination: " + str(bestParams))
-			stop = datetime.now()
-			numberOfCombinations -= 1
-			trainings += 1
-			remainingTime = (stop-start)*numberOfCombinations
-			elapsedTime = (stop-start)
-			print("Training number: %d" %trainings)
-			print("Remaining combinations: %d" %numberOfCombinations)
-			print("Elapsed time for training with this combination: " + str(elapsedTime))
-			print("Estimated remaining time: " + str(remainingTime))
-    #Evaluate score
+				bestParams, presc, r, f1, s, report = classifier.tuneSvmParameters(XLtrainPerm,
+															yTrain, XLtestPerm, yTest,
+															debug=False, fast=True,
+															n_jobs = n_jobs)
 
-	winner = allPavg.index(max(allPavg)) #Check for max average precision
-	p = allPermutations[winner]
-	XLtrainPerm = np.empty([len(XLtrain), len(p)])
-	XLtestPerm = np.empty([len(XLtest), len(p)])
-	p = allPermutations[winner]
-	for j in range(len(XLtrain)):
-		XLtrainPerm[j] = [XLtrain[j][k] for k in p]
-	for j in range(len(XLtest)):
-		XLtestPerm[j] = [XLtest[j][k] for k in p]
+				#Append scores
+				allPermutations.append(p)
+				allParams.append(bestParams)
+				allP.append(presc)
+				allPavg.append(np.average(presc, weights=s))
+				allR.append(r)
+				allF1.append(f1)
+				allS.append(s)
 
-	print("Best features for max average precision are:")
-	print allPermutations[winner]
-	#Test
-	bestParams = allParams[winner]
-	print("Best parameters for max average precision are: ")
-	print(bestParams)
+				if logging:
+					logfile = open("Logs"+slash+"Logfile.txt", 'a+')
+					logfile.write("Feature combination:")
+					logfile.write(str(p)+"\n")
+					logfile.write(report+"\n\n\n")
+					logfile.close()
+	
+					permfile = open("Logs"+slash+"PermutationLog"+ str(i)+".txt", 'a+')
+					permfile.write(":")
+					permfile.write(str(p))
+					permfile.close()
+	
+					permfile = open("Logs"+slash+"ParameterLog"+ str(i)+".txt", 'a+')
+					permfile.write(";")
+					permfile.write(str(bestParams))
+					permfile.close()
+	
+					permfile = open("Logs"+slash+"PrecisionLog"+ str(i)+".txt", 'a+')
+					permfile.write(":")
+					for k in range(len(presc)):
+						permfile.write(','+str(presc[k]))
+					permfile.close()
 
-	if bestParams['kernel'] == 'linear':
-		clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
-	else:
-		clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+					permfile = open("Logs"+slash+"RecallLog"+ str(i)+".txt", 'a+')
+					permfile.write(":")
+					for k in range(len(r)):
+						permfile.write(','+str(r[k]))
+					permfile.close()
+	
+					permfile = open("Logs"+slash+"F1Log"+ str(i)+".txt", 'a+')
+					permfile.write(":")
+					for k in range(len(f1)):
+						permfile.write(','+str(f1[k]))
+					permfile.close()
 
-	clf.fit(XLtrainPerm, yTrain)
-	saveMachinestate(clf, "BruteForceClassifier")
-	featuremask = open("featuremask.txt", 'w+')
-	featuremask.write(str(allPermutations[winner]))
-	#featuremask.write(",")
-	featuremask.close()
+					permfile = open("Logs"+slash+"SupportLog"+ str(i)+".txt", 'a+')
+					permfile.write(":")
+					for k in range(len(s)):
+						permfile.write(','+str(s[k]))
+					permfile.close()
 
-	yPred = clf.predict(XLtestPerm)
-	print(classification_report(yTest, yPred))
+				if debug:
+					winner = allPavg.index(max(allPavg)) #Check for max average precision
+					print(report)
+					print("Best features so far are: " + convertPermutationToFeatureString(allPermutations[winner]))
+					print("Best result so far are: ", allPavg[winner])
+					
+				#print("Pest parameters for this feature combination: " + str(bestParams))
+				stop = datetime.now()
+				numberOfCombinations -= 1
+				trainings += 1
+				remainingTime = (stop-start)*numberOfCombinations
+				elapsedTime = (stop-start)
+				print("Training number: %d" %trainings)
+				print("Remaining combinations: %d" %numberOfCombinations)
+				print("Elapsed time for training with this combination: " + str(elapsedTime))
+				print("Estimated remaining time: " + str(remainingTime))
+
+	#Evaluate score
+	if len(allPavg) > 1:
+		winner = allPavg.index(max(allPavg)) #Check for max average precision
+		p = allPermutations[winner]
+		XLtrainPerm = np.empty([len(XLtrain), len(p)])
+		XLtestPerm = np.empty([len(XLtest), len(p)])
+		p = allPermutations[winner]
+		for j in range(len(XLtrain)):
+			XLtrainPerm[j] = [XLtrain[j][k] for k in p]
+		for j in range(len(XLtest)):
+			XLtestPerm[j] = [XLtest[j][k] for k in p]
+
+		print("Best features for max average precision are:")
+		print allPermutations[winner]
+		#Test
+		bestParams = allParams[winner]
+		print("Best parameters for max average precision are: ")
+		print(bestParams)
+
+		if bestParams['kernel'] == 'linear':
+			clf = svm.SVC(kernel =bestParams['kernel'], C = bestParams['C'], decision_function_shape = 'ovr')
+		else:
+			clf = svm.SVC(kernel = bestParams['kernel'], gamma=bestParams['gamma'], C= bestParams['C'], decision_function_shape='ovr')
+
+		clf.fit(XLtrainPerm, yTrain)
+		saveMachinestate(clf, "BruteForceClassifier")
+		featuremask = open("featuremask.txt", 'w+')
+		featuremask.write(str(allPermutations[winner]))
+		#featuremask.write(",")
+		featuremask.close()
+
+		yPred = clf.predict(XLtestPerm)
+		print(classification_report(yTest, yPred))
+
 	if sendMail:
 	    mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
-	                    to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
-	                    cc_addr_list = [],
-	                    subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
-	                    message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
-	                                    + classification_report(yTest, yPred),
-	                    login        = 'dronemasterprosjekt',
-	                    password     = 'drone123')
+						to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
+						cc_addr_list = [],
+						subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
+						message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
+										+ classification_report(yTest, yPred),
+						login        = 'dronemasterprosjekt',
+						password     = 'drone123')
 
 
 
-def readLogs():
+def readLogs(length):
     import ast
-    permfile = open("Logs"+slash+"PermutationLog.txt", 'r')
+    permfile = open("Logs"+slash+"PermutationLog"+ str(length)+".txt", 'r')
     PermutationsString = permfile.read()
     permfile.close()
     PermutationsList = PermutationsString.split(':')
     PermutationsList.pop(0)
     #PermutationsList = tuple(PermutationsList)
     #Might need some more processing, now returns a list of tuples
-    print PermutationsList[28]
+    #print PermutationsList[28]
     for i in range(len(PermutationsList)):
 		#print(eval(PermutationsList[i]))
 		#PermutationsList[i] = tuple(map(int, PermutationsList[i][1:-1].split(',')))
 		PermutationsList[i] = tuple(eval(PermutationsList[i]))
 
 
-    permfile = open("Logs"+slash+"ParameterLog.txt", 'r')
+    permfile = open("Logs"+slash+"ParameterLog"+ str(length)+".txt", 'r')
     ParametersString = permfile.read()
     permfile.close()
     ParametersList = ParametersString.split(';')
     ParametersList.pop(0)
     ParametersList = [ast.literal_eval(i) for i in ParametersList]
 
-    permfile = open("Logs"+slash+"PrecisionLog.txt", 'r')
+    permfile = open("Logs"+slash+"PrecisionLog"+ str(length)+".txt", 'r')
     PrecisionString = permfile.read()
     permfile.close()
     PrecisionList = PrecisionString.split(":")
@@ -699,7 +750,7 @@ def readLogs():
         PrecisionSubList.pop(0)
         PrecisionList[j] = list([float(i) for i in PrecisionSubList])
 
-    permfile = open("Logs"+slash+"RecallLog.txt", 'r')
+    permfile = open("Logs"+slash+"RecallLog"+ str(length)+".txt", 'r')
     RecallString = permfile.read()
     permfile.close()
     RecallList = RecallString.split(":")
@@ -710,7 +761,7 @@ def readLogs():
         RecallSubList.pop(0)
         RecallList[j] = list([float(i) for i in RecallSubList])
 
-    permfile = open("Logs"+slash+"F1Log.txt", 'r')
+    permfile = open("Logs"+slash+"F1Log"+ str(length)+".txt", 'r')
     f1String= permfile.read()
     permfile.close()
     f1List = f1String.split(":")
@@ -721,7 +772,7 @@ def readLogs():
         f1SubList.pop(0)
         f1List[j] = list([float(i) for i in f1SubList])
 
-    permfile = open("Logs"+slash+"SupportLog.txt", 'r')
+    permfile = open("Logs"+slash+"SupportLog"+ str(length)+".txt", 'r')
     supportString = permfile.read()
     permfile.close()
     supportList = supportString.split(":")
@@ -734,35 +785,53 @@ def readLogs():
 
     return PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList
 
+def extractList(words, size):
+	return [word for word in words if len(word) == size]
 
-def evaluateLogs(evaluationParam="maxminprecision"):
-    PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList = readLogs()
-    if evaluationParam == "averageprecision":
-        allPavg = []
-        for i in range(len(PrecisionList)):
-            allPavg.append(np.average(PrecisionList[i], weights=supportList[i]))
-        winner = allPavg.index(max(allPavg))
-        print("Best features are: " + convertPermutationToFeatureString(PermutationsList[winner]))
-        print("Best parameters are: " + str(ParametersList[winner]))
-    elif evaluationParam == "maxminprecision":
-        allPmin = []
-        for i in range(len(PrecisionList)):
-            allPmin.append(min(PrecisionList[i]))
-        winner = allPmin.index(max(allPmin))
-        print("Best features are: " + convertPermutationToFeatureString(PermutationsList[winner]))
-        print("Best parameters are: " + str(ParametersList[winner]))
-    elif evaluationParam == "maxminrecall":
-        allRmin = []
-        for i in range(len(RecallList)):
-            allRmin.append(min(RecallList[i]))
-        winner = allRmin.index(max(allRmin))
-        print("Best features are: " + convertPermutationToFeatureString(PermutationsList[winner]))
-        print("Best parameters are: " + str(ParametersList[winner]))
+def evaluateLogs(length, evaluationParam="maxminprecision"):
+	print("Evaluating " + evaluationParam)
+	print("Start to read logs")
+	PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList = readLogs(length)
+	print("Finished reading logs, logs contain %d elements" %len(PermutationsList))
+	#minLengthFeatures = min(PermutationsList, key=len)
+	#maxLengthFeatures = max(PermutationsList, key=len)
+	#print minLengthFeatures
+	#print maxLengthFeatures
+	#print("Logs contain combinations of %d to %d features" %(minLengthFeatures, maxLengthFeatures))
+	winner = None
 
-    else:
-        print("Invalid input")
-        return -1
-    return PermutationsList[winner], ParametersList[winner]
+	'''		
+	for length in range(minLengthFeatures, maxLengthFeatures+1):
+		PrecisionList = extractList(PrecisionList, length)
+	'''
+	
+	if evaluationParam == "averageprecision":
+		allPavg = []
+		for i in range(len(PrecisionList)):
+			allPavg.append(np.average(PrecisionList[i], weights=supportList[i]))
+		winner = allPavg.index(max(allPavg))
+	elif evaluationParam == "maxminprecision":
+		allPmin = []
+		for i in range(len(PrecisionList)):
+			allPmin.append(min(PrecisionList[i]))
+		winner = allPmin.index(max(allPmin))
+	elif evaluationParam == "maxminrecall":
+		allRmin = []
+		for i in range(len(RecallList)):
+			allRmin.append(min(RecallList[i]))
+		winner = allRmin.index(max(allRmin))
+	else:
+		print("Invalid input")
+		return -1
+
+	print("Winner index: %d" %winner)
+	print("Best features are: " + convertPermutationToFeatureString(PermutationsList[winner]))
+	print("Best parameters are: " + str(ParametersList[winner]))
+	print("Precision: " + str(PrecisionList[winner]))
+	print("Recall: " + str(RecallList[winner]))
+	writeFeatureMask(PermutationsList[winner])
+
+	return PermutationsList[winner], ParametersList[winner]
 
 def cleanLogs():
     logfile = open("Logs"+slash+"Logfile.txt", 'w')
@@ -798,6 +867,6 @@ def main():
 	#cleanLogs()
 	#compareFeatures2(n_jobs=-1)
 	compareFeatures(-1)
-	#evaluateLogs("maxminrecall")
+	#evaluateLogs(12, "averageprecision")
 if __name__ == '__main__':
 	main()
