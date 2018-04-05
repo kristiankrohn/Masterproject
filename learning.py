@@ -83,6 +83,8 @@ def startLearning():
     X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
     '''
+    dataset.setDatasetFolder(2)
+
     X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
     X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8

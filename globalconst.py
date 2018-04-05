@@ -7,10 +7,10 @@ import os, shutil
 
 if os.name == 'nt':
 	slash = "\\"
-	#print("Running on Windows system")
+	print("Running on Windows system")
 elif os.name == 'posix':
 	slash = "/"
-	#print("Running on Linux system")
+	print("Running on Linux system")
 else:
 	print("Running on " + os.name)
 
@@ -22,7 +22,7 @@ timestamp = 2
 numCh = 8
 nPlots = numCh
 nSamples = 2000
-datasetFolders = [slash + "Dataset" + slash, slash + "Dataset_Aexternal" + slash]
+datasetFolders = [slash + "Dataset1" + slash, slash + "Dataset2" + slash]
 longLength = 625
 shortLength = 100
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

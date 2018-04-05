@@ -315,6 +315,7 @@ def compareFeatures2(n_jobs=1):
 	#datasetfile = "longdata.txt"
 	datasetfile = "data.txt"
 	merge = True
+	dataset.setDatasetFolder(2)
 	X, y = dataset.loadDataset(filename=datasetfile, filterCondition=True, 
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
 	#print("After load")
@@ -418,6 +419,9 @@ def compareFeatures(n_jobs=1):
 	merge = True
 	skip = False
 	logging = False
+
+
+
 	print("Setup for brute force testing of all feature combination, features in list: %d" %len(FUNC_MAP))
 	print("Enter maximum number of features: (\"all\" for all combinations)")
 	inputString = raw_input()
@@ -865,8 +869,8 @@ def cleanLogs():
 
 def main():
 	#cleanLogs()
-	#compareFeatures2(n_jobs=-1)
-	compareFeatures(-1)
+	compareFeatures2(n_jobs=-1)
+	#compareFeatures(-1)
 	#evaluateLogs(12, "averageprecision")
 if __name__ == '__main__':
 	main()

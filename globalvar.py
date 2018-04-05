@@ -22,19 +22,22 @@ a = None
 window = 10
 Zi = np.zeros([numCh,window-1])
 mutex = Lock()
-
+'''
 if os.name == 'nt':
+	
 	if getpass.getuser() == "Kristian":
 		datasetFolder = datasetFolders[0]
 	else:
 		datasetFolder = datasetFolders[1]
-	#print("Running on Windows system")
+	print("Running on Windows system")
 elif os.name == 'posix':
 	datasetFolder = datasetFolders[0]
-	#print("Running on Linux system")
+	print("Running on Linux system")
 else:
 	print("Running on " + os.name)
 	datasetFolder = datasetFolders[0]
+'''
+datasetFolder = datasetFolders[0]
 
 #data[channel][filterdata][sample]
 guipredict = False

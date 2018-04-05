@@ -511,11 +511,11 @@ def keys():
 				#dataset.viewtempelement(inputval)
 			#else:
 				#print("Invalid input")
-		elif string == "setdatasetfolderlocal":
-			dataset.setDatasetFolder("local")
-
-		elif string == "setdatasetfolderexternal":
-			dataset.setDatasetFolder("external")
+		elif string == "setdatasetfolder":
+			if inputval != None:
+				dataset.setDatasetFolder(inputval)
+			else:
+				print("Invalid input")
 
 		elif string == "printdatasetfolder":
 			dataset.printDatasetFolder()
@@ -654,7 +654,7 @@ def main():
 	#thread0.join()
 	#thread1.join()
 	#thread2.join()
-	app = ttk.App()
+	#app = ttk.App()
 	#print("Penis")
 	#while not graphVar:
 		#tme.sleep(0.1)

@@ -976,12 +976,13 @@ def print_appenddelete(elementtype):
 		print(elementtype + " list is empty")
 
 def setDatasetFolder(folder):
-	if folder == "external":
-		glb.datasetFolder = datasetFolders[1]
-
-	else:
+	if folder == 1:
 		glb.datasetFolder = datasetFolders[0]
 
+	elif folder == 2:
+		glb.datasetFolder = datasetFolders[1]
+	else:
+		print("Invalid input")
 	print("Now working on the dataset in: " + glb.datasetFolder)
 
 def printDatasetFolder():
