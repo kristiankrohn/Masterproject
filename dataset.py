@@ -866,6 +866,8 @@ def deleteelement(index, filename):
 	DataSet = AllData.split(':')
 	if index > len(DataSet):
 		print("Index error")
+		print("Index = %d" %index)
+		print("Length of dataset = %d" %len(DataSet))
 	else:
 		for i in range(numCh):
 			DataSet.pop(index)
