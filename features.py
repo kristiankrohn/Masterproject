@@ -617,41 +617,41 @@ def compareFeatures(n_jobs=1):
 				allS.append(s)
 
 				if logging:
-					logfile = open("Logs"+slash+"Logfile.txt", 'a+')
+					logfile = open(dir_path+slash+"Logs"+slash+"Logfile.txt", 'a+')
 					logfile.write("Feature combination:")
 					logfile.write(str(p)+"\n")
 					logfile.write(report+"\n\n\n")
 					logfile.close()
 	
-					permfile = open("Logs"+slash+"PermutationLog"+ str(i)+".txt", 'a+')
+					permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					permfile.write(str(p))
 					permfile.close()
 	
-					permfile = open("Logs"+slash+"ParameterLog"+ str(i)+".txt", 'a+')
+					permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+ str(i)+".txt", 'a+')
 					permfile.write(";")
 					permfile.write(str(bestParams))
 					permfile.close()
 	
-					permfile = open("Logs"+slash+"PrecisionLog"+ str(i)+".txt", 'a+')
+					permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					for k in range(len(presc)):
 						permfile.write(','+str(presc[k]))
 					permfile.close()
 
-					permfile = open("Logs"+slash+"RecallLog"+ str(i)+".txt", 'a+')
+					permfile = open(dir_path+slash+"Logs"+slash+"RecallLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					for k in range(len(r)):
 						permfile.write(','+str(r[k]))
 					permfile.close()
 	
-					permfile = open("Logs"+slash+"F1Log"+ str(i)+".txt", 'a+')
+					permfile = open(dir_path+slash+"Logs"+slash+"F1Log"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					for k in range(len(f1)):
 						permfile.write(','+str(f1[k]))
 					permfile.close()
 
-					permfile = open("Logs"+slash+"SupportLog"+ str(i)+".txt", 'a+')
+					permfile = open(dir_path+slash+"Logs"+slash+"SupportLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					for k in range(len(s)):
 						permfile.write(','+str(s[k]))
@@ -722,7 +722,7 @@ def compareFeatures(n_jobs=1):
 
 def readLogs(length):
     import ast
-    permfile = open("Logs"+slash+"PermutationLog"+ str(length)+".txt", 'r')
+    permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+ str(length)+".txt", 'r')
     PermutationsString = permfile.read()
     permfile.close()
     PermutationsList = PermutationsString.split(':')
@@ -736,14 +736,14 @@ def readLogs(length):
 		PermutationsList[i] = tuple(eval(PermutationsList[i]))
 
 
-    permfile = open("Logs"+slash+"ParameterLog"+ str(length)+".txt", 'r')
+    permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+ str(length)+".txt", 'r')
     ParametersString = permfile.read()
     permfile.close()
     ParametersList = ParametersString.split(';')
     ParametersList.pop(0)
     ParametersList = [ast.literal_eval(i) for i in ParametersList]
 
-    permfile = open("Logs"+slash+"PrecisionLog"+ str(length)+".txt", 'r')
+    permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(length)+".txt", 'r')
     PrecisionString = permfile.read()
     permfile.close()
     PrecisionList = PrecisionString.split(":")
@@ -754,7 +754,7 @@ def readLogs(length):
         PrecisionSubList.pop(0)
         PrecisionList[j] = list([float(i) for i in PrecisionSubList])
 
-    permfile = open("Logs"+slash+"RecallLog"+ str(length)+".txt", 'r')
+    permfile = open(dir_path+slash+"Logs"+slash+"RecallLog"+ str(length)+".txt", 'r')
     RecallString = permfile.read()
     permfile.close()
     RecallList = RecallString.split(":")
@@ -765,7 +765,7 @@ def readLogs(length):
         RecallSubList.pop(0)
         RecallList[j] = list([float(i) for i in RecallSubList])
 
-    permfile = open("Logs"+slash+"F1Log"+ str(length)+".txt", 'r')
+    permfile = open(dir_path+slash+"Logs"+slash+"F1Log"+ str(length)+".txt", 'r')
     f1String= permfile.read()
     permfile.close()
     f1List = f1String.split(":")
@@ -776,7 +776,7 @@ def readLogs(length):
         f1SubList.pop(0)
         f1List[j] = list([float(i) for i in f1SubList])
 
-    permfile = open("Logs"+slash+"SupportLog"+ str(length)+".txt", 'r')
+    permfile = open(dir_path+slash+"Logs"+slash+"SupportLog"+ str(length)+".txt", 'r')
     supportString = permfile.read()
     permfile.close()
     supportList = supportString.split(":")
@@ -838,31 +838,31 @@ def evaluateLogs(length, evaluationParam="maxminprecision"):
 	return PermutationsList[winner], ParametersList[winner]
 
 def cleanLogs():
-    logfile = open("Logs"+slash+"Logfile.txt", 'w')
+    logfile = open(dir_path+slash+"Logs"+slash+"Logfile.txt", 'w')
     logfile.truncate(0)
     logfile.close()
 
-    permfile = open("Logs"+slash+"PermutationLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog.txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open("Logs"+slash+"ParameterLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog.txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open("Logs"+slash+"PrecisionLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog.txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open("Logs"+slash+"RecallLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"RecallLog.txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open("Logs"+slash+"F1Log.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"F1Log.txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open("Logs"+slash+"SupportLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"SupportLog.txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
