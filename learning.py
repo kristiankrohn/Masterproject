@@ -80,14 +80,23 @@ def startLearning():
 
     #X, y = dataset.loadDataset("longdata.txt")
     '''
-    X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
+    X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
     '''
+
+    dataset.setDatasetFolder(1)
+
+    X1, y1 = dataset.loadDataset(filename="data.txt", filterCondition=True,
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
+    X1, y1 = dataset.sortDataset(X1, y1, length=65, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+
     dataset.setDatasetFolder(2)
 
-    X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
+    X2, y2 = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
-    X, y = dataset.sortDataset(X, y, length=10000, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    X2, y2 = dataset.sortDataset(X2, y2, length=65, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+
+
     #X, y = dataset.sortDataset(X, y, length=10000, classes=[6,8], merge = False)
 
 
@@ -110,42 +119,39 @@ def startLearning():
     '''
     #XL = features.extractFeatures(X, channelIndex)
     featuremask = features.readFeatureMask()
-    XL = features.extractFeaturesWithMask(
-            X, channelIndex, featuremask=featuremask, printTime=False)
-    
+    XL1 = features.extractFeaturesWithMask(
+            X1, channelIndex, featuremask=featuremask, printTime=False)
+    XL2 = features.extractFeaturesWithMask(
+            X2, channelIndex, featuremask=featuremask, printTime=False)
+
     #uncomment for using samples as features
     '''
     XL = X[0]
     print(len(X[0]))
     for i in range(len(X[0])):
-        XL[i] = np.concatenate((XL[i], X[1][i], X[3][i])) 
+        XL[i] = np.concatenate((XL[i], X[1][i], X[3][i]))
         #np.append(XL[i], X[1][i])
         #np.append(XL[i], X[2][i])
         #np.append(XL[i], X[3][i])
     print(len(XL[0]))
     '''
     #XL = PCA(n_components = 10).fit_transform(XL)
-    
+
     #XL = features.extractFeaturesWithMask(
             #X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
     #Scale the data if needed and split dataset into training and testing
-    '''
-    for i in range(len(XL)):
-        L = np.arange(0, len(XL[i]))
-        plt.ion()
-        plt.show()
-        plt.clf()
-        #for i in range(numCh):
-        plt.plot(L, XL[i])
-        plt.ylabel('uV')
-        plt.xlabel('Seconds')
-        plt.draw()
-        plt.pause(0.001)
-        time.sleep(0.1)
-    '''
-    XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
 
+    XLtrain1, XLtest1, yTrain1, yTest1, XL1, scaler = classifier.scaleAndSplit(XL1, y1[0])
+    XLtrain2, XLtest2, yTrain2, yTest2, XL2, scaler = classifier.scaleAndSplit(XL2, y2[0])
+    print("HELELELELE")
+
+    yTrain = np.append(yTrain1, yTrain2, axis = 0)
+    XLtrain = np.append(XLtrain1, XLtrain2, axis = 0)
+    yTest = np.append(yTest1, yTest2, axis = 0)
+    XLtest = np.append(XLtest2, XLtest2, axis = 0)
+    #XLtrain = numpy.concatenate(XLtrain1, XLtrain2)
+    #print(shape(XLtrain))
     #XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
 
 
@@ -182,6 +188,7 @@ def startLearning():
     print()
     print("Scores")
     print(scores)
+
 
 
     tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest, clf, yTest)

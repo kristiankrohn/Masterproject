@@ -250,7 +250,7 @@ FUNC_MAP = {0: hfd1,
 			4: specEntropy1,
 			5: specEntropy4,
 			6: pearsonCoeff34,
-			7: pearsonCoeff34a,	
+			7: pearsonCoeff34a,
 			8: pearsonCoeff14,
 			9: pearsonCoeff14a,
 			10: cov34,
@@ -258,17 +258,17 @@ FUNC_MAP = {0: hfd1,
 			12: cov14,
 			13: cov14a,
 			14: stdDeviation,
-			15: stdDeviation4,	
+			15: stdDeviation4,
 			16: slope,
 			17: slope4,
 			18: thetaBeta1,
 			19: thetaBeta4,
 			#20: power1a,
 			#21: power1b,
-			#22: power1c,			
+			#22: power1c,
 			#20: power4a,
 			#24: power4b,
-			#25: power4c,			
+			#25: power4c,
 			20: pfd1,
 			21: pfd4,
 			22: ptp1,
@@ -316,7 +316,7 @@ def compareFeatures2(n_jobs=1):
 	datasetfile = "data.txt"
 	merge = True
 	dataset.setDatasetFolder(2)
-	X, y = dataset.loadDataset(filename=datasetfile, filterCondition=True, 
+	X, y = dataset.loadDataset(filename=datasetfile, filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
 	#print("After load")
     #print X
@@ -346,7 +346,7 @@ def compareFeatures2(n_jobs=1):
 	#clf = RandomForestClassifier(n_estimators = 45, max_depth = 10,  min_samples_leaf = 1, random_state = 40)
 	#clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
 	#clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
-	
+
 
 	rfecv = RFECV(estimator=clf, step=1, cv=10, n_jobs=n_jobs,
 	              scoring='accuracy')
@@ -376,7 +376,7 @@ def compareFeatures2(n_jobs=1):
 	print("Scores")
 	print(scores)
 
-def writeFeatureMask(mask):	
+def writeFeatureMask(mask):
 	features = range(len(FUNC_MAP))
 	featuremaskList = list(compress(features, mask))
 	featuremask = open("featuremask.txt", 'w+')
@@ -489,7 +489,7 @@ def compareFeatures(n_jobs=1):
 			logging = False
 	#Load dataset
 	#print("Before load")
-	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True, 
+	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=True, windowLength=100)
 	#print("After load")
 	#print X
@@ -529,12 +529,12 @@ def compareFeatures(n_jobs=1):
 		comb = nCr(len(features),i)
 		print("Number of iterations for combinations of length %d: %d" %(i, comb))
 		numberOfCombinations += comb
-	
+
 	print("Number of combinations to test %d" %numberOfCombinations)
 
 	#for i in range(minNumFeatures, maxNumFeatures+1):
 	for i in range(maxNumFeatures, minNumFeatures-1, -1):
-		
+
 		print("Starting to read PermutationLog")
 		try:
 			permfile = open("Logs"+slash+"PermutationLog"+ str(i)+".txt", 'r')
@@ -565,7 +565,7 @@ def compareFeatures(n_jobs=1):
 		for p in combinations(features, i): #If order matters use permutations
 
 			if skip == True:
-				
+
 				if p in PermutationsList:
 					#print("Combination exists")
 					numberOfCombinations -= 1
@@ -575,17 +575,17 @@ def compareFeatures(n_jobs=1):
 						print("Training number: %d" %trainings)
 						print("Remaining combinations: %d" %numberOfCombinations)
 						print("Elapsed time for checking that this combination exists: " + str(elapsedTime))
-					
+
 					stop = datetime.now()
 					elapsedTime = (stop-start)
 					start = stop
 				else:
 					print("Found Starting point")
 					skip = False
-				
-				
+
+
 			if skip == False:
-				
+
 				start = datetime.now()
 				XLtrainPerm = np.empty([len(XLtrain), i])
 				XLtestPerm = np.empty([len(XLtest), i])
@@ -622,17 +622,17 @@ def compareFeatures(n_jobs=1):
 					logfile.write(str(p)+"\n")
 					logfile.write(report+"\n\n\n")
 					logfile.close()
-	
+
 					permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					permfile.write(str(p))
 					permfile.close()
-	
+
 					permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+ str(i)+".txt", 'a+')
 					permfile.write(";")
 					permfile.write(str(bestParams))
 					permfile.close()
-	
+
 					permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					for k in range(len(presc)):
@@ -644,7 +644,7 @@ def compareFeatures(n_jobs=1):
 					for k in range(len(r)):
 						permfile.write(','+str(r[k]))
 					permfile.close()
-	
+
 					permfile = open(dir_path+slash+"Logs"+slash+"F1Log"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					for k in range(len(f1)):
@@ -662,7 +662,7 @@ def compareFeatures(n_jobs=1):
 					print(report)
 					print("Best features so far are: " + convertPermutationToFeatureString(allPermutations[winner]))
 					print("Best result so far are: ", allPavg[winner])
-					
+
 				#print("Pest parameters for this feature combination: " + str(bestParams))
 				stop = datetime.now()
 				numberOfCombinations -= 1
@@ -804,11 +804,11 @@ def evaluateLogs(length, evaluationParam="maxminprecision"):
 	#print("Logs contain combinations of %d to %d features" %(minLengthFeatures, maxLengthFeatures))
 	winner = None
 
-	'''		
+	'''
 	for length in range(minLengthFeatures, maxLengthFeatures+1):
 		PrecisionList = extractList(PrecisionList, length)
 	'''
-	
+
 	if evaluationParam == "averageprecision":
 		allPavg = []
 		for i in range(len(PrecisionList)):
