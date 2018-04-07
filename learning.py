@@ -88,14 +88,24 @@ def startLearning():
 
     X1, y1 = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
-    X1, y1 = dataset.sortDataset(X1, y1, length=65, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    X1, y1 = dataset.sortDataset(X1, y1, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
 
+    '''
+    X1T, y1T = dataset.loadDataset(filename="data.txt", filterCondition=True,
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
+    X1T, y1T = dataset.sortDataset(X1T, y1T, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    '''
     dataset.setDatasetFolder(2)
 
     X2, y2 = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
-    X2, y2 = dataset.sortDataset(X2, y2, length=65, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    X2, y2 = dataset.sortDataset(X2, y2, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
 
+    '''
+    X2T, y2T = dataset.loadDataset(filename="data.txt", filterCondition=True,
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
+    X2T, y2T = dataset.sortDataset(X2T, y2T, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    '''
 
     #X, y = dataset.sortDataset(X, y, length=10000, classes=[6,8], merge = False)
 
@@ -124,6 +134,13 @@ def startLearning():
     XL2 = features.extractFeaturesWithMask(
             X2, channelIndex, featuremask=featuremask, printTime=False)
 
+    #If a test set is needed for the combined subject model
+    '''
+    XL1T = features.extractFeaturesWithMask(
+            X1T, channelIndex, featuremask=featuremask, printTime=False)
+    XL2T = features.extractFeaturesWithMask(
+            X2T, channelIndex, featuremask=featuremask, printTime=False)
+    '''
     #uncomment for using samples as features
     '''
     XL = X[0]
@@ -143,16 +160,18 @@ def startLearning():
     #Scale the data if needed and split dataset into training and testing
 
     XLtrain1, XLtest1, yTrain1, yTest1, XL1, scaler = classifier.scaleAndSplit(XL1, y1[0])
-    XLtrain2, XLtest2, yTrain2, yTest2, XL2, scaler = classifier.scaleAndSplit(XL2, y2[0])
-    print("HELELELELE")
+    XLtrain2, XLtest2, yTrain2, yTest2, XL2, scaler = classifier.scaleAndSplit(XL2, y1[0])
 
-    yTrain = np.append(yTrain1, yTrain2, axis = 0)
-    XLtrain = np.append(XLtrain1, XLtrain2, axis = 0)
-    yTest = np.append(yTest1, yTest2, axis = 0)
-    XLtest = np.append(XLtest2, XLtest2, axis = 0)
-    #XLtrain = numpy.concatenate(XLtrain1, XLtrain2)
-    #print(shape(XLtrain))
-    #XLtrainR, XLtestR, yTrainR, yTestR = classifier.scaleAndSplit(XLreturn, yreturn[0])
+    '''
+    XLtrain1T, XLtest1T, yTrain1T, yTest1T, XL1T, scaler = classifier.scaleAndSplit(XL1T, y1T[0])
+    XLtrain2T, XLtest2T, yTrain2T, yTest2T, XL2T, scaler = classifier.scaleAndSplit(XL2T, y2T[0])
+    '''
+    #This is to combine the two subjects
+
+    #yTrain = np.append(yTrain1, yTrain2, axis = 0)
+    #XLtrain = np.append(XLtrain1, XLtrain2, axis = 0)
+    #yTest = np.append(yTest1, yTest2, axis = 0)
+    #XLtest = np.append(XLtest1, XLtest2, axis = 0)
 
 
     #bestParams.append(classifier.tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = -1))
@@ -166,7 +185,7 @@ def startLearning():
 
 
     #Use this if predictor other than SVM is used.
-    clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+    clf, clfPlot = createAndTrain(XLtrain1, yTrain1, None)
     #plot.trainingPredictions(clf, XL, y[0])
 
     ###TO PLOT LEARNING CURVE UNCOMMENT THIS.
@@ -183,7 +202,7 @@ def startLearning():
     #Use this if it is important to see the overall prediction, and not for only the test set
 
 
-    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
+    scores = cross_val_score(clf, XLtrain1, yTrain1, cv=50, scoring = 'accuracy')
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")
@@ -191,7 +210,7 @@ def startLearning():
 
 
 
-    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest, clf, yTest)
+    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest1, clf, yTest1)
     accuracyScore.append(tempAccuracyScore)
     f1Score.append(tempf1Score)
     precision.append(tempPrecision)
@@ -251,9 +270,9 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     C = 10
     #C = 50
-    #clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
+    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
     #clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
-    clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
+    #clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
     #clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
 
 
@@ -261,10 +280,10 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #clf = tree.DecisionTreeClassifier(max_depth = None, min_samples_leaf=5)
     #clf = tree.DecisionTreeClassifier(max_depth = None, min_samples_leaf = bestParams['min_samples_leaf'])
     #randomForestClassifier.
-    #clf = RandomForestClassifier(n_estimators = 54, max_depth = 5,  min_samples_leaf = 1, random_state = 40)
+    #clf = RandomForestClassifier(n_estimators = 54, max_depth = 30,  min_samples_leaf = 1, random_state = 40)
     #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
-    #clf = neighbors.KNeighborsClassifier(n_neighbors = bestParams['n_neighbors'], n_jobs = -1)
+    #clf = neighbors.KNeighborsClassifier(n_neighbors = 5, n_jobs = -1)
     clf.fit(XLtrain,yTrain)#skaler???
 
     #Create classifier to be able to visualize it
