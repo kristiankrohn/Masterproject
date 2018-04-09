@@ -577,6 +577,18 @@ def keys():
 			if inputval != None and inputval < 10:
 				hht.multiplottestHHT(inputval)
 
+		elif string == "drone":		
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			droneSimulatorThread = threading.Thread(target=controller.droneController, args=())
+			droneSimulatorThread.start()
+
+		elif string == "dronesimulator":		
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			droneSimulatorThread = threading.Thread(target=controller.droneSimulatorController, args=())
+			droneSimulatorThread.start()
+		
 		elif string == "mujaffa":
 			webbrowser.open('http://www.123spill.no/spill/spill-spillet/448/Mujaffa-1.6', new = 2)
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
