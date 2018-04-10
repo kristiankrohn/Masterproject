@@ -36,7 +36,9 @@ import features
 ####TODO############################################
 ##
 ##	Test ny implementasjon av classifier
-##	Sjekk Adrian dataset for lengde, short length var satt til 100 nar settet ble laget
+##	Sjekk Adrian dataset for lengde, 
+##	short length var satt til 100 nar settet ble laget
+##
 ####END TODO########################################
 
 
