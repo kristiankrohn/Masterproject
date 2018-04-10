@@ -207,7 +207,7 @@ def droneSimulatorController():
 					keypress = True
 					pressedKey = prediction
 					#Make command
-					#keyboard.press(translate[prediction])
+					keyboard.press(translate[prediction])
 					print("Press key: %d" %prediction)
 
 				elif prediction == 0: #Blink
@@ -223,14 +223,14 @@ def droneSimulatorController():
 
 					gotopposite = True
 					print("Got opposite key: %d" %prediction)
-					#keyboard.release(translate[pressedKey])
+					keyboard.release(translate[pressedKey])
 
 				elif prediction in otherkey[pressedKey]: #Release and press new
 
 					gotother = True
 
 					#Make command
-					#keyboard.release(translate[pressedKey])
+					keyboard.release(translate[pressedKey])
 					print("Release key: %d" %pressedKey)
 
 					#keyboard.press(translate[prediction])

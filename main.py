@@ -35,8 +35,10 @@ import features
 
 ####TODO############################################
 ##
-##	
-##	
+##	Test ny implementasjon av classifier
+##	Sjekk Adrian dataset for lengde, 
+##	short length var satt til 100 nar settet ble laget
+##
 ####END TODO########################################
 
 
@@ -54,11 +56,11 @@ filtering = True
 
 predictioncondition = False
 predictioninterval = 25
+predictionParameters = None
 counterlock = Lock()
-clf = None
-scaler = None
+
 intervalcounter = 0
-featuremask = None
+
 
 
 #app = QtGui.QApplication([])
@@ -200,7 +202,7 @@ def printData(sample):
 				#print("New predict:")
 				intervalcounter = 0
 				#predict.predictRealTime(clf, scaler)
-				predictionThread = threading.Thread(target=predict.predictRealTime,args=(clf, scaler, featuremask))
+				predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
 				predictionThread.start()
 
 
@@ -270,8 +272,10 @@ def graph():
 
 def keys():
 
-	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, clf, predictioncondition, scaler, featuremask
+	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, predictioncondition
 	global guiVar
+	global predictionParameters
+
 	while True:
 		inputString = raw_input()
 		if "=" in inputString:
@@ -557,10 +561,8 @@ def keys():
 		elif string == "predict":
 
 			predictioncondition = True
-			clf = classifier.loadMachineState(machinestate)
-			scaler = classifier.loadScaler(machinestate)
-			featuremask = features.readFeatureMask()
-			print featuremask
+			predictionParameters = predict.loadPredictor("testing")
+			#print featuremask
 			print("Predictionsetup complete")
 
 		elif string == "notpredict":

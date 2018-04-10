@@ -31,13 +31,13 @@ z = 3
 #clf = None
 print(machinestate)
 
-clf=None
-scaler=None
+predictionParams = None
 
 
 class Ball(object):
 	def __init__(self, canvas, *args, **kwargs):
 		global center, right, left, up, down, startSleep, startMove, endMove, sleeping, clf
+		global predictionParams
 		self.canvas = canvas
 		self.id = canvas.create_oval(*args, **kwargs)
 		#self.canvas.coords(self.id, [20, 260, 120, 360])
@@ -58,6 +58,7 @@ class Ball(object):
 		global z
 		global removeBall, startRemoveBall, wait, startWait
 		global guipredict, saveData
+		#global predictionParams
 		x1, y1, x2, y2 = self.canvas.bbox(self.id)
 
 		if not center and ((right and (x1 <= (size/2) - ballsize)) 
@@ -85,7 +86,7 @@ class Ball(object):
 				cmd = 2
 			#print("Return command= %d"%cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(cmd),kwargs=(predictionParams))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -121,7 +122,7 @@ class Ball(object):
 			cmd = 0
 
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(cmd),kwargs=(predictionParams))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -142,7 +143,7 @@ class Ball(object):
 			#print("Movementtime= ")
 			#print(tme.time())
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(cmd),kwargs=(predictionParams))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveLongTemp, args=(cmd,))
@@ -184,7 +185,7 @@ class Ball(object):
 			cmd = 3
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(cmd),kwargs=(predictionParams))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -200,7 +201,7 @@ class Ball(object):
 			cmd = 7
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(cmd),kwargs=(predictionParams))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -216,7 +217,7 @@ class Ball(object):
 			cmd = 9
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(cmd),kwargs=(predictionParams))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -232,7 +233,7 @@ class Ball(object):
 			cmd = 1
 			#print("Saving: %d" %cmd)
 			if glb.guipredict:	
-				predictionThread = threading.Thread(target=predict.predictGUI,args=(clf, cmd, shortLength, scaler))
+				predictionThread = threading.Thread(target=predict.predictGUI,args=(cmd),kwargs=(predictionParams))
 				predictionThread.start()
 			if glb.saveData:
 				threadSave = threading.Thread(target=dataset.saveShortTemp, args=(cmd,))
@@ -286,10 +287,9 @@ class App(object):
 
 	def startBall(self):
 		print("StartBall")		
-		global clf, scaler
+		global predictionParams
 		#self.w.pack_forget()
-		clf = classifier.loadMachineState(machinestate)
-		scaler = classifier.loadScaler(machinestate)
+		predictionParams = predict.loadPredictor("testing")
 		self.startButton.pack_forget()
 		self.canvas = tk.Canvas(root, width=size, height=size)
 		self.canvas.pack(expand=True)

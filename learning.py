@@ -87,7 +87,7 @@ def startLearning():
     dataset.setDatasetFolder(1)
 
     X1, y1 = dataset.loadDataset(filename="data.txt", filterCondition=True,
-                                filterType="DcNotch", removePadding=True, shift=False, windowLength=100)
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
     X1, y1 = dataset.sortDataset(X1, y1, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
 
     '''
@@ -130,9 +130,9 @@ def startLearning():
     #XL = features.extractFeatures(X, channelIndex)
     featuremask = features.readFeatureMask()
     XL1 = features.extractFeaturesWithMask(
-            X1, channelIndex, featuremask=featuremask, printTime=False)
+            X1, featuremask=featuremask, printTime=False)
     XL2 = features.extractFeaturesWithMask(
-            X2, channelIndex, featuremask=featuremask, printTime=False)
+            X2, featuremask=featuremask, printTime=False)
 
     #If a test set is needed for the combined subject model
     '''
@@ -292,102 +292,6 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     print("Time taken to train classifier:")
     print(time.time() - start)
     return clf, None #clfPlot Uncomment this to be able to plot the classifier
-
-
-
-def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = 1):
-    bestParams = []
-
-    sampleLeafPipeline = [{
-           "n_estimators" : [9, 18, 27, 36, 45, 54, 63],
-           "max_depth" : [1, 5, 10, 15, 20, 25, 30],
-           "min_samples_leaf" : [1, 2, 4, 6, 8, 10]}]
-
-
-    neighborsPipeline = [{"n_neighbors" : [1, 5, 10, 25, 50]}]
-
-    print("Starting to tune parameters")
-    print()
-
-    clf = GridSearchCV(neighbors.KNeighborsClassifier(), neighborsPipeline, cv=10, scoring='%s_macro' % 'precision')
-
-    clf.fit(XLtrain, yTrain)
-    bestParams.append(clf.best_params_)
-    print("Best parameters set found on development set:")
-    print()
-    print(bestParams)
-    print()
-    print("Grid scores on development set:")
-    print()
-    means = clf.cv_results_['mean_test_score']
-    stds = clf.cv_results_['std_test_score']
-
-    #This loop prints out standarddeviation and lots of good stuff
-
-    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
-    print()
-
-    print("Detailed classification report:")
-    print()
-    print("The model is trained on the full development set.")
-    print("The scores are computed on the full evaluation set.")
-    print()
-    yPred = clf.predict(XLtest)
-    print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
-    print()
-
-    return bestParams[0]
-
-def evaluateFeatures(X, y):
-
-    #Make all the different models and train them to find the importance of the features
-    forest = ExtraTreesClassifier(n_estimators = 250, random_state = 0)
-    forest.fit(X,y)
-    #Print to see what the shape looks like before features are removed
-    print(X.shape)
-    importances = forest.feature_importances_
-    std = np.std([tree.feature_importances_ for tree in forest.estimators_], axis=0)
-    indices = np.argsort(importances)[::-1]
-
-    # Print the feature ranking
-    print("Feature ranking:")
-
-    for f in range(X.shape[1]):
-        print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
-
-    # Plot the feature importances of the forest
-    plt.figure()
-    plt.title("Feature importances")
-    plt.bar(range(X.shape[1]), importances[indices],
-           color="r", yerr=std[indices], align="center")
-    plt.xticks(range(X.shape[1]), indices)
-    plt.xlim([-1, X.shape[1]])
-    plt.show()
-
-    #If this is used, the worst performing feature will be removed
-    model = SelectFromModel(forest, prefit=True) #This removes the worst features.
-    Xnew = model.transform(X)
-    #Print to check that feature has been removed
-    #print(Xnew.shape)
-    #return Xnew
-
-def appendFeaturesForComparison(i, XL, XLtrain, XLtest):
-
-    compareFeaturesTraining = []
-    compareFeaturesTesting = []
-    for j in range(len(XLtrain)):
-        compareFeaturesTraining.append(list(XLtrain[j][0:(i + 1)]))
-    for j in range(len(XLtest)):
-        compareFeaturesTesting.append(list(XLtest[j][0:(i + 1)]))
-    return compareFeaturesTraining, compareFeaturesTesting
-
-
-
-
-
-
-
 
 
 
