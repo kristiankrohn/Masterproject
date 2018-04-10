@@ -36,171 +36,175 @@ def getBandAmplitudes(X, Band):
 		avgAmplitude[Freq_Index] = sum(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))]) / len(C[int(Freq/Fs*len(X)):int(Next_Freq/Fs*len(X))])
 	return avgAmplitude
 
-def cov12(X, channel):
+def cov12(X):
 	cov = np.cov(X[0], X[1])
 	return cov[0][1]
-def cov12a(X, channel):
+
+def cov12a(X):
 	cov = np.cov(X[0], X[1])
 	return cov[1][0]
 
-def cov13(X, channel):
+def cov13(X):
 	cov = np.cov(X[0], X[2])
 	return cov[0][1]
-def cov13a(X, channel):
+
+def cov13a(X):
 	cov = np.cov(X[0], X[2])
 	return cov[1][0]
 
-def cov14(X, channel):
+def cov14(X):
 	cov = np.cov(X[0], X[3])
 	return cov[0][1]
 
-def cov14a(X, channel):
+def cov14a(X):
 	cov = np.cov(X[0], X[3])
 	return cov[1][0]
 
-def cov34(X, channel):
+def cov34(X):
 	cov = np.cov(X[2], X[3])
 	return cov[0][1]
-def cov34a(X, channel):
+
+def cov34a(X):
 	cov = np.cov(X[2], X[3])
 	return cov[1][0]
 
-def ptp1(X, channel):
+def ptp1(X):
 	return np.ptp(X[0])
-def ptp4(X, channel):
+
+def ptp4(X):
 	return np.ptp(X[3])
 
-def pfd1(X, channel):
+def pfd1(X):
 	return pyeeg.pfd(X[0])
 
-def pfd4(X, channel):
+def pfd4(X):
 	return pyeeg.pfd(X[3])
 
-def hfd1(X, channel):
+def hfd1(X):
 	return pyeeg.hfd(X[0], 50) #Okende tall gir viktigere feature, men mye lenger computation time
 
-def hfd4(X, channel):
+def hfd4(X):
 	return pyeeg.hfd(X[3], 50) #Okende tall gir viktigere feature, men mye lenger computation time
 
-def max1(X, channel):
+def max1(X):
 	return np.amax(X[0])
-def min1(X, channel):
+
+def min1(X):
 	return np.amin(X[0])
 
-def minDiff(X, channel):
+def minDiff(X):
 	return np.amin(X[1]) - np.amin(X[3])
 
-def maxDiff(X, channel):
+def maxDiff(X):
 	return np.amax(X[1]) - np.amax(X[3])
 
-def specEntropy1(X, channel):
+def specEntropy1(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
 	return pyeeg.spectral_entropy(X[0], [0.1, 4, 7, 12,30], 250, powerRatio)
 
-def specEntropy4(X, channel):
+def specEntropy4(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
 	return pyeeg.spectral_entropy(X[3], [0.1, 4, 7, 12,30], 250, powerRatio)
 
-def power1a(X, channel):
+def power1a(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
 	return power[0]
 
-def power1b(X, channel):
+def power1b(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
 	return power[1]
 
-def power1c(X, channel):
+def power1c(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[0], frequencyBands, glb.fs)
 	return power[2]
 
-def power4a(X, channel):
+def power4a(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
 	return power[0]
 
-def power4b(X, channel):
+def power4b(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
 	return power[1]
 
-def power4c(X, channel):
+def power4c(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	power, powerRatio = pyeeg.bin_power(X[3], frequencyBands, glb.fs)
 	return power[2]
 
-def pearsonCoeff14(X, channel):
+def pearsonCoeff14(X):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
 	return pearsonCoefficients14[1][0]
 
-def pearsonCoeff14a(X, channel):
+def pearsonCoeff14a(X):
 	pearsonCoefficients14 = np.corrcoef(X[0], X[3])
 	return pearsonCoefficients14[0][1]
 
-def pearsonCoeff13(X, channel):
+def pearsonCoeff13(X):
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients13[1][0]
 
-def pearsonCoeff13a(X, channel):
+def pearsonCoeff13a(X):
 	pearsonCoefficients13 = np.corrcoef(X[0], X[2])
 	return pearsonCoefficients13[0][1]
 
-def pearsonCoeff12(X, channel):
+def pearsonCoeff12(X):
 	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
 	return pearsonCoefficients12[1][0]
 
-def pearsonCoeff12a(X, channel):
+def pearsonCoeff12a(X):
 	pearsonCoefficients12 = np.corrcoef(X[0], X[1])
 	return pearsonCoefficients12[0][1]
 
-def pearsonCoeff34(X, channel):
+def pearsonCoeff34(X):
 	pearsonCoefficients12 = np.corrcoef(X[2], X[3])
 	return pearsonCoefficients12[1][0]
 
-def pearsonCoeff34a(X, channel):
+def pearsonCoeff34a(X):
 	pearsonCoefficients12 = np.corrcoef(X[2], X[3])
 	return pearsonCoefficients12[0][1]
 
-def stdDeviation(X, channel):
-	return np.std(X[channel])
+def stdDeviation(X):
+	return np.std(X[0])
 
-def stdDeviation4(X, channel):
+def stdDeviation4(X):
 	return np.std(X[3])
 
-def slope(X, channel):
-	maxIndex = np.argmax(X[channel])
-	minIndex = np.argmin(X[channel])
+def slope(X):
+	maxIndex = np.argmax(X[0])
+	minIndex = np.argmin(X[0])
 	minValueCh1 = np.amin(X[0])
 	maxValueCh1 = np.amax(X[0])
 	slopeCh1 = (minValueCh1 - maxValueCh1)/ (minIndex - maxIndex)
 	return slopeCh1
 
-def slope4(X, channel):
-	channel = 2
-	maxIndex = np.argmax(X[channel])
-	minIndex = np.argmin(X[channel])
+def slope4(X):
+	maxIndex = np.argmax(X[3])
+	minIndex = np.argmin(X[3])
 	minValueCh4 = np.amin(X[3])
 	maxValueCh4 = np.amax(X[3])
 	slopeCh4 = (minValueCh4 - maxValueCh4)/ (minIndex - maxIndex)
 	return slopeCh4
 
-def thetaBeta1(X, channel):
+def thetaBeta1(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	bandAvgAmplitudesCh1 = getBandAmplitudes(X[0], frequencyBands)
 	thetaBetaRatioCh1 = bandAvgAmplitudesCh1[1]/bandAvgAmplitudesCh1[3]
 	return thetaBetaRatioCh1
 
-def thetaBeta4(X, channel):
+def thetaBeta4(X):
 	frequencyBands = [0.1, 4, 8, 12,30]
 	bandAvgAmplitudesCh4 = getBandAmplitudes(X[3], frequencyBands)
 	thetaBetaRatioCh4 = bandAvgAmplitudesCh4[1]/bandAvgAmplitudesCh4[3]
 	return thetaBetaRatioCh4
 
-def extrema(X, channel):
+def extrema(X):
 	extremaFeature = None
 	if (np.argmax(X[2]) - np.argmax(X[3])) > 15:
 		extremaFeature = 1
@@ -277,7 +281,7 @@ FUNC_MAP = {0: hfd1,
 			25: max1
 			}
 
-def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
+def extractFeaturesWithMask(x,featuremask, printTime=False):
 	XL = [[]]
 	X = list(x)
 	for i in range(len(X[0])):
@@ -286,7 +290,7 @@ def extractFeaturesWithMask(x, channel, featuremask, printTime=False):
 		Xi = [X[k][i] for k in range(len(X))]
 
 		for j in featuremask:
-			 feature = FUNC_MAP[j](Xi, channel)
+			 feature = FUNC_MAP[j](Xi)
 			 featureVector.append(feature)
 		XL.append(featureVector)
 		if printTime:
@@ -311,30 +315,31 @@ def convertPermutationToFeatureString(p):
 		print(type(p))
 		return str(p)
 
-def compareFeatures2(n_jobs=1):
+def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
 	#datasetfile = "longdata.txt"
 	datasetfile = "data.txt"
 	merge = True
-	dataset.setDatasetFolder(2)
-	X, y = dataset.loadDataset(filename=datasetfile, filterCondition=True,
-                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
-	#print("After load")
-    #print X
-	if datasetfile == "longdata.txt":
-		classes = [0,5,6,4,2,8]
-	else:
-		classes = [0,1,2,3,4,5,6,7,8,9]
-		#classes = [9,7,3,1,0,5]
+	
+	if (X == None) or (y == None):
+		X, y = dataset.loadDataset(filename=datasetfile, filterCondition=True,
+	                                filterType="DcNotch", removePadding=True, shift=shift, windowLength=windowLength)
+		#print("After load")
+	    #print X
+		if datasetfile == "longdata.txt":
+			classes = [0,5,6,4,2,8]
+		else:
+			classes = [0,1,2,3,4,5,6,7,8,9]
+			#classes = [9,7,3,1,0,5]
 
-	X, y = dataset.sortDataset(X, y, length=1000, classes=classes, merge=merge) #,6,4,2,8
-	if merge:
-		classes = [0,5,6,4,2,8]
-			#y = dataset.mergeLabels(y)
-	else:
-		classes = [0,1,2,3,4,5,6,7,8,9]
+		X, y = dataset.sortDataset(X, y, length=1000, classes=classes, merge=merge) #,6,4,2,8
+		if merge:
+			classes = [0,5,6,4,2,8]
+				#y = dataset.mergeLabels(y)
+		else:
+			classes = [0,1,2,3,4,5,6,7,8,9]
 	#Calculate features
 	#XL = extractAllFeatures(X, channel=0)
-	XL = extractFeaturesWithMask(X, channel = 0, featuremask=range(len(FUNC_MAP)))
+	XL = extractFeaturesWithMask(X, featuremask=range(len(FUNC_MAP)))
 	XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
 	#scaler = StandardScaler()
 	#XL = scaler.fit_transform(XL, y[0])
@@ -356,7 +361,7 @@ def compareFeatures2(n_jobs=1):
 	print("Optimal features: ")
 	print(rfecv.support_)
 
-	writeFeatureMask(rfecv.support_)
+	writeFeatureMask(rfecv.support_, name)
 
 	print("The ranking of the features: ")
 	print(rfecv.ranking_)
@@ -376,15 +381,15 @@ def compareFeatures2(n_jobs=1):
 	print("Scores")
 	print(scores)
 
-def writeFeatureMask(mask):
+def writeFeatureMask(mask, name):
 	features = range(len(FUNC_MAP))
 	featuremaskList = list(compress(features, mask))
-	featuremask = open("featuremask.txt", 'w+')
+	featuremask = open("Featuremask"+slash+name+".txt", 'w+')
 	featuremask.write(str(featuremaskList))
 	featuremask.close()
 
-def readFeatureMask():
-	featuremaskFile = open("featuremask.txt", 'r')
+def readFeatureMask(name):
+	featuremaskFile = open("Featuremask"+slash+name+".txt", 'r')
 	featuremaskString = featuremaskFile.read()
 	featuremaskFile.close()
 	featuremaskString = featuremaskString[1:-1]
@@ -460,11 +465,11 @@ def compareFeatures(n_jobs=1):
 		else:
 			print("Invalid input, exiting")
 			return
-	print("Is this a debug session? [Y/n]")
+	print("Is this a debug session?(Will leak memory) [Y/n]")
 	inputString = raw_input()
 	if inputString == "Y":
 		debug = True
-		print("Debug session activated, results will not be valid.")
+		print("Debug session activated, results will not be valid and memory will explode.")
 		sendMail = False
 		logging = False
 	else:
@@ -507,7 +512,7 @@ def compareFeatures(n_jobs=1):
 		classes = [0,1,2,3,4,5,6,7,8,9]
 	#Calculate features
 	#XL = extractAllFeatures(X, channel=0)
-	XL = extractFeaturesWithMask(X, channel = 0, featuremask=range(len(FUNC_MAP)))
+	XL = extractFeaturesWithMask(X, featuremask=range(len(FUNC_MAP)))
 	#XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
 	XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
 	features = range(len(XL[0]))
@@ -607,31 +612,22 @@ def compareFeatures(n_jobs=1):
 															debug=False, fast=True,
 															n_jobs = n_jobs)
 
-				#Append scores
-				allPermutations.append(p)
-				allParams.append(bestParams)
-				allP.append(presc)
-				allPavg.append(np.average(presc, weights=s))
-				allR.append(r)
-				allF1.append(f1)
-				allS.append(s)
+
+
 
 				if logging:
-					logfile = open(dir_path+slash+"Logs"+slash+"Logfile.txt", 'a+')
-					logfile.write("Feature combination:")
-					logfile.write(str(p)+"\n")
-					logfile.write(report+"\n\n\n")
-					logfile.close()
 
 					permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
 					permfile.write(str(p))
 					permfile.close()
 
+					'''
 					permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+ str(i)+".txt", 'a+')
 					permfile.write(";")
 					permfile.write(str(bestParams))
 					permfile.close()
+					'''
 
 					permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
@@ -651,13 +647,15 @@ def compareFeatures(n_jobs=1):
 						permfile.write(','+str(f1[k]))
 					permfile.close()
 
-					permfile = open(dir_path+slash+"Logs"+slash+"SupportLog"+ str(i)+".txt", 'a+')
-					permfile.write(":")
-					for k in range(len(s)):
-						permfile.write(','+str(s[k]))
-					permfile.close()
-
 				if debug:
+					#Append scores
+					allPermutations.append(p)
+					allParams.append(bestParams)
+					allP.append(presc)
+					allPavg.append(np.average(presc, weights=s))
+					allR.append(r)
+					allF1.append(f1)
+
 					winner = allPavg.index(max(allPavg)) #Check for max average precision
 					print(report)
 					print("Best features so far are: " + convertPermutationToFeatureString(allPermutations[winner]))
@@ -727,14 +725,37 @@ def readLogs(length):
     permfile.close()
     PermutationsList = PermutationsString.split(':')
     PermutationsList.pop(0)
+    #print(PermutationsList[50388])
+    #print(PermutationsList[50389])
+    #print(PermutationsList[50390])
+    #print(len(PermutationsList[0]))
     #PermutationsList = tuple(PermutationsList)
     #Might need some more processing, now returns a list of tuples
     #print PermutationsList[28]
     for i in range(len(PermutationsList)):
 		#print(eval(PermutationsList[i]))
+		#print(i)
 		#PermutationsList[i] = tuple(map(int, PermutationsList[i][1:-1].split(',')))
-		PermutationsList[i] = tuple(eval(PermutationsList[i]))
-
+		var = PermutationsList[i]
+		#print var
+		var = var.replace('(', ',').replace(')', ',')
+		#print var
+		numlist = var.split(',')
+		#print numlist
+		numlist[:] = (value for value in numlist if value != '')
+		#print numlist
+		num = [int(q) for q in numlist]
+		#print(len(num))
+		if len(num) == length:
+			try:
+				PermutationsList[i] = tuple(eval(PermutationsList[i]))
+			except:
+				print("Unhandeled error")
+				print(PermutationsList[i])
+				print("Index = %d" %i)
+		else:
+			print(PermutationsList[i])
+			print("Index = %d" %i)
 
     permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+ str(length)+".txt", 'r')
     ParametersString = permfile.read()
@@ -776,18 +797,9 @@ def readLogs(length):
         f1SubList.pop(0)
         f1List[j] = list([float(i) for i in f1SubList])
 
-    permfile = open(dir_path+slash+"Logs"+slash+"SupportLog"+ str(length)+".txt", 'r')
-    supportString = permfile.read()
-    permfile.close()
-    supportList = supportString.split(":")
-    supportList.pop(0)
 
-    for j in range(len(supportList)):
-        supportSubList = supportList[j].split(',')
-        supportSubList.pop(0)
-        supportList[j] = list([float(i) for i in supportSubList])
 
-    return PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList
+    return PermutationsList, ParametersList, PrecisionList, RecallList, f1List
 
 def extractList(words, size):
 	return [word for word in words if len(word) == size]
@@ -795,7 +807,7 @@ def extractList(words, size):
 def evaluateLogs(length, evaluationParam="maxminprecision"):
 	print("Evaluating " + evaluationParam)
 	print("Start to read logs")
-	PermutationsList, ParametersList, PrecisionList, RecallList, f1List, supportList = readLogs(length)
+	PermutationsList, ParametersList, PrecisionList, RecallList, f1List = readLogs(length)
 	print("Finished reading logs, logs contain %d elements" %len(PermutationsList))
 	#minLengthFeatures = min(PermutationsList, key=len)
 	#maxLengthFeatures = max(PermutationsList, key=len)
@@ -837,40 +849,38 @@ def evaluateLogs(length, evaluationParam="maxminprecision"):
 
 	return PermutationsList[winner], ParametersList[winner]
 
-def cleanLogs():
-    logfile = open(dir_path+slash+"Logs"+slash+"Logfile.txt", 'w')
+def cleanLogs(num):
+
+    logfile = open(dir_path+slash+"Logs"+slash+"Logfile"+str(num)+".txt", 'w')
     logfile.truncate(0)
     logfile.close()
 
-    permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+str(num)+".txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+str(num)+".txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+str(num)+".txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open(dir_path+slash+"Logs"+slash+"RecallLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"RecallLog"+str(num)+".txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
-    permfile = open(dir_path+slash+"Logs"+slash+"F1Log.txt", 'w')
-    permfile.truncate(0)
-    permfile.close()
-
-    permfile = open(dir_path+slash+"Logs"+slash+"SupportLog.txt", 'w')
+    permfile = open(dir_path+slash+"Logs"+slash+"F1Log"+str(num)+".txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
 
 def main():
 	#cleanLogs()
-	compareFeatures2(n_jobs=-1)
-	#compareFeatures(-1)
+	#compareFeatures2(n_jobs=-1)
+	compareFeatures(-1)
+	#readLogs(12)
 	#evaluateLogs(12, "averageprecision")
 if __name__ == '__main__':
 	main()

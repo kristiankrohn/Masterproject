@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
+from sklearn.model_selection import cross_val_score
 import features
 import dataset
 from globalconst import  *
@@ -13,10 +14,97 @@ import classifier
 yTestGUI = []
 predictionsGUI = []
 import matplotlib.pyplot as plt
+import dill as pickle
+
+def createPredictor(name, windowLength, shift = None):
+    ##### Parameters
+
+    if windowLength < 250 and shift == None:
+        shift = True
+        print "Shift is true"
+    else:
+        shift = False
+        print "Shift is false"
+
+    ##### Save parameters
+    parameters = {'windowLength': windowLength, 'shift': shift}
+    pickle.dump(parameters, open( "Parameters" + slash + name + ".pkl", "wb" ) )
+    ##### Declarations
+    bestParams = []
+    accuracyScore = []
+    f1Score = []
+    precision = []
+    classificationReport = []
+
+    ##### Code
+    dataset.setDatasetFolder(1)
+
+    X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
+                                filterType="DcNotch", removePadding=True, 
+                                shift=shift, windowLength=windowLength)
+
+    X, y = dataset.sortDataset(X, y, length=1000, classes=[0,1,2,3,4,5,6,7,8,9], 
+                                    merge = True)
+
+    features.compareFeatures2(name, shift, windowLength, X=X, y=y)
+    featuremask = features.readFeatureMask(name)
+    
+    XL = features.extractFeaturesWithMask(
+            X, featuremask=featuremask, printTime=False)
+
+    XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
 
 
 
-def predictGUI(clf, y, windowLength, scaler):
+    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
+    clf.fit(XLtrain,yTrain)
+
+    classifier.saveMachinestate(clf, name)   #Uncomment this to save the machine state
+    classifier.saveScaler(scaler, name)
+
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
+    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    print()
+    print("Scores")
+    print(scores)
+
+
+
+    tempAccuracyScore, tempPrecision, tempClassificationReport\
+    , tempf1Score = classifier.predict(XLtest, clf, yTest)
+    
+    accuracyScore.append(tempAccuracyScore)
+    f1Score.append(tempf1Score)
+    precision.append(tempPrecision)
+    classificationReport.append(tempClassificationReport)
+
+    print()
+    print("The best parameters for the different channels are:")
+    print()
+    print(bestParams)
+    print()
+    print("The prediction accuracy for the different channels is:")
+    print(accuracyScore)
+    print("The f1 score which include false negatives etc is:")
+    print(f1Score)#This score says something about the correctness of the prediction.
+    print("The precision score:")
+    print(precision)#This score says something about the correctness of the prediction.
+    print("Classification Report:")
+    print(classificationReport[0])
+
+
+
+def loadPredictor(name):
+    params = pickle.load( open( "Parameters" + slash + name + ".pkl", "rb" ) )
+    print params    
+    clf = classifier.loadMachineState(name)
+    featuremask = features.readFeatureMask(name)
+    scaler = classifier.loadScaler(name)
+    parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':params['windowLength'], 'shift':params['shift']}
+    return parameters
+
+
+def predictGUI(y, clf, scaler, featuremask, windowLength, shift):  ### Trenger testing og implementasjon i gui.py  
     global yTestGUI, predictionsGUI
     MergeDict = {0:0,   1:8,  2:8,  3:6,  4:6,  5:5,  6:4,  7:4,  8:2,  9:2}
     y = MergeDict[y]
@@ -28,7 +116,7 @@ def predictGUI(clf, y, windowLength, scaler):
         return
 
     Xtest = features.extractFeaturesWithMask(
-                X, 0, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
+                X, featuremask=featuremask, printTime=False)
     Xtest = classifier.realTimeScale(Xtest, scaler)
     predictions = clf.predict(Xtest)
     #print("Time taken to predict with given examples in GUI:")
@@ -103,19 +191,20 @@ def classificationReportGUI():
 
 
 
-def predictRealTime(clf, scaler, featuremask, debug=False):
+#def predictRealTime(clf, scaler, featuremask, debug=False):
+def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False): ### Trenger testing og implementasjon i main
     #print(X)
     start = time.time()
-    X = dataset.shapeArray(shortLength, checkTimestamp=False)
+    X = dataset.shapeArray(windowLength, checkTimestamp=False)
     #print(len(X[0][0]))
-    if (X == -1) or ((len(X[0][0]) < shortLength) and (len(glb.data[0][filterdata]) > 1500)):
+    if (X == -1) or ((len(X[0][0]) < windowLength) and (len(glb.data[0][filterdata]) > 1500)):
         print("Error from shape array")
     else:
         #Xtest = features.extractFeatures(X, 0)
         #L = np.arange(0, len(X[0][0])/glb.fs, 1/glb.fs)
    
         Xtest = features.extractFeaturesWithMask(
-                X, 0, featuremask=featuremask, printTime=False)
+                X, featuremask=featuremask, printTime=False)
         Xtest = classifier.realTimeScale(Xtest, scaler)
         #print Xtest[0]
         if debug:
@@ -134,7 +223,8 @@ def predictRealTime(clf, scaler, featuremask, debug=False):
         
         prediction = clf.predict(Xtest)
         if not(prediction == 5 or prediction == 0):
-            print("The prediction is: %d" %prediction[0])
+            #print("The prediction is: %d" %prediction[0])
+            pass
         with glb.predictionslock:
             glb.predictions.append(prediction[0])
 
@@ -145,4 +235,9 @@ def predictRealTime(clf, scaler, featuremask, debug=False):
             print("Time taken to predict with given examples:")
             print(timeStop - start)
 
+def main():
+    createPredictor("testing", 100)
+
+if __name__ == '__main__':
+    main()
 

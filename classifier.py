@@ -145,6 +145,51 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False, n_
 
         return bestParams[0], p, r, f1, s, report
 
+def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = 1):
+    bestParams = []
+
+    sampleLeafPipeline = [{
+           "n_estimators" : [9, 18, 27, 36, 45, 54, 63],
+           "max_depth" : [1, 5, 10, 15, 20, 25, 30],
+           "min_samples_leaf" : [1, 2, 4, 6, 8, 10]}]
+
+
+    neighborsPipeline = [{"n_neighbors" : [1, 5, 10, 25, 50]}]
+
+    print("Starting to tune parameters")
+    print()
+
+    clf = GridSearchCV(neighbors.KNeighborsClassifier(), neighborsPipeline, cv=10, scoring='%s_macro' % 'precision')
+
+    clf.fit(XLtrain, yTrain)
+    bestParams.append(clf.best_params_)
+    print("Best parameters set found on development set:")
+    print()
+    print(bestParams)
+    print()
+    print("Grid scores on development set:")
+    print()
+    means = clf.cv_results_['mean_test_score']
+    stds = clf.cv_results_['std_test_score']
+
+    #This loop prints out standarddeviation and lots of good stuff
+
+    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+        print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+    print()
+
+    print("Detailed classification report:")
+    print()
+    print("The model is trained on the full development set.")
+    print("The scores are computed on the full evaluation set.")
+    print()
+    yPred = clf.predict(XLtest)
+    print(classification_report(yTest, yPred)) #ta denne en tab inn for aa faa den tilbake til original
+    print()
+
+    return bestParams[0]
+    
+
 def scaleAndSplit(XL, labels):
     scaler = StandardScaler()
     XLscaled = scaler.fit_transform(np.array(XL))
