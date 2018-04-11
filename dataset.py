@@ -350,15 +350,13 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 								if l == 0:
 									peakIndex = findPeakIndex(featureData1)
-
+								
 								if len(featureData1) > 1600:
 									featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
 									print("Statically remove padding")
 								else: #Short set
 									featureData1 = rmPadding(featureData1, peakIndex)
-								
-								#featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
-
+									#print("Dynamicaly remove padding with centering")
 							if plottype == "fft":
 								plot.exportFftPlot(featureData1, channels[l], ax1)
 							elif plottype == "raw":
@@ -1067,9 +1065,14 @@ def shapeArray(length, direction=0, checkTimestamp=True):
 
 
 def findPeakIndex(data, plot=False, label=""):
-
+	fp = frontPadding
 	golayData = signal.savgol_filter(x=data, window_length=35, polyorder = 2)
-	originalWindow = golayData[frontPadding:-backPadding]
+	
+	if (len(data) - (frontPadding + backPadding)) < 250:
+		fp = frontPadding - (250 - (len(data) - (frontPadding + backPadding)))
+	
+	originalWindow = golayData[fp:-backPadding]
+
 	maxPeakIndex = np.argmax(originalWindow)
 	minPeakIndex = np.argmin(originalWindow)
 
@@ -1077,20 +1080,21 @@ def findPeakIndex(data, plot=False, label=""):
 		peakIndex = maxPeakIndex
 	else: 
 		peakIndex = minPeakIndex
-
+	peakIndex = peakIndex - (frontPadding-fp)
 	if plot:
-		movement = MergeDict[int(label[-1])]
-		movementString = movements[movement]
-		movementString = movementString.replace('_',' ')
-		
-		plt.suptitle(movementString[1:])
-		
+		if len(label)>2:
+			movement = MergeDict[int(label[-1])]
+			movementString = movements[movement]
+			movementString = movementString.replace('_',' ')
+			
+			plt.suptitle(movementString[1:])
+			
 		peakPlot = np.zeros(len(originalWindow))
 		peakPlot[peakIndex] = 100
 		legends = []
-		legend, = plt.plot(data[frontPadding:-backPadding], label="Original data x[n]")
+		legend, = plt.plot(data[fp:-backPadding], label="Original data x[n]")
 		legends.append(legend)
-		legend, = plt.plot(golayData[frontPadding:-backPadding], label="Savitzky-Golay filter")
+		legend, = plt.plot(golayData[fp:-backPadding], label="Savitzky-Golay filter")
 		legends.append(legend)
 		legend, = plt.plot(peakPlot, label="Peakfinder")
 		legends.append(legend)

@@ -16,7 +16,7 @@ predictionsGUI = []
 import matplotlib.pyplot as plt
 import dill as pickle
 
-def createPredictor(name, windowLength, shift = None):
+def createPredictor(name, windowLength, datasetnum = 1, shift = None):
     ##### Parameters
 
     if windowLength < 250 and shift == None:
@@ -27,7 +27,7 @@ def createPredictor(name, windowLength, shift = None):
         print "Shift is false"
 
     ##### Save parameters
-    parameters = {'windowLength': windowLength, 'shift': shift}
+    parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':dataset}
     pickle.dump(parameters, open( "Parameters" + slash + name + ".pkl", "wb" ) )
     ##### Declarations
     bestParams = []
@@ -35,22 +35,40 @@ def createPredictor(name, windowLength, shift = None):
     f1Score = []
     precision = []
     classificationReport = []
-
+    XL = [[],[],[],[],[],[],[],[]]
+    y = [[],[],[],[],[],[],[],[]]
+    
     ##### Code
-    dataset.setDatasetFolder(1)
 
-    X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
-                                filterType="DcNotch", removePadding=True, 
-                                shift=shift, windowLength=windowLength)
+    if isinstance(datasetnum, int):
+        var = datasetnum
+        datasetnum = []
+        datasetnum.append(var)
 
-    X, y = dataset.sortDataset(X, y, length=1000, classes=[0,1,2,3,4,5,6,7,8,9], 
-                                    merge = True)
+    print(datasetnum)
 
-    features.compareFeatures2(name, shift, windowLength, X=X, y=y)
+    for i in datasetnum:
+        print i
+        dataset.setDatasetFolder(i)
+
+        X, Y = dataset.loadDataset(filename="data.txt", filterCondition=True,
+                                    filterType="DcNotch", removePadding=True, 
+                                    shift=shift, windowLength=windowLength)
+
+        Xl, Y = dataset.sortDataset(X, Y, length=1000, classes=[0,1,2,3,4,5,6,7,8,9], 
+                                        merge = True)
+
+        for j in range(numCh):
+            for k in range(len(Xl[j])):
+                XL[j].append(Xl[j][k])
+                y[j].append(Y[j][k])
+        print(len(XL[0]))
+
+    features.compareFeatures2(name, shift, windowLength, X=XL, y=y)
     featuremask = features.readFeatureMask(name)
     
     XL = features.extractFeaturesWithMask(
-            X, featuremask=featuremask, printTime=False)
+            XL, featuremask=featuremask, printTime=False)
 
     XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
 
@@ -96,7 +114,8 @@ def createPredictor(name, windowLength, shift = None):
 
 def loadPredictor(name):
     params = pickle.load( open( "Parameters" + slash + name + ".pkl", "rb" ) )
-    print params    
+    print params
+    #dataset.setDatasetFolder(params['dataset'])    
     clf = classifier.loadMachineState(name)
     featuremask = features.readFeatureMask(name)
     scaler = classifier.loadScaler(name)
@@ -236,7 +255,7 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             print(timeStop - start)
 
 def main():
-    createPredictor("testing", 100)
+    createPredictor("multitest", 250, datasetnum=1)
 
 if __name__ == '__main__':
     main()

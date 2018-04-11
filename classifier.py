@@ -189,11 +189,21 @@ def tuneDecisionTreeParameters(XLtrain, yTrain, XLtest, yTest, n_jobs = 1):
 
     return bestParams[0]
     
+def makeScaler(XL):
+    scaler = StandardScaler()
+    XLscaled = scaler.fit_transform(np.array(XL))
+    return XLscaled, scaler 
+
+def split(XL, y):
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, 
+        labels, test_size = 0.2, random_state = 42, stratify = labels)
+    return XLtrain, XLtest, yTrain, yTest
 
 def scaleAndSplit(XL, labels):
     scaler = StandardScaler()
     XLscaled = scaler.fit_transform(np.array(XL))
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, labels, test_size = 0.2, random_state = 42, stratify = labels)
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled, 
+        labels, test_size = 0.2, random_state = 42, stratify = labels)
 
     return XLtrain, XLtest, yTrain, yTest, XLscaled, scaler
 

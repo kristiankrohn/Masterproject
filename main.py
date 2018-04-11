@@ -9,14 +9,11 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from pyqtgraph.ptime import time
 import threading
-#from threading import Lock
 from scipy import signal
 import scipy.fftpack
 import matplotlib.pyplot as plt
-#from numpy.random import randint
 from globalconst import *
 import globalvar as glb
-#import Tkinter as tk
 import gui as ttk
 import plot as plotlib
 import filterlib 
@@ -24,14 +21,14 @@ import dataset
 import learning #this is moved to keys() -> "learn"
 import serial
 import hht
-#from serial import SerialException
 from datetime import datetime
-#mutex = Lock()
 import classifier
 import predict
 import webbrowser
 import controller
 import features
+import tracestack
+
 
 ####TODO############################################
 ##
@@ -41,6 +38,7 @@ import features
 ##
 ####END TODO########################################
 
+tracestack.on(prompt=True)
 
 
 board = None
@@ -60,11 +58,6 @@ predictionParameters = None
 counterlock = Lock()
 
 intervalcounter = 0
-
-
-
-#app = QtGui.QApplication([])
-
 
 
 
@@ -647,6 +640,7 @@ def main():
 	global graphVar, exit, guiVar
 
 	print("Setup finished, starting threads")
+
 	threadHK = threading.Thread(target=housekeeper,args=())
 	threadHK.setDaemon(True)
 	threadHK.start()
@@ -668,20 +662,22 @@ def main():
 	#thread0.join()
 	#thread1.join()
 	#thread2.join()
-	#app = ttk.App()
-	#print("Penis")
+	if len(sys.argv) > 1:
+		if sys.argv[1] == "gui":
+			app = ttk.App()
 	#while not graphVar:
 		#tme.sleep(0.1)
+	'''	
 	while not guiVar:
 		tme.sleep(0.1)
 	if not exit:
 		#graph()	
 		#ttk.guiloop()
 		app = ttk.App()
-
+	'''
 	while not exit:
 		tme.sleep(0.1)
-
+	
 
 if __name__ == '__main__':
 	main()

@@ -157,8 +157,15 @@ def startLearning():
     #XL = features.extractFeaturesWithMask(
             #X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
     #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
-    #Scale the data if needed and split dataset into training and testing
+    
 
+    #Scale the data if needed and split dataset into training and testing
+    
+    #Migth be an idea to use the same scaler, see classifier.py file
+    # scaler = classifier.makeScaler(joinedXL)
+    # scaledData = classifier.realTimescale(XL, scaler)
+    # XLtrain, XLtest, yTrain, yTest = split(XL, y)
+    
     XLtrain1, XLtest1, yTrain1, yTest1, XL1, scaler = classifier.scaleAndSplit(XL1, y1[0])
     XLtrain2, XLtest2, yTrain2, yTest2, XL2, scaler = classifier.scaleAndSplit(XL2, y1[0])
 
