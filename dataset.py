@@ -1125,3 +1125,12 @@ def rmPadding(data, peakIndex, windowLength=250):
 	data = data[startIndex:stopIndex]
 	#print("Length of Data: %d" %len(data))
 	return data
+
+def mergeDatasets(x1, x2, y1, y2): #Merge set 2 into set 1
+	for j in range(numCh):
+		for k in range(len(x2[j])):
+			x1[j].append(x2[j][k])
+			y1[j].append(y2[j][k])
+
+	return x1, x2
+	
