@@ -144,12 +144,14 @@ def droneController():
 						elif prediction == 2:
 							drone.moveBackward(0.1)
 						elif prediction == 4:
-							drone.turnLeft(0.1)
+							drone.turnAngle(-10,0.5)
+
 						elif prediction == 6: 
-							drone.turnRight(0.1)
+							drone.turnAngle( 10,0.5)
 
 					elif prediction == 0: #Blink
-						if previousPrediction != 0: 
+						if previousPrediction != 0:
+							#Append a value to a queue 
 							pass
 					
 				if keypress and (prediction != previousPrediction):
@@ -165,7 +167,7 @@ def droneController():
 					elif prediction in otherkey[pressedKey]: #Release and press new
 
 						gotother = True
-
+						'''
 						if prediction == 8:					
 							drone.moveForward(0.1)
 						elif prediction == 2:
@@ -174,7 +176,9 @@ def droneController():
 							drone.turnLeft(0.1)
 						elif prediction == 6: 
 							drone.turnRight(0.1)
-
+						'''
+						drone.hover()
+						
 					if gotfive and ((gotopposite == True) or (gotother == True)):
 						
 						gotother = False
@@ -184,6 +188,10 @@ def droneController():
 						print("Keypress = False")
 					
 				previousPrediction = prediction
+
+				#If queue is longer than 3 takeoff or land
+
+				#Delete an element from queue every 1 second
 
 def droneSimulatorController():
 	translate = {2:'down', 4:'a', 6:'d',8:'up'}

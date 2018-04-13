@@ -688,7 +688,7 @@ def loadDataset(filename="data.txt", filterCondition=True, filterType="DcNotch",
 
 
 
-def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
+def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False, zeroClassMultiplier=1):
 	if (x==None) or (y==None):
 		x, y = loadDataset()
 
@@ -734,8 +734,8 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 			classitemindex = classes.index(y[0][i])
 			#This will fail if 5 or 0 is not in classes
 			if ((returnCounts[classitemindex] < length) 
-				or (merge and(((classitemindex == zeroIndex) and (returnCounts[zeroIndex] < length*2)) 
-				or ((classitemindex == fiveIndex) and (returnCounts[fiveIndex] < length*2))))): 
+				or (merge and(((classitemindex == zeroIndex) and (returnCounts[zeroIndex] < length*zeroClassMultiplier*2)) 
+				or ((classitemindex == fiveIndex) and (returnCounts[fiveIndex] < length*zeroClassMultiplier*2))))): 
 				
 				returnCounts[classitemindex] += 1
 				for j in range(numCh):
@@ -772,8 +772,13 @@ def sortDataset(x=None, y=None, length=10, classes=[0,5,4,2,6,8], merge=False):
 		for i in range(len(y[0])):
 			if y[0][i] in classes:
 				classitemindex = classes.index(y[0][i])
+				if y[0][i] == 0 or y[0][i] == 5:
+					zeroclass = True
+				else:
+					zeroclass = False
 				#This will fail if 5 or 0 is not in classes
-				if (returnCounts[classitemindex] < minValElement): 
+				if ((returnCounts[classitemindex] < minValElement) or 
+					((zeroclass == True) and (returnCounts[classitemindex] < (minValElement*(zeroClassMultiplier))))): 
 					
 					returnCounts[classitemindex] += 1
 					for j in range(numCh):

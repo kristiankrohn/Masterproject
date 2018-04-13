@@ -340,7 +340,8 @@ def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
 	#Calculate features
 	#XL = extractAllFeatures(X, channel=0)
 	XL = extractFeaturesWithMask(X, featuremask=range(len(FUNC_MAP)))
-	XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
+	scaler = classifier.makeScaler(XL)
+	XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0], scaler)
 	#scaler = StandardScaler()
 	#XL = scaler.fit_transform(XL, y[0])
 	#XLtest = scaler.fit_transform(XLtest, yTest)

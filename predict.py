@@ -56,7 +56,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None):
                                     shift=shift, windowLength=windowLength)
 
         Xl, Y = dataset.sortDataset(X, Y, length=1000, classes=[0,1,2,3,4,5,6,7,8,9], 
-                                        merge = True)
+                                        merge = True, zeroClassMultiplier=2)
 
         for j in range(numCh):
             for k in range(len(Xl[j])):
@@ -69,9 +69,8 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None):
     
     XL = features.extractFeaturesWithMask(
             XL, featuremask=featuremask, printTime=False)
-
-    XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
-
+    scaler = classifier.makeScaler(XL)
+    XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0], scaler)
 
 
     clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
