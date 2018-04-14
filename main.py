@@ -20,6 +20,7 @@ import filterlib
 import dataset
 import learning #this is moved to keys() -> "learn"
 import serial
+
 import hht
 from datetime import datetime
 import classifier
@@ -38,7 +39,7 @@ import tracestack
 ##
 ####END TODO########################################
 
-tracestack.on(prompt=True)
+#tracestack.on(prompt=True)
 
 
 board = None
@@ -58,8 +59,8 @@ predictionParameters = None
 counterlock = Lock()
 
 intervalcounter = 0
-
-
+dataset.printDatasetFolder()
+predictionParameters = predict.loadPredictor(machinestate)
 
 def check_sleep(amount):
     start = datetime.now()
@@ -128,20 +129,34 @@ def dataCatcher():
 	logging.info('---------LOG START-------------')
 	if numCh >= 9:
 		for i in range(10):
-			port = "COM" + str(i)
+			if os.name == 'nt':
+				print("Connecting to Windows serial port")
+				port = "COM" + str(i)
+			elif os.name == 'posix':
+				print("Connecting to Linux Serial port")
+				port = "/dev/ttyS" + str(i)
 			try:
 				board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
 					filter_data = False, daisy=True)
-			except serial.SerialException:
+				break
+			except Exception:
 				pass
 	else:
 		for i in range(10):
-			port = "COM" + str(i)
+			if os.name == 'nt':
+				print("Connecting to Windows serial port")
+				port = "COM" + str(i)
+			elif os.name == 'posix':
+				print("Connecting to Linux serial port")
+				port = "/dev/ttyUSB" + str(i)
+				#port = '/dev/tty.OpenBCI-DN008VTF'
+				#port = '/dev/tty.OpenBCI-DN0096XA'
 			try:
 				board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
 					filter_data = False, daisy=False)
 				break
-			except serial.SerialException:
+			except Exception:
+				print("Could not connect to this port")
 				pass
 
 	if board != None:
@@ -197,10 +212,13 @@ def printData(sample):
 				#predict.predictRealTime(clf, scaler)
 				predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
 				predictionThread.start()
-
+	
 
 	if len(glb.newSamples[0]) >= glb.window:
 		with glb.mutex:
+			#sprint("From datacatcher b.glb: ")
+			#print glb.b
+
 			for i in range(numCh):
 				filterlib.filter(glb.newSamples, glb.newTimeData, i, glb.b, glb.a)
 				glb.newTimeData[i][:] = []
@@ -265,9 +283,9 @@ def graph():
 
 def keys():
 
-	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar, predictioncondition
+	global board, bandstopFilter, filtering, lowpassFilter, bandpassFilter, graphVar
 	global guiVar
-	global predictionParameters
+	global predictionParameters, predictioncondition
 
 	while True:
 		inputString = raw_input()
@@ -556,9 +574,12 @@ def keys():
 			learnThread.start()
 		
 		elif string == "predict":
-
+			print("Starting to load predictor")
+			
+			#predictionParameters = predict.loadPredictor(machinestate)
+			
 			predictioncondition = True
-			predictionParameters = predict.loadPredictor("testing")
+			
 			#print featuremask
 			print("Predictionsetup complete")
 
@@ -576,11 +597,18 @@ def keys():
 			if inputval != None and inputval < 10:
 				hht.multiplottestHHT(inputval)
 
-		elif string == "drone":		
+		elif string == "dronedebug":
+			predictioncondition = True	
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			housekeepThread.start()
-			droneSimulatorThread = threading.Thread(target=controller.droneController, args=())
-			droneSimulatorThread.start()
+			controller.droneController(debug=True)
+			print("Drone controller has returned to keys()")
+		
+		elif string == "drone":
+			predictioncondition = True		
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			controller.droneController()
 
 		elif string == "dronesimulator":		
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
@@ -641,17 +669,34 @@ def gui():
 
 
 def main():
-	global graphVar, exit, guiVar
+	global graphVar, exit, guiVar, predictioncondition
 
 	print("Setup finished, starting threads")
+
+			
 
 	threadHK = threading.Thread(target=housekeeper,args=())
 	threadHK.setDaemon(True)
 	threadHK.start()
 
+	if len(sys.argv) > 1:
+		if sys.argv[1] == "gui":
+			app = ttk.App()
+		elif sys.argv[1] == "drone":
+			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
+			#threadDataCatcher.setDaemon(True)
+			threadDataCatcher.start()
+			predictioncondition=True
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			controller.droneController()
+			os._exit(0)
+
 	threadKeys = threading.Thread(target=keys,args=())
 	threadKeys.setDaemon(True)
 	threadKeys.start()
+	
+
 	#threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 	#threadDataCatcher.setDaemon(True)
 	#threadDataCatcher.start()
@@ -666,9 +711,7 @@ def main():
 	#thread0.join()
 	#thread1.join()
 	#thread2.join()
-	if len(sys.argv) > 1:
-		if sys.argv[1] == "gui":
-			app = ttk.App()
+
 	#while not graphVar:
 		#tme.sleep(0.1)
 	'''	

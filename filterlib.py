@@ -17,7 +17,11 @@ def filter(newSamples, newTimeData, i, b, a):
 	xr = x
 	xt = newTimeData[i]
 
-	x, glb.Zi[i] = signal.lfilter(b, a, x, zi=glb.Zi[i])
+	try:
+		x, glb.Zi[i] = signal.lfilter(b, a, x, zi=glb.Zi[i])
+	except Exception:
+		print("Error in filter, returning")
+		return
 	#x = signal.lfilter(b, a, x)
 	for j in range(len(x)):
 

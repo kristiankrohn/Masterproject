@@ -14,7 +14,8 @@ import classifier
 yTestGUI = []
 predictionsGUI = []
 import matplotlib.pyplot as plt
-import dill as pickle
+#import dill as pickle
+import pickle
 
 def createPredictor(name, windowLength, datasetnum = 1, shift = None):
     ##### Parameters
@@ -112,14 +113,17 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None):
 
 
 def loadPredictor(name):
-    params = pickle.load( open( "Parameters" + slash + name + ".pkl", "rb" ) )
-    print params
-    #dataset.setDatasetFolder(params['dataset'])    
-    clf = classifier.loadMachineState(name)
-    featuremask = features.readFeatureMask(name)
-    scaler = classifier.loadScaler(name)
-    parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':params['windowLength'], 'shift':params['shift']}
-    return parameters
+	print glb.b
+	params = pickle.load( open( "Parameters" + slash + name + ".pkl", "rb" ) )
+	print glb.b
+	print params
+	#dataset.setDatasetFolder(params['dataset'])    
+	clf = classifier.loadMachineState(name)
+	featuremask = features.readFeatureMask(name)
+	scaler = classifier.loadScaler(name)
+	parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':params['windowLength'], 'shift':params['shift']}
+	#parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':100, 'shift':True}
+	return parameters
 
 
 def predictGUI(y, clf, scaler, featuremask, windowLength, shift):  ### Trenger testing og implementasjon i gui.py  
@@ -217,6 +221,7 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
     #print(len(X[0][0]))
     if (X == -1) or ((len(X[0][0]) < windowLength) and (len(glb.data[0][filterdata]) > 1500)):
         print("Error from shape array")
+        return
     else:
         #Xtest = features.extractFeatures(X, 0)
         #L = np.arange(0, len(X[0][0])/glb.fs, 1/glb.fs)
@@ -254,7 +259,7 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             print(timeStop - start)
 
 def main():
-    createPredictor("multitest", 250, datasetnum=1)
+    createPredictor("multitest", 100, datasetnum=1)
 
 if __name__ == '__main__':
     main()

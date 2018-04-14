@@ -3,12 +3,13 @@ import globalvar as glb
 import keyboard
 import time as tme
 from datetime import datetime
+from datetime import timedelta
 import copy
 import os
 import sys; sys.path.append('.') # help python find ps_drone.py relative to scripts folder
 sys.path.append('../ps_drone')
 
-def droneController():
+def droneController(debug=False):
 	# Modified version of firstvideo.py
 	#########
 	# firstVideo.py
@@ -34,7 +35,7 @@ def droneController():
 
 
 	##### Suggested clean drone startup sequence #####
-	#import time, sys
+
 	import ps_drone                                              # Import PS-Drone
 
 
@@ -42,20 +43,21 @@ def droneController():
 	drone.startup()                                              # Connects to drone and starts subprocesses
 
 	drone.reset()                                                # Sets drone's status to good (LEDs turn green when red)
-	while (drone.getBattery()[0] == -1):      time.sleep(0.1)    # Waits until drone has done its reset
+	while (drone.getBattery()[0] == -1):      tme.sleep(0.1)    # Waits until drone has done its reset
 	print "Battery: "+str(drone.getBattery()[0])+"%  "+str(drone.getBattery()[1])	# Gives a battery-status
 	drone.useDemoMode(True)                                      # Just give me 15 basic dataset per second (is default anyway)
 
 	##### Mainprogram begin #####
 	drone.setConfigAllID()                                       # Go to multiconfiguration-mode
+	'''
 	drone.sdVideo()
 	#drone.hdVideo()                                              # Choose lower resolution (hdVideo() for...well, guess it)
 	drone.frontCam()                                             # Choose front view
 	CDC = drone.ConfigDataCount
-	while CDC == drone.ConfigDataCount:       time.sleep(0.0001) # Wait until it is done (after resync is done)
+	while CDC == drone.ConfigDataCount:       tme.sleep(0.0001) # Wait until it is done (after resync is done)
 	drone.startVideo()                                           # Start video-function
 	drone.showVideo()                                            # Display the video
-
+	'''
 	drone.trim()                                       # Recalibrate sensors
 	drone.getSelfRotation(5)                           # Get auto-alteration of gyroscope-sensor
 	print "Auto-alt.:"+str(drone.selfRotation)+"dec/s" # Showing value for auto-alteration
@@ -73,42 +75,53 @@ def droneController():
 	brainz = False
 	blinks = 0
 	##### And action !
-	print "Use <space> to toggle front- and groundcamera, any other key to stop"
+	print "Use <x> to toggle front- and groundcamera, <space> to lift off, <z> to controll with brain, any other key to stop"
 	IMC =    drone.VideoImageCount                               # Number of encoded videoframes
 	stop =   False
 	ground = False
 	lastTime = datetime.now()
+	drone.setSpeed(0.1)
 	while not stop:
+		'''
 		while drone.VideoImageCount == IMC: tme.sleep(0.01)     # Wait until the next video-frame
 		IMC = drone.VideoImageCount
+		'''
 		key = drone.getKey()                                     # Gets a pressed key
 
-		if (key == " ") or (blinks >= 4):
+		if (key == " ") or (blinks >= 3):
 			if drone.NavData["demo"][0][2] and not drone.NavData["demo"][0][3]:
-				drone.takeoff()
+				if debug:
+					print("Takeoff")
+				else:	
+					drone.takeoff()
+
 			else:
-				drone.land()
+				if debug:
+					print("land")
+				else:	
+					drone.land()
 			blinks = 0
-
-		elif key=="x":
-			if ground:
-				ground = False
-			else:
-				ground = True
-			drone.groundVideo(ground)                            # Toggle between front- and groundcamera. Hint: options work for all videocommands
-
+		
+		#elif key=="x":
+			#if ground:
+				#ground = False
+			#else:
+				#ground = True
+			#drone.groundVideo(ground)                            # Toggle between front- and groundcamera. Hint: options work for all videocommands
+		
 		elif key=="z":
 			if brainz:
 				brainz = False
 				print("No longer flying with brainz")
+				#drone.land()
 			else:
 				brainz = True
 				print("Flying by brain, GO!")
 				blinks = 0
 
-			drone.hover()
+			#drone.hover()
+		
 		if not brainz:
-
 			if key == "0":	drone.hover()
 			elif key == "w":	drone.moveForward()
 			elif key == "s":	drone.moveBackward()
@@ -130,85 +143,105 @@ def droneController():
 			elif key != "":		stop = True
 
 			elif key and key != " ":    stop =   True
+		
 
 		#Brain controller
-
-		if len(glb.predictions) >= 1:
-			with glb.predictionslock:
-				prediction = copy.copy(glb.predictions[0])
-				glb.predictions.pop(0)
-
 
 
 		if brainz:
 			now = datetime.now()
-			if (now - lastTime) > 1:
+			if (now - lastTime) > timedelta(seconds=2):
 				if blinks > 0:
 					blinks = blinks - 1
 				else:
 					blinks = 0
-				print("Blinks: %d" %blinks)
 
-			if (prediction != 5) and (prediction != previousPrediction):
-				if (prediction in [2,4,6,8]) and (keypress == False): #Press
-					keypress = True
-					pressedKey = prediction
-					#Make command
-					print("Press key: %d" %prediction)
-					if prediction == 8:
-						drone.moveForward(0.1)
-					elif prediction == 2:
-						drone.moveBackward(0.1)
-					elif prediction == 4:
-						drone.turnAngle(-10,0.5)
+				lastTime = now
+				#print("Blinks: %d" %blinks)
+				#print glb.predictions
 
-					elif prediction == 6:
-						drone.turnAngle( 10,0.5)
+			if len(glb.predictions) >= 1:
+				with glb.predictionslock:
+					prediction = copy.copy(glb.predictions[0])
+					glb.predictions.pop(0)
 
-				elif prediction == 0: #Blink
-					if previousPrediction != 0:
-						#Append a value to a queue
-						blinks = blinks + 1
-						pass
 
-			if keypress and (prediction != previousPrediction):
-				if prediction == 5:
-					gotfive = True
+				if (prediction != 5) and (prediction != previousPrediction):
+					#if (prediction in [2,4,6,8]) and (keypress == False): #Press
+					if (prediction in [4,6,8]) and (keypress == False): #Press
+						keypress = True
+						pressedKey = prediction
+						#Make command
+						#print("Press key: %d" %prediction)
+						if prediction == 8:
+							if debug:
+								print("Move forward")
+							else:	
+								drone.moveForward()
+						elif prediction == 2:
+							#drone.moveBackward()
+							pass
+						elif prediction == 4:
+							if debug:
+								print("Turn left")
+							else:	
+								drone.turnAngle(-30,1)
+						elif prediction == 6:
+							if debug:
+								print("Turn right")
+							else:
+								drone.turnAngle( 30,1)
 
-				elif prediction == opposite[pressedKey]: #Release
+					elif prediction == 0: #Blink
+						if previousPrediction != 0:
+							#Append a value to a queue
+							blinks = blinks + 1
+							print("Blinks: %d" %blinks)
+							
 
-					gotopposite = True
-					print("Got opposite key: %d" %prediction)
-					drone.hover()
+				if keypress and (prediction != previousPrediction):
+					if prediction == 5:
+						gotfive = True
 
-				elif prediction in otherkey[pressedKey]: #Release and press new
+					elif prediction == opposite[pressedKey]: #Release
 
-					gotother = True
-					'''
-					if prediction == 8:
-						drone.moveForward(0.1)
-					elif prediction == 2:
-						drone.moveBackward(0.1)
-					elif prediction == 4:
-						drone.turnLeft(0.1)
-					elif prediction == 6:
-						drone.turnRight(0.1)
-					'''
-					drone.hover()
+						gotopposite = True
+						#print("Got opposite key: %d" %prediction)
+						if debug:
+							print("Hover")
+						else:
+							drone.hover()
 
-				if gotfive and ((gotopposite == True) or (gotother == True)):
+					elif prediction in otherkey[pressedKey]: #Release and press new
 
-					gotother = False
-					gotopposite = False
-					gotfive = False
-					keypress = False
-					print("Keypress = False")
+						gotother = True
+						'''
+						if prediction == 8:
+							drone.moveForward(0.1)
+						elif prediction == 2:
+							drone.moveBackward(0.1)
+						elif prediction == 4:
+							drone.turnLeft(0.1)
+						elif prediction == 6:
+							drone.turnRight(0.1)
+						'''
+						if debug:
+							print("Hover")
+						else:
+							drone.hover()
 
-			previousPrediction = prediction
+					if gotfive and ((gotopposite == True) or (gotother == True)):
 
-			#If queue is longer than 3 takeoff or land
+						gotother = False
+						gotopposite = False
+						gotfive = False
+						keypress = False
+						print("Keypress = False")
 
-			#Delete an element from queue every 1 second
+				previousPrediction = prediction
+		#tme.sleep(0.01)
+	print("Exiting drone controller")
+	drone.land()
 
 def droneSimulatorController():
 	translate = {2:'down', 4:'a', 6:'d',8:'up'}
@@ -447,10 +480,12 @@ def housekeeper():
 	longsleep = False
 	pop = False
 	maxSizePredictions = 20
+	print("Started predictions housekeeper")
 	while True:
 		with glb.predictionslock:
 
 			if len(glb.predictions) > maxSizePredictions:
 				longsleep = False
 				glb.predictions.pop(0)
+				#print("Popped predictions")
 			tme.sleep(0.01)

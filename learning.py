@@ -171,7 +171,7 @@ def startLearning():
     scaler = classifier.makeScaler(XL1)
 
     XLtrain1, XLtest1, yTrain1, yTest1, XL1 = classifier.scaleAndSplit(XL1, y1[0], scaler)
-    XLtrain2, XLtest2, yTrain2, yTest2, XL2 = classifier.scaleAndSplit(XL2, y1[0], scaler)
+    XLtrain2, XLtest2, yTrain2, yTest2, XL2 = classifier.scaleAndSplit(XL2, y2[0], scaler)
 
     '''
     XLtrain1T, XLtest1T, yTrain1T, yTest1T, XL1T, scaler = classifier.scaleAndSplit(XL1T, y1T[0])

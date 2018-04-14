@@ -26,7 +26,7 @@ datasetFolders = [slash + "Dataset1" + slash, slash + "Dataset2" + slash]
 longLength = 625
 shortLength = 250 ##Sjekk denne i Adrian sitt dataset
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-machinestate = "learning260RBFsvm22Features"
+machinestate = "multitest"
 '''
 movements = ["\\Center_blink", "\\Center_still", 
 			"\\Down_direction", "\\Down_return", 
