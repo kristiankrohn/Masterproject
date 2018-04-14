@@ -9,7 +9,7 @@ import sys; sys.path.append('.') # help python find ps_drone.py relative to scri
 sys.path.append('../ps_drone')
 
 def droneController():
-	# Modified version of firstvideo.py 
+	# Modified version of firstvideo.py
 	#########
 	# firstVideo.py
 	# This program is part of the online PS-Drone-API-tutorial on www.playsheep.de/drone.
@@ -31,7 +31,7 @@ def droneController():
 
 	elif os.name == 'posix':
 		print("Running on Linux system, all good")
-	
+
 
 	##### Suggested clean drone startup sequence #####
 	#import time, sys
@@ -86,14 +86,14 @@ def droneController():
 		if (key == " ") or (blinks >= 4):
 			if drone.NavData["demo"][0][2] and not drone.NavData["demo"][0][3]:
 				drone.takeoff()
-			else:																
+			else:
 				drone.land()
 			blinks = 0
 
-		elif key=="x":	
-			if ground:              
+		elif key=="x":
+			if ground:
 				ground = False
-			else:                   
+			else:
 				ground = True
 			drone.groundVideo(ground)                            # Toggle between front- and groundcamera. Hint: options work for all videocommands
 
@@ -132,12 +132,12 @@ def droneController():
 			elif key and key != " ":    stop =   True
 
 		#Brain controller
-		
+
 		if len(glb.predictions) >= 1:
 			with glb.predictionslock:
 				prediction = copy.copy(glb.predictions[0])
 				glb.predictions.pop(0)
-		
+
 
 
 		if brainz:
@@ -145,32 +145,32 @@ def droneController():
 			if (now - lastTime) > 1:
 				if blinks > 0:
 					blinks = blinks - 1
-				else blinks
+				else:
 					blinks = 0
 				print("Blinks: %d" %blinks)
-			
+
 			if (prediction != 5) and (prediction != previousPrediction):
 				if (prediction in [2,4,6,8]) and (keypress == False): #Press
 					keypress = True
 					pressedKey = prediction
 					#Make command
 					print("Press key: %d" %prediction)
-					if prediction == 8:					
+					if prediction == 8:
 						drone.moveForward(0.1)
 					elif prediction == 2:
 						drone.moveBackward(0.1)
 					elif prediction == 4:
 						drone.turnAngle(-10,0.5)
 
-					elif prediction == 6: 
+					elif prediction == 6:
 						drone.turnAngle( 10,0.5)
 
 				elif prediction == 0: #Blink
 					if previousPrediction != 0:
 						#Append a value to a queue
-						blinks = blinks + 1 
+						blinks = blinks + 1
 						pass
-				
+
 			if keypress and (prediction != previousPrediction):
 				if prediction == 5:
 					gotfive = True
@@ -185,25 +185,25 @@ def droneController():
 
 					gotother = True
 					'''
-					if prediction == 8:					
+					if prediction == 8:
 						drone.moveForward(0.1)
 					elif prediction == 2:
 						drone.moveBackward(0.1)
 					elif prediction == 4:
 						drone.turnLeft(0.1)
-					elif prediction == 6: 
+					elif prediction == 6:
 						drone.turnRight(0.1)
 					'''
 					drone.hover()
-					
+
 				if gotfive and ((gotopposite == True) or (gotother == True)):
-					
+
 					gotother = False
 					gotopposite = False
 					gotfive = False
 					keypress = False
 					print("Keypress = False")
-				
+
 			previousPrediction = prediction
 
 			#If queue is longer than 3 takeoff or land
@@ -237,9 +237,9 @@ def droneSimulatorController():
 
 				elif prediction == 0: #Blink
 					if previousPrediction != 0:
-						print("Got blink") 
+						print("Got blink")
 						pass
-				
+
 			if keypress and (prediction != previousPrediction):
 				if prediction == 5:
 					gotfive = True
@@ -269,7 +269,7 @@ def droneSimulatorController():
 					keypress = False
 					print("Keypress = False")
 
-				
+
 			previousPrediction = prediction
 		tme.sleep(0.05)
 
@@ -369,10 +369,10 @@ def tetrisController():
 					keyboard.press_and_release(translate[prediction])
 					print("Press and release " + str(translate[prediction]))
 					#keyboard.press(translate[pressedKey])
-					
+
 					#print("Pressed " + str(translate[pressedKey]))
-					
-				
+
+
 				elif prediction == 2:
 					if previousPrediction != 2:
 						#keyboard.press_and_release(translate[prediction])
@@ -385,10 +385,10 @@ def tetrisController():
 						pass
 
 				elif prediction == 0:
-					if previousPrediction != 0: 
+					if previousPrediction != 0:
 						keyboard.press_and_release(translate[prediction])
 						print("Press and release " + str(translate[prediction]))
-				
+
 			if keypress and (prediction != previousPrediction):
 				if prediction == 5:
 					gotfive = True
@@ -438,7 +438,7 @@ def tetrisController():
 							keyboard.press(translate[pressedkey])
 							print("Release "+ str(translate[oldkey])+"Press " + str(translate[pressedkey]))
 					'''
-				
+
 			previousPrediction = prediction
 		tme.sleep(0.05)
 
