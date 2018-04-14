@@ -108,7 +108,8 @@ def droneController():
 
 			drone.hover()
 		if not brainz:
-			elif key == "0":	drone.hover()
+
+			if key == "0":	drone.hover()
 			elif key == "w":	drone.moveForward()
 			elif key == "s":	drone.moveBackward()
 			elif key == "a":	drone.moveLeft()
