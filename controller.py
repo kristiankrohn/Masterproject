@@ -2,6 +2,7 @@ from globalconst import  *
 import globalvar as glb
 import keyboard
 import time as tme
+from datetime import datetime
 import copy
 import os
 import sys; sys.path.append('.') # help python find ps_drone.py relative to scripts folder
@@ -70,23 +71,24 @@ def droneController():
 	gotopposite = False
 	gotother = False
 	brainz = False
-
+	blinks = 0
 	##### And action !
 	print "Use <space> to toggle front- and groundcamera, any other key to stop"
 	IMC =    drone.VideoImageCount                               # Number of encoded videoframes
 	stop =   False
 	ground = False
-	
+	lastTime = datetime.now()
 	while not stop:
 		while drone.VideoImageCount == IMC: tme.sleep(0.01)     # Wait until the next video-frame
 		IMC = drone.VideoImageCount
 		key = drone.getKey()                                     # Gets a pressed key
 
-		if key == " ":
+		if (key == " ") or (blinks >= 4):
 			if drone.NavData["demo"][0][2] and not drone.NavData["demo"][0][3]:
 				drone.takeoff()
 			else:																
 				drone.land()
+			blinks = 0
 
 		elif key=="x":	
 			if ground:              
@@ -102,96 +104,110 @@ def droneController():
 			else:
 				brainz = True
 				print("Flying by brain, GO!")
+				blinks = 0
 
 			drone.hover()
+		if not brainz:
+			elif key == "0":	drone.hover()
+			elif key == "w":	drone.moveForward()
+			elif key == "s":	drone.moveBackward()
+			elif key == "a":	drone.moveLeft()
+			elif key == "d":	drone.moveRight()
+			elif key == "q":	drone.turnLeft()
+			elif key == "e":	drone.turnRight()
+			elif key == "7":	drone.turnAngle(-10,1)
+			elif key == "9":	drone.turnAngle( 10,1)
+			elif key == "4":	drone.turnAngle(-45,1)
+			elif key == "6":	drone.turnAngle( 45,1)
+			elif key == "1":	drone.turnAngle(-90,1)
+			elif key == "3":	drone.turnAngle( 90,1)
+			elif key == "8":	drone.moveUp()
+			elif key == "2":	drone.moveDown()
+			elif key == "*":	drone.doggyHop()
+			elif key == "+":	drone.doggyNod()
+			elif key == "-":	drone.doggyWag()
+			elif key != "":		stop = True
 
-		elif key == "0":	drone.hover()
-		elif key == "w":	drone.moveForward()
-		elif key == "s":	drone.moveBackward()
-		elif key == "a":	drone.moveLeft()
-		elif key == "d":	drone.moveRight()
-		elif key == "q":	drone.turnLeft()
-		elif key == "e":	drone.turnRight()
-		elif key == "7":	drone.turnAngle(-10,1)
-		elif key == "9":	drone.turnAngle( 10,1)
-		elif key == "4":	drone.turnAngle(-45,1)
-		elif key == "6":	drone.turnAngle( 45,1)
-		elif key == "1":	drone.turnAngle(-90,1)
-		elif key == "3":	drone.turnAngle( 90,1)
-		elif key == "8":	drone.moveUp()
-		elif key == "2":	drone.moveDown()
-		elif key == "*":	drone.doggyHop()
-		elif key == "+":	drone.doggyNod()
-		elif key == "-":	drone.doggyWag()
-		elif key != "":		stop = True
-
-		elif key and key != " ":    stop =   True
+			elif key and key != " ":    stop =   True
 
 		#Brain controller
+		
+		if len(glb.predictions) >= 1:
+			with glb.predictionslock:
+				prediction = copy.copy(glb.predictions[0])
+				glb.predictions.pop(0)
+		
+
+
 		if brainz:
-			if len(glb.predictions) >= 1:
-				with glb.predictionslock:
-					prediction = copy.copy(glb.predictions[0])
-					glb.predictions.pop(0)
-				if (prediction != 5) and (prediction != previousPrediction):
-					if (prediction in [2,4,6,8]) and (keypress == False): #Press
-						keypress = True
-						pressedKey = prediction
-						#Make command
-						print("Press key: %d" %prediction)
-						if prediction == 8:					
-							drone.moveForward(0.1)
-						elif prediction == 2:
-							drone.moveBackward(0.1)
-						elif prediction == 4:
-							drone.turnAngle(-10,0.5)
+			now = datetime.now()
+			if (now - lastTime) > 1:
+				if blinks > 0:
+					blinks = blinks - 1
+				else blinks
+					blinks = 0
+				print("Blinks: %d" %blinks)
+			
+			if (prediction != 5) and (prediction != previousPrediction):
+				if (prediction in [2,4,6,8]) and (keypress == False): #Press
+					keypress = True
+					pressedKey = prediction
+					#Make command
+					print("Press key: %d" %prediction)
+					if prediction == 8:					
+						drone.moveForward(0.1)
+					elif prediction == 2:
+						drone.moveBackward(0.1)
+					elif prediction == 4:
+						drone.turnAngle(-10,0.5)
 
-						elif prediction == 6: 
-							drone.turnAngle( 10,0.5)
+					elif prediction == 6: 
+						drone.turnAngle( 10,0.5)
 
-					elif prediction == 0: #Blink
-						if previousPrediction != 0:
-							#Append a value to a queue 
-							pass
+				elif prediction == 0: #Blink
+					if previousPrediction != 0:
+						#Append a value to a queue
+						blinks = blinks + 1 
+						pass
+				
+			if keypress and (prediction != previousPrediction):
+				if prediction == 5:
+					gotfive = True
+
+				elif prediction == opposite[pressedKey]: #Release
+
+					gotopposite = True
+					print("Got opposite key: %d" %prediction)
+					drone.hover()
+
+				elif prediction in otherkey[pressedKey]: #Release and press new
+
+					gotother = True
+					'''
+					if prediction == 8:					
+						drone.moveForward(0.1)
+					elif prediction == 2:
+						drone.moveBackward(0.1)
+					elif prediction == 4:
+						drone.turnLeft(0.1)
+					elif prediction == 6: 
+						drone.turnRight(0.1)
+					'''
+					drone.hover()
 					
-				if keypress and (prediction != previousPrediction):
-					if prediction == 5:
-						gotfive = True
-
-					elif prediction == opposite[pressedKey]: #Release
-
-						gotopposite = True
-						print("Got opposite key: %d" %prediction)
-						drone.hover()
-
-					elif prediction in otherkey[pressedKey]: #Release and press new
-
-						gotother = True
-						'''
-						if prediction == 8:					
-							drone.moveForward(0.1)
-						elif prediction == 2:
-							drone.moveBackward(0.1)
-						elif prediction == 4:
-							drone.turnLeft(0.1)
-						elif prediction == 6: 
-							drone.turnRight(0.1)
-						'''
-						drone.hover()
-						
-					if gotfive and ((gotopposite == True) or (gotother == True)):
-						
-						gotother = False
-						gotopposite = False
-						gotfive = False
-						keypress = False
-						print("Keypress = False")
+				if gotfive and ((gotopposite == True) or (gotother == True)):
 					
-				previousPrediction = prediction
+					gotother = False
+					gotopposite = False
+					gotfive = False
+					keypress = False
+					print("Keypress = False")
+				
+			previousPrediction = prediction
 
-				#If queue is longer than 3 takeoff or land
+			#If queue is longer than 3 takeoff or land
 
-				#Delete an element from queue every 1 second
+			#Delete an element from queue every 1 second
 
 def droneSimulatorController():
 	translate = {2:'down', 4:'a', 6:'d',8:'up'}

@@ -439,6 +439,10 @@ def keys():
 			dataset.deletesystem("shorttemp")
 			dataset.deletesystem("longtemp")
 
+		elif string == "deleteappendeddata":
+			dataset.deletesystem("shortdata")
+			dataset.deletesystem("longdata")
+		
 		elif string == "appenddelshorttemp":
 			if inputval != None:
 				dataset.appenddelete(inputval, "shorttemp")
