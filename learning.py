@@ -99,7 +99,7 @@ def startLearning():
 
     X2, y2 = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
-    X2, y2 = dataset.sortDataset(X2, y2, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True) #,6,4,2,8
+    X2, y2 = dataset.sortDataset(X2, y2, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True, zeroClassMultiplier=1) #,6,4,2,8
 
     '''
     X2T, y2T = dataset.loadDataset(filename="data.txt", filterCondition=True,
@@ -137,9 +137,9 @@ def startLearning():
     #If a test set is needed for the combined subject model
     '''
     XL1T = features.extractFeaturesWithMask(
-            X1T, channelIndex, featuremask=featuremask, printTime=False)
+            X1T, featuremask=featuremask, printTime=False)
     XL2T = features.extractFeaturesWithMask(
-            X2T, channelIndex, featuremask=featuremask, printTime=False)
+            X2T, featuremask=featuremask, printTime=False)
     '''
     #uncomment for using samples as features
     '''
@@ -168,15 +168,15 @@ def startLearning():
 
     #proposed solution, change input to makeScaler when creating for one subject. See classifier.py
     #XLjoined = np.append(XL1, XL2, axis = 0)
-    scaler = classifier.makeScaler(XL1)
+    scaler = classifier.makeScaler(XL2)
 
     XLtrain1, XLtest1, yTrain1, yTest1, XL1 = classifier.scaleAndSplit(XL1, y1[0], scaler)
     XLtrain2, XLtest2, yTrain2, yTest2, XL2 = classifier.scaleAndSplit(XL2, y2[0], scaler)
 
-    '''
-    XLtrain1T, XLtest1T, yTrain1T, yTest1T, XL1T, scaler = classifier.scaleAndSplit(XL1T, y1T[0])
-    XLtrain2T, XLtest2T, yTrain2T, yTest2T, XL2T, scaler = classifier.scaleAndSplit(XL2T, y2T[0])
-    '''
+
+    #XLtrain1T, XLtest1T, yTrain1T, yTest1T, XL1T = classifier.scaleAndSplit(XL1T, y1T[0], scaler)
+    #XLtrain2T, XLtest2T, yTrain2T, yTest2T, XL2T = classifier.scaleAndSplit(XL2T, y2T[0], scaler)
+
     #This is to combine the two subjects
 
     #yTrain = np.append(yTrain1, yTrain2, axis = 0)
@@ -196,7 +196,7 @@ def startLearning():
 
 
     #Use this if predictor other than SVM is used.
-    clf, clfPlot = createAndTrain(XLtrain1, yTrain1, None)
+    clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
     #plot.trainingPredictions(clf, XL, y[0])
 
     ###TO PLOT LEARNING CURVE UNCOMMENT THIS.
@@ -213,7 +213,7 @@ def startLearning():
     #Use this if it is important to see the overall prediction, and not for only the test set
 
 
-    scores = cross_val_score(clf, XLtrain1, yTrain1, cv=50, scoring = 'accuracy')
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")
@@ -221,7 +221,7 @@ def startLearning():
 
 
 
-    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest1, clf, yTest1)
+    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest2, clf, yTest2)
     accuracyScore.append(tempAccuracyScore)
     f1Score.append(tempf1Score)
     precision.append(tempPrecision)
