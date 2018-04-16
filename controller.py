@@ -8,6 +8,25 @@ import copy
 import os
 import sys; sys.path.append('.') # help python find ps_drone.py relative to scripts folder
 sys.path.append('../ps_drone')
+key = None
+def print_pressed_keys(e):
+	global key
+	translateKey = {16:"q", 17:"w", 18:"e",
+					30:"a", 31:"s", 32:"d",
+					44:"z", 45:"x", 46:"c",
+					57:" "} #Add more scancodes is needed
+	line = [int(code) for code in keyboard._pressed_events]
+
+	#print(line)
+	
+	if len(line)>0:
+		try:
+			key = translateKey[line[0]]
+		except:
+			key = "other"
+	else:
+		key = ""
+	#print key
 
 def droneController(debug=False):
 	# Modified version of firstvideo.py
@@ -81,12 +100,13 @@ def droneController(debug=False):
 	ground = False
 	lastTime = datetime.now()
 	drone.setSpeed(0.1)
+	keyboard.hook(print_pressed_keys)
 	while not stop:
-		'''
-		while drone.VideoImageCount == IMC: tme.sleep(0.01)     # Wait until the next video-frame
-		IMC = drone.VideoImageCount
-		'''
-		key = drone.getKey()                                     # Gets a pressed key
+		
+		#while drone.VideoImageCount == IMC: tme.sleep(0.01)     # Wait until the next video-frame
+		#IMC = drone.VideoImageCount
+		
+		#key = drone.getKey()        #this sux                             # Gets a pressed key
 
 		if (key == " ") or (blinks >= 3):
 			if drone.NavData["demo"][0][2] and not drone.NavData["demo"][0][3]:
@@ -122,7 +142,7 @@ def droneController(debug=False):
 			#drone.hover()
 		
 		if not brainz:
-			if key == "0":	drone.hover()
+			if key == "":	drone.hover()
 			elif key == "w":	drone.moveForward()
 			elif key == "s":	drone.moveBackward()
 			elif key == "a":	drone.moveLeft()
@@ -140,9 +160,10 @@ def droneController(debug=False):
 			elif key == "*":	drone.doggyHop()
 			elif key == "+":	drone.doggyNod()
 			elif key == "-":	drone.doggyWag()
-			elif key != "":		stop = True
+			elif key == "other":	stop = True
+			#elif key != "":		stop = True
 
-			elif key and key != " ":    stop =   True
+			#elif key and key != " ":    stop =   True
 		
 
 		#Brain controller
