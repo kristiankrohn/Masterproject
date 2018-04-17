@@ -143,14 +143,14 @@ def startLearning():
     '''
     #uncomment for using samples as features
     '''
-    XL = X[0]
-    print(len(X[0]))
-    for i in range(len(X[0])):
-        XL[i] = np.concatenate((XL[i], X[1][i], X[3][i]))
+    XL2 = X2[0]
+    print(len(X2[0]))
+    for i in range(len(X2[0])):
+        XL2[i] = np.concatenate((XL2[i], X2[1][i], X2[3][i]))
         #np.append(XL[i], X[1][i])
         #np.append(XL[i], X[2][i])
         #np.append(XL[i], X[3][i])
-    print(len(XL[0]))
+    print(len(XL2[0]))
     '''
     #XL = PCA(n_components = 10).fit_transform(XL)
 
@@ -196,7 +196,7 @@ def startLearning():
 
 
     #Use this if predictor other than SVM is used.
-    clf, clfPlot = createAndTrain(XLtrain, yTrain, None)
+    clf, clfPlot = createAndTrain(XLtrain2, yTrain2, None)
     #plot.trainingPredictions(clf, XL, y[0])
 
     ###TO PLOT LEARNING CURVE UNCOMMENT THIS.
@@ -213,7 +213,7 @@ def startLearning():
     #Use this if it is important to see the overall prediction, and not for only the test set
 
 
-    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
+    scores = cross_val_score(clf, XLtrain2, yTrain2, cv=50, scoring = 'accuracy')
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")
