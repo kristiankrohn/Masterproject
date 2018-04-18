@@ -3,6 +3,12 @@ import globalvar as glb
 import numpy as np
 import features
 import executiontime
+import pandas as pd
+from scipy import stats, integrate
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
 
 def readLogs(length):
     import ast
@@ -86,7 +92,7 @@ def extractList(words, size):
 	return [word for word in words if len(word) == size]
 
 def evaluateLogs(length, evaluationParam="average", metric="precision", energy="high"):
-	print("Evaluating " + evaluationParam)
+	print("Evaluating " + evaluationParam + " " + metric + " " + energy + " energy")
 	print("Start to read logs")
 	PermutationsList, PrecisionList, RecallList, f1List = readLogs(length)
 	print("Finished reading logs, logs contain %d elements" %len(PermutationsList))
@@ -115,8 +121,7 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 	allList = []
 	if evaluationParam == "average":
 		#allAvg = []
-		for i in range(len(metricList)):
-			allList.append(np.average(metricList[i]))
+		
 		winner = allList.index(max(allList))
 
 	elif evaluationParam == "maxmin":
@@ -124,8 +129,29 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 		for i in range(len(metricList)):
 			allList.append(min(metricList[i]))
 		winner = allList.index(max(allList))	
+	
+	elif evaluationParam == "min": #Need to have a worst case to show the benefits of the brute force search
+		for i in range(len(metricList)):
+			allList.append(np.average(metricList[i]))
+		winner = allList.index(min(allList))
+		print("Worst features are: " + features.convertPermutationToFeatureString(PermutationsList[winner]))
+		print("Featuremask: " + str(PermutationsList[winner]))
+		print("Worst case avg precision: " + str(np.average(PrecisionList[winner])))
+		print("Worst case precision: " + str(PrecisionList[winner]))
+		print("Worst case recall: " + str(RecallList[winner]))
+		return #Doen't need this result to anything yet
+	elif evaluationParam =="plot":
+		for i in range(len(metricList)):
+			allList.append(np.average(metricList[i]))
+		title = metric + " distribution"
+		ax = sns.kdeplot(allList, shade=True)
+		ax.set_title(title)
+		plt.xlabel(metric)
+		plt.ylabel("Density")
+		plt.show()
+		return
 	else:
-		print("Invalid fuction parameters")
+		print("Invalid evaluation parameters")
 		return -1
 
 	if energy == "low":
@@ -140,7 +166,7 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 			if allList[j] >= threshold:
 				costs.append(executiontime.getExecutionCost(PermutationsList[j], executionTimeList))
 				candidates.append(j)
-		print("Number of candidates with high enough accuracy: %d" len(candidates))
+		print("Number of candidates with high enough accuracy: %d" %len(candidates))
 		winnerCostIndex = costs.index(min(costs))
 		winner = candidates[winnerCostIndex]
 		
@@ -201,15 +227,7 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 
 def cleanLogs(num):
 
-    logfile = open(dir_path+slash+"Logs"+slash+"Logfile"+str(num)+".txt", 'w')
-    logfile.truncate(0)
-    logfile.close()
-
     permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+str(num)+".txt", 'w')
-    permfile.truncate(0)
-    permfile.close()
-
-    permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+str(num)+".txt", 'w')
     permfile.truncate(0)
     permfile.close()
 
@@ -226,10 +244,14 @@ def cleanLogs(num):
     permfile.close()
 
 def main():
+
 	#cleanLogs()
 	#compareFeatures2(n_jobs=-1)
 	#compareFeatures(-1)
 	#readLogs(12)
-	evaluateLogs(9, evaluationParam="maxmin", metric="recall", energy="low")
+	#evaluateLogs(9, evaluationParam="min", metric="precision", energy="high")
+	#evaluateLogs(9, evaluationParam="maxmin", metric="recall", energy="low")
+	evaluateLogs(9, evaluationParam="plot", metric="precision", energy="high")
+
 if __name__ == '__main__':
 	main()
