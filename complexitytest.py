@@ -22,13 +22,23 @@ def calculateFeature(i, InputData):
     return features.FUNC_MAP[i](InputData)
 
 def writeToFile(values, windowLength):
-    file = open('executionTime' + str(windowLength) + '.txt', 'w')
+    file = open("executionTime" + slash + 'executionTimeAllFeatures' + str(windowLength) + '.txt', 'w')
     file.write(str(values))
     file.close()
 
-def readExecutionTime(filename = 'executionTime250.txt'):
-    file = open(filename, 'r')
-    return file.read()
+def getExecutionCost(featuremask, executionTimeList):
+    cost = 0
+    for i in range(len(featuremask)):
+        cost += executionTimeList[featuremask[i]]
+    return cost
+
+def readExecutionTime(filename = 'executionTimeAllFeatures250.txt'):
+    file = open("executionTime" + slash + filename, 'r')
+    executionTimeString = file.read()
+    file.close()
+    executionTimeString = executionTimeString[1:-1]
+    executionTimeList = map(float, executionTimeString.split(', '))
+    return executionTimeList
 
 def printSortedValues(sortedKeys, sortedValues):
     print("\n")
@@ -58,11 +68,11 @@ def calculateAndWriteExecutionTime(classifierstring = 'AllFeatures', shift = Fal
         featureString = str(features.FUNC_MAP.get(i))
         featureString = featureString.split(" ")
         featureName = featureString [1] + " "
-        dictionary[featureName] = min(timeit.repeat(wrapped, repeat = 3, number = 1))
+        dictionary[featureName] = min(timeit.repeat(wrapped, repeat = 10000, number = 1))
+        print("finished with feature %d" %i)
         executionTimeList.append(dictionary[featureName])
 
-    writeToFile(executionTimeList, windowLength)
-
+    #writeToFile(executionTimeList, windowLength)
     #Should the list be sorted and printed?
     if Sort:
         sortedValues = sorted(list(dictionary.values()))
@@ -73,4 +83,5 @@ def calculateAndWriteExecutionTime(classifierstring = 'AllFeatures', shift = Fal
 
 
 if __name__ == '__main__':
-	calculateAndWriteExecutionTime()
+	#calculateAndWriteExecutionTime(windowLength = 100)
+    print(readExecutionTime(filename = 'executionTimeAllFeatures100.txt'))
