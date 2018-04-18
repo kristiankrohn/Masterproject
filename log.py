@@ -1,4 +1,8 @@
+from globalconst import  *
+import globalvar as glb
 import numpy as np
+import features
+import executiontime
 
 def readLogs(length):
     import ast
@@ -30,7 +34,9 @@ def readLogs(length):
 		#print(len(num))
 		if len(num) == length:
 			try:
-				PermutationsList[i] = tuple(eval(PermutationsList[i]))
+				featuremaskString = PermutationsList[i][1:-1]
+				PermutationsList[i] = map(int, featuremaskString.split(', '))
+				#PermutationsList[i] = tuple(eval(PermutationsList[i]))
 			except:
 				print("Unhandeled error")
 				print(PermutationsList[i])
@@ -79,7 +85,7 @@ def readLogs(length):
 def extractList(words, size):
 	return [word for word in words if len(word) == size]
 
-def evaluateLogs(length, evaluationParam="maxminprecision"):
+def evaluateLogs(length, evaluationParam="average", metric="precision", energy="high"):
 	print("Evaluating " + evaluationParam)
 	print("Start to read logs")
 	PermutationsList, PrecisionList, RecallList, f1List = readLogs(length)
@@ -96,32 +102,100 @@ def evaluateLogs(length, evaluationParam="maxminprecision"):
 		PrecisionList = extractList(PrecisionList, length)
 	'''
 
+	if metric == "precision":
+		metricList = PrecisionList
+	elif metric == "recall":
+		metricList = RecallList
+	elif metric == "f1":
+		metricList = f1List
+	else:
+		print("Invalid fuction parameters")
+		return -1
+
+	allList = []
+	if evaluationParam == "average":
+		#allAvg = []
+		for i in range(len(metricList)):
+			allList.append(np.average(metricList[i]))
+		winner = allList.index(max(allList))
+
+	elif evaluationParam == "maxmin":
+		#allMin = []
+		for i in range(len(metricList)):
+			allList.append(min(metricList[i]))
+		winner = allList.index(max(allList))	
+	else:
+		print("Invalid fuction parameters")
+		return -1
+
+	if energy == "low":
+
+		maximum = max(allList)
+		threshold = maximum - 0.01
+		executionTimeList = executiontime.readExecutionTime(filename = 'executionTimeAllFeatures100.txt')
+		costs = []
+		candidates = []
+
+		for j in range(len(allList)):
+			if allList[j] >= threshold:
+				costs.append(executiontime.getExecutionCost(PermutationsList[j], executionTimeList))
+				candidates.append(j)
+		print("Number of candidates with high enough accuracy: %d" len(candidates))
+		winnerCostIndex = costs.index(min(costs))
+		winner = candidates[winnerCostIndex]
+		
+	'''
 	if evaluationParam == "averageprecision":
 		allPavg = []
 		for i in range(len(PrecisionList)):
 			allPavg.append(np.average(PrecisionList[i]))
 		winner = allPavg.index(max(allPavg))
+
 	elif evaluationParam == "maxminprecision":
 		allPmin = []
 		for i in range(len(PrecisionList)):
 			allPmin.append(min(PrecisionList[i]))
 		winner = allPmin.index(max(allPmin))
+
 	elif evaluationParam == "maxminrecall":
 		allRmin = []
 		for i in range(len(RecallList)):
 			allRmin.append(min(RecallList[i]))
 		winner = allRmin.index(max(allRmin))
+	
+	elif evaluationParam == "lowenergyaverageprecision":
+		allPavg = []
+		for i in range(len(PrecisionList)):
+			allPavg.append(np.average(PrecisionList[i]))
+		#winner = allPavg.index(max(allPavg))
+
+		maximum = max(allPavg)
+		threshold = maximum - 0.01
+		executionTimeList = executiontime.readExecutionTime(filename = 'executionTimeAllFeatures100.txt')
+		costs = []
+		candidates = []
+
+		for j in range(len(allPavg)):
+			if allPavg[j] >= threshold:
+				costs.append(executiontime.getExecutionCost(PermutationsList[j], executionTimeList))
+				candidates.append(j)
+
+		winnerCostIndex = costs.index(min(costs))
+		winner = candidates[winnerCostIndex]
+
 	else:
 		print("Invalid input")
 		return -1
+	'''
 
 	print("Winner index: %d" %winner)
-	print("Best features are: " + convertPermutationToFeatureString(PermutationsList[winner]))
+	print("Best features are: " + features.convertPermutationToFeatureString(PermutationsList[winner]))
+	print("Featuremask: " + str(PermutationsList[winner]))
 	#print("Best parameters are: " + str(ParametersList[winner]))
 	print("Average precision: " + str(np.average(PrecisionList[winner])))
 	print("Precision: " + str(PrecisionList[winner]))
 	print("Recall: " + str(RecallList[winner]))
-	writeFeatureMask(PermutationsList[winner], "BruteForce"+evaluationParam+str(length))
+	features.writeFeatureMask(PermutationsList[winner], "BruteForce"+evaluationParam+metric+energy+str(length))
 
 	return PermutationsList[winner]
 
@@ -156,6 +230,6 @@ def main():
 	#compareFeatures2(n_jobs=-1)
 	#compareFeatures(-1)
 	#readLogs(12)
-	evaluateLogs(9, "averageprecision")
+	evaluateLogs(9, evaluationParam="maxmin", metric="recall", energy="low")
 if __name__ == '__main__':
 	main()

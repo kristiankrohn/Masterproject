@@ -161,10 +161,6 @@ def droneController(debug=False):
 		elif key == "+":	drone.doggyNod()
 		elif key == "-":	drone.doggyWag()
 		elif key == "other":	stop = True
-			#elif key != "":		stop = True
-
-			#elif key and key != " ":    stop =   True
-		
 
 		#Brain controller
 

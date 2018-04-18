@@ -310,6 +310,14 @@ def convertPermutationToFeatureString(p):
 			functionname = functionstring.split(" ")
 			returnString += functionname[1] + " "
 		return returnString
+
+	elif isinstance(p, list):
+		print("Featuremask is a list")
+		for m in range(len(p)):
+			functionstring = str(FUNC_MAP.get(p[m]))
+			functionname = functionstring.split(" ")
+			returnString += functionname[1] + " "
+		return returnString
 	else:
 		#p = tuple(map(int, p[1:-1].split(',')))
 		print(type(p))
@@ -383,8 +391,13 @@ def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
 	print(scores)
 
 def writeFeatureMask(mask, name):
-	features = range(len(FUNC_MAP))
-	featuremaskList = list(compress(features, mask))
+	
+	if isinstance(mask[0], (np.ndarray, np.generic) ):
+		print("Converting boolean featuremask to numeric")
+		features = range(len(FUNC_MAP))
+		featuremaskList = list(compress(features, mask))
+	else:
+		featuremaskList = mask
 	featuremask = open("Featuremask"+slash+name+".txt", 'w+')
 	featuremask.write(str(featuremaskList))
 	featuremask.close()
@@ -394,8 +407,7 @@ def readFeatureMask(name):
 	featuremaskString = featuremaskFile.read()
 	featuremaskFile.close()
 	featuremaskString = featuremaskString[1:-1]
-	#featuremaskString.pop(0)
-	#featuremaskString.pop(-1)
+
 	featuremaskList = map(int, featuremaskString.split(', '))
 	print featuremaskList
 	return featuremaskList
@@ -721,9 +733,9 @@ def compareFeatures(n_jobs=1):
 
 def main():
 	#cleanLogs()
-	compareFeatures2(n_jobs=-1)
+	#compareFeatures2(n_jobs=-1)
 	#compareFeatures(-1)
-	#readLogs(12)
-	#evaluateLogs(9, "averageprecision")
+	mask = readFeatureMask("BruteForcelowenergyaverageprecision9")
+	print(convertPermutationToFeatureString(mask))
 if __name__ == '__main__':
 	main()

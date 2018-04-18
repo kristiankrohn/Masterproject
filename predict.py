@@ -14,10 +14,10 @@ import classifier
 yTestGUI = []
 predictionsGUI = []
 import matplotlib.pyplot as plt
-#import dill as pickle
-import pickle
+import dill as pickle
+#import pickle
 
-def createPredictor(name, windowLength, datasetnum = 1, shift = None):
+def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None):
     ##### Parameters
 
     if windowLength < 250 and shift == None:
@@ -64,10 +64,11 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None):
                 XL[j].append(Xl[j][k])
                 y[j].append(Y[j][k])
         print(len(XL[0]))
-
-    features.compareFeatures2(name, shift, windowLength, X=XL, y=y)
-    featuremask = features.readFeatureMask(name)
-    
+    if bruteForcemask == None:
+        features.compareFeatures2(name, shift, windowLength, X=XL, y=y)
+        featuremask = features.readFeatureMask(name)
+    else:
+        featuremask = features.readFeatureMask(bruteForcemask)
     XL = features.extractFeaturesWithMask(
             XL, featuremask=featuremask, printTime=False)
     scaler = classifier.makeScaler(XL)
@@ -259,8 +260,8 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             print(timeStop - start)
 
 def main():
-    createPredictor("multitest", 100, datasetnum=1)
-
+    createPredictor("Bfmmrl9", 100, datasetnum=1, bruteForcemask = "BruteForcemaxminrecalllow9")
+    #createPredictor("multitest", 100, datasetnum=1)
 if __name__ == '__main__':
     main()
 
