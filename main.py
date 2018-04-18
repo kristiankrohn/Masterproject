@@ -54,7 +54,7 @@ exit = False
 filtering = True
 
 predictioncondition = False
-predictioninterval = 25
+predictioninterval = 25 #Number of new samples before a new prediction
 predictionParameters = None
 counterlock = Lock()
 
@@ -609,6 +609,12 @@ def keys():
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			housekeepThread.start()
 			controller.droneController()
+
+		elif string == "verification":
+			predictioncondition = True		
+			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			housekeepThread.start()
+			controller.onlineVerificationController()
 
 		elif string == "dronesimulator":		
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())

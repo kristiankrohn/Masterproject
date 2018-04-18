@@ -758,13 +758,6 @@ def readLogs(length):
 			print(PermutationsList[i])
 			print("Index = %d" %i)
 
-    permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+ str(length)+".txt", 'r')
-    ParametersString = permfile.read()
-    permfile.close()
-    ParametersList = ParametersString.split(';')
-    ParametersList.pop(0)
-    ParametersList = [ast.literal_eval(i) for i in ParametersList]
-
     permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(length)+".txt", 'r')
     PrecisionString = permfile.read()
     permfile.close()
@@ -800,7 +793,7 @@ def readLogs(length):
 
 
 
-    return PermutationsList, ParametersList, PrecisionList, RecallList, f1List
+    return PermutationsList, PrecisionList, RecallList, f1List
 
 def extractList(words, size):
 	return [word for word in words if len(word) == size]
@@ -808,7 +801,7 @@ def extractList(words, size):
 def evaluateLogs(length, evaluationParam="maxminprecision"):
 	print("Evaluating " + evaluationParam)
 	print("Start to read logs")
-	PermutationsList, ParametersList, PrecisionList, RecallList, f1List = readLogs(length)
+	PermutationsList, PrecisionList, RecallList, f1List = readLogs(length)
 	print("Finished reading logs, logs contain %d elements" %len(PermutationsList))
 	#minLengthFeatures = min(PermutationsList, key=len)
 	#maxLengthFeatures = max(PermutationsList, key=len)
@@ -825,7 +818,7 @@ def evaluateLogs(length, evaluationParam="maxminprecision"):
 	if evaluationParam == "averageprecision":
 		allPavg = []
 		for i in range(len(PrecisionList)):
-			allPavg.append(np.average(PrecisionList[i], weights=supportList[i]))
+			allPavg.append(np.average(PrecisionList[i]))
 		winner = allPavg.index(max(allPavg))
 	elif evaluationParam == "maxminprecision":
 		allPmin = []
@@ -843,12 +836,13 @@ def evaluateLogs(length, evaluationParam="maxminprecision"):
 
 	print("Winner index: %d" %winner)
 	print("Best features are: " + convertPermutationToFeatureString(PermutationsList[winner]))
-	print("Best parameters are: " + str(ParametersList[winner]))
+	#print("Best parameters are: " + str(ParametersList[winner]))
+	print("Average precision: " + str(np.average(PrecisionList[winner])))
 	print("Precision: " + str(PrecisionList[winner]))
 	print("Recall: " + str(RecallList[winner]))
-	writeFeatureMask(PermutationsList[winner])
+	writeFeatureMask(PermutationsList[winner], "BruteForce"+evaluationParam+str(length))
 
-	return PermutationsList[winner], ParametersList[winner]
+	return PermutationsList[winner]
 
 def cleanLogs(num):
 
@@ -880,8 +874,8 @@ def cleanLogs(num):
 def main():
 	#cleanLogs()
 	#compareFeatures2(n_jobs=-1)
-	compareFeatures(-1)
+	#compareFeatures(-1)
 	#readLogs(12)
-	#evaluateLogs(12, "averageprecision")
+	evaluateLogs(9, "averageprecision")
 if __name__ == '__main__':
 	main()
