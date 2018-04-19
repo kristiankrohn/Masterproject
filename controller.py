@@ -171,94 +171,82 @@ def droneController(debug=False):
 
 		if brainz:
 			now = datetime.now()
-			if (now - lastTime) > timedelta(seconds=2):
+
+			if (now - lastTime) > timedelta(seconds=3):
 				if blinks > 0:
 					blinks = blinks - 1
 				else:
 					blinks = 0
-
 				lastTime = now
-				#print("Blinks: %d" %blinks)
-				#print glb.predictions
 
 			if len(glb.predictions) >= 1:
 				with glb.predictionslock:
 					prediction = copy.copy(glb.predictions[0])
 					glb.predictions.pop(0)
 
+				#State transition from P0 to P1
+				if prediction == 0:
+					if previousPrediction == 0: 
+						if prevPreviousPrediction != 0 and not keypress:
+							blinks += 1
+							print("Blinks: %d" %blinks)
 
-				if (prediction != 5) and (prediction != previousPrediction):
-					#if (prediction in [2,4,6,8]) and (keypress == False): #Press
-					if (prediction in [4,6,8]) and (keypress == False): #Press
+				#if prediction != 5 and prediction != previousPrediction: 
+				if not keypress and prediction == previousPrediction:	
+					#State transition from S0 to S1
+					#if prediction in [2,4,6,8] and keypress == False: 
+					if prediction in [4,6,8] and keypress == False: 
 						keypress = True
 						pressedKey = prediction
-						#Make command
-						#print("Press key: %d" %prediction)
-						if prediction == 8:
-							if debug:
-								print("Move forward")
-							else:	
-								drone.moveForward()
-						elif prediction == 2:
-							#drone.moveBackward()
-							pass
-						elif prediction == 4:
-							if debug:
-								print("Turn left")
-							else:	
-								drone.turnAngle(-30,1)
-						elif prediction == 6:
-							if debug:
-								print("Turn right")
-							else:
-								drone.turnAngle( 30,1)
 
-					elif prediction == 0: #Blink
-						if previousPrediction != 0:
-							#Append a value to a queue
-							blinks = blinks + 1
-							print("Blinks: %d" %blinks)
+						if prediction == 8:
+							drone.moveForward()
+							print("Move forwards")
+						elif prediction == 2:
+							drone.moveBackward()
+							print("Move backwards")
+						elif prediction == 4:
+							drone.turnAngle(-30,1)
+							print("Turn left")
+						elif prediction == 6:
+							print("Turn right")
+							drone.turnAngle(30,1)
 							
-
-				if keypress and (prediction != previousPrediction):
+				if keypress:
+				    #State transition from S1 to S2
+					if prediction == opposite[pressedKey]:
+					    if gotopposite == 0:
+					        print("Hover")
+					        drone.hover()
+						gotopposite += 1
+						
+					elif prediction in otherkey[pressedKey]: 
+						if otherkey == 0:
+						    print("Hover")
+						    drone.hover()
+						gotother += 1 
+											
+					#State transistion from S2 to S0
 					if prediction == 5:
-						gotfive = True
+						if (gotopposite == 1 or gotother == 1):
+							gotother = 0
+							gotopposite = 0
+							gotfive = 0
+							keypress = False
+							print("Ready for new prediction, other/opposite exit")
+						if pressedKey != 8:
+							if ((previousPrediction == 5) and 
+								(prevPreviousPrediction == 5)):
+								print("Hover")
+								drone.hover()
+								gotother = 0
+								gotopposite = 0
+								gotfive = 0
+								keypress = False
+								print("Ready for new prediction, five exit")
 
-					elif prediction == opposite[pressedKey]: #Release
 
-						gotopposite = True
-						#print("Got opposite key: %d" %prediction)
-						if debug:
-							print("Hover")
-						else:
-							drone.hover()
-
-					elif prediction in otherkey[pressedKey]: #Release and press new
-
-						gotother = True
-						'''
-						if prediction == 8:
-							drone.moveForward(0.1)
-						elif prediction == 2:
-							drone.moveBackward(0.1)
-						elif prediction == 4:
-							drone.turnLeft(0.1)
-						elif prediction == 6:
-							drone.turnRight(0.1)
-						'''
-						if debug:
-							print("Hover")
-						else:
-							drone.hover()
-
-					if gotfive and ((gotopposite == True) or (gotother == True)):
-
-						gotother = False
-						gotopposite = False
-						gotfive = False
-						keypress = False
-						print("Keypress = False")
-
+				prevPreviousPrediction = previousPrediction
 				previousPrediction = prediction
 		#tme.sleep(0.01)
 	print("Exiting drone controller")
