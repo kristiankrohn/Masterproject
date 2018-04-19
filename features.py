@@ -23,6 +23,7 @@ from sklearn import linear_model
 from sklearn.model_selection import cross_val_score
 import math
 
+
 def getBandAmplitudes(X, Band):
 	Fs = glb.fs
 	C = fft(X)

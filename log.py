@@ -7,7 +7,7 @@ import pandas as pd
 from scipy import stats, integrate
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from collections import Counter
 
 
 def readLogs(length):
@@ -91,6 +91,41 @@ def readLogs(length):
 def extractList(words, size):
 	return [word for word in words if len(word) == size]
 
+def fixLogs(length):
+	print("Start to read logs")
+	PermutationsList, PrecisionList, RecallList, f1List = readLogs(length)
+	print("Finished reading logs")
+
+	print("Length of logs:")
+	permlength = len(PermutationsList)
+	precisionlength = len(PrecisionList)
+	recalllength = len(RecallList)
+	f1length = len(f1List)
+	print("Permutations: %d" %permlength)
+	print("Precision: %d" %precisionlength)
+	print("Recall: %d" %recalllength)
+	print("f1: %d" %f1length)
+	expectedResults = features.nCr(26,length)
+	print("Expected logs to be of length: %d" %expectedResults)
+	
+	c = Counter(map(tuple,PermutationsList))
+	dups = [k for k,v in c.items() if v>1]
+	numDups = len(dups)
+	print("Number of duplicate combinations: %d" %numDups)
+
+	missingComb = (permlength-numDups) - expectedResults
+	print("Number of missing combinations: %d" %missingComb)
+	print()
+	print("Summary: ")
+	if numDups > 0:		
+		if missingComb == 0:
+			print("Logs are complete, but contain duplicates")
+		else:
+			print("Logs not complete and contain duplicates")
+	if numDups == 0:
+		if missingComb == 0:
+			print("Logs are complete")
+			
 def evaluateLogs(length, evaluationParam="average", metric="precision", energy="high"):
 	print("Evaluating " + evaluationParam + " " + metric + " " + energy + " energy")
 	print("Start to read logs")
@@ -102,6 +137,12 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 	#print maxLengthFeatures
 	#print("Logs contain combinations of %d to %d features" %(minLengthFeatures, maxLengthFeatures))
 	winner = None
+	print("Length of logs:")
+	print(len(PermutationsList))
+	print(len(PrecisionList))
+	print(len(RecallList))
+	print(len(f1List))
+
 
 	'''
 	for length in range(minLengthFeatures, maxLengthFeatures+1):
@@ -250,8 +291,8 @@ def main():
 	#compareFeatures(-1)
 	#readLogs(12)
 	#evaluateLogs(9, evaluationParam="min", metric="precision", energy="high")
-	#evaluateLogs(9, evaluationParam="maxmin", metric="recall", energy="low")
-	evaluateLogs(9, evaluationParam="plot", metric="precision", energy="high")
-
+	#evaluateLogs(10, evaluationParam="maxmin", metric="recall", energy="low")
+	#evaluateLogs(9, evaluationParam="plot", metric="precision", energy="high")
+	fixLogs(10)
 if __name__ == '__main__':
 	main()

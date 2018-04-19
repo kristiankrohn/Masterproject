@@ -246,9 +246,9 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             print("Starting to predict")
         
         prediction = clf.predict(Xtest)
-        if not(prediction == 5 or prediction == 0):
-            #print("The prediction is: %d" %prediction[0])
-            pass
+        #if not(prediction == 5 or prediction == 0):
+        #print("The prediction is: %d" %prediction[0])
+            #pass
         with glb.predictionslock:
             glb.predictions.append(prediction[0])
 

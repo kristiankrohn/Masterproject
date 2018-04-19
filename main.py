@@ -130,7 +130,8 @@ def dataCatcher():
 	if numCh >= 9:
 		for i in range(10):
 			if os.name == 'nt':
-				print("Connecting to Windows serial port")
+				#print("Connecting to Windows serial port")
+
 				port = "COM" + str(i)
 			elif os.name == 'posix':
 				print("Connecting to Linux Serial port")
@@ -610,11 +611,12 @@ def keys():
 			housekeepThread.start()
 			controller.droneController()
 
-		elif string == "verification":
+		elif string == "online":
 			predictioncondition = True		
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			housekeepThread.start()
-			controller.onlineVerificationController()
+			online = threading.Thread(target=controller.onlineVerificationController, args=())
+			online.start()
 
 		elif string == "dronesimulator":		
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
