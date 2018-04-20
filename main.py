@@ -692,12 +692,13 @@ def main():
 			app = ttk.App()
 		elif sys.argv[1] == "drone":
 			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
-			#threadDataCatcher.setDaemon(True)
+			threadDataCatcher.setDaemon(True)
 			threadDataCatcher.start()
 			predictioncondition=True
 			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			housekeepThread.start()
-			controller.droneController()
+			#controller.droneController()
+			controller.originalDroneController()
 			os._exit(0)
 
 	threadKeys = threading.Thread(target=keys,args=())
