@@ -597,24 +597,18 @@ def keys():
 		elif string == "hht":
 			if inputval != None and inputval < 10:
 				hht.multiplottestHHT(inputval)
-
-		elif string == "dronedebug":
-			predictioncondition = True	
-			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
-			housekeepThread.start()
-			controller.droneController(debug=True)
-			print("Drone controller has returned to keys()")
 		
 		elif string == "drone":
 			predictioncondition = True		
-			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
-			housekeepThread.start()
-			controller.droneController()
+			#housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			#housekeepThread.start()
+			#controller.droneController()
+			controller.originalDroneController()
 
 		elif string == "online":
 			predictioncondition = True		
-			housekeepThread = threading.Thread(target=controller.housekeeper, args=())
-			housekeepThread.start()
+			#housekeepThread = threading.Thread(target=controller.housekeeper, args=())
+			#housekeepThread.start()
 			online = threading.Thread(target=controller.onlineVerificationController, args=())
 			online.start()
 
@@ -732,7 +726,7 @@ def main():
 		app = ttk.App()
 	'''
 	while not exit:
-		tme.sleep(0.1)
+		tme.sleep(1)
 	
 
 if __name__ == '__main__':

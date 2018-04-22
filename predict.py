@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import dill as pickle
 #import pickle
 
-def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None):
+def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 1):
     ##### Parameters
 
     if windowLength < 250 and shift == None:
@@ -57,7 +57,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
                                     shift=shift, windowLength=windowLength)
 
         Xl, Y = dataset.sortDataset(X, Y, length=1000, classes=[0,1,2,3,4,5,6,7,8,9], 
-                                        merge = True, zeroClassMultiplier=2)
+                                        merge = True, zeroClassMultiplier=zeroClassMultiplier)
 
         for j in range(numCh):
             for k in range(len(Xl[j])):
@@ -249,9 +249,18 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
         #if not(prediction == 5 or prediction == 0):
         #print("The prediction is: %d" %prediction[0])
             #pass
-        with glb.predictionslock:
-            glb.predictions.append(prediction[0])
+        #print(prediction)
+        #with glb.predictionslock:
+            #glb.predictions.append(prediction[0])
 
+        with glb.predictionslock:
+            #print("Prediction lock")
+            if not glb.predictionsQueue.full():            
+                glb.predictionsQueue.put(prediction[0])
+            else:
+                popped = glb.predictionsQueue.get()
+                glb.predictionsQueue.put(prediction[0])
+        #print("Release prediction lock")
         if debug:
             timeStop = time.time()
             
@@ -260,8 +269,8 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             print(timeStop - start)
 
 def main():
-    createPredictor("Bfmmrl9", 100, datasetnum=1, bruteForcemask = "BruteForcemaxminrecalllow9")
-    #createPredictor("multitest", 100, datasetnum=1)
+    #createPredictor("Bfmmrl9", 100, datasetnum=1, bruteForcemask = "BruteForcemaxminrecalllow9")
+    createPredictor("multitest", 150, datasetnum=1, zeroClassMultiplier=2)
 if __name__ == '__main__':
     main()
 

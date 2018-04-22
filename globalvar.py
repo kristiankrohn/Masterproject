@@ -4,6 +4,9 @@ from scipy import signal
 import numpy as np
 import os, shutil
 from globalconst import*
+
+import Queue
+
 #rawdata = [],[],[],[],[],[],[],[]
 #data = [],[],[],[],[],[],[],[]
 #timeData = [],[],[],[],[],[],[],[]
@@ -12,8 +15,11 @@ import getpass
 newTimeData = [],[],[],[],[],[],[],[],[]
 newSamples = [],[],[],[],[],[],[],[],[]
 
+
 predictionslock = Lock()
-predictions = []
+#predictions = []
+
+predictionsQueue = Queue.Queue(maxsize=20)
 
 xt = tme.time()
 fs = 250.0
