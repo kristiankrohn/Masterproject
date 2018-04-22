@@ -54,7 +54,7 @@ exit = False
 filtering = True
 
 predictioncondition = False
-predictioninterval = 25 #Number of new samples before a new prediction
+predictioninterval = 25 #Number of new samples before a new prediction, 25 with window length of 100 worked fine
 predictionParameters = None
 counterlock = Lock()
 

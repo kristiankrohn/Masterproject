@@ -17,6 +17,10 @@ import matplotlib.pyplot as plt
 import dill as pickle
 #import pickle
 
+def main():
+    #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
+    createPredictor("multitest", 200, shift = True, datasetnum=1, zeroClassMultiplier=1.2)
+
 def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 1):
     ##### Parameters
 
@@ -260,6 +264,7 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             else:
                 popped = glb.predictionsQueue.get()
                 glb.predictionsQueue.put(prediction[0])
+                print("Prediction buffer is full")
         #print("Release prediction lock")
         if debug:
             timeStop = time.time()
@@ -268,9 +273,7 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             print("Time taken to predict with given examples:")
             print(timeStop - start)
 
-def main():
-    #createPredictor("Bfmmrl9", 100, datasetnum=1, bruteForcemask = "BruteForcemaxminrecalllow9")
-    createPredictor("multitest", 150, datasetnum=1, zeroClassMultiplier=2)
+
 if __name__ == '__main__':
     main()
 

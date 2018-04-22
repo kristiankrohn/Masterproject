@@ -290,9 +290,9 @@ def main():
 	#compareFeatures2(n_jobs=-1)
 	#compareFeatures(-1)
 	#readLogs(12)
-	#evaluateLogs(9, evaluationParam="min", metric="precision", energy="high")
+	evaluateLogs(9, evaluationParam="min", metric="precision", energy="high")
 	#evaluateLogs(10, evaluationParam="maxmin", metric="recall", energy="low")
 	#evaluateLogs(9, evaluationParam="plot", metric="precision", energy="high")
-	fixLogs(10)
+	#fixLogs(10)
 if __name__ == '__main__':
 	main()
