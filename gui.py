@@ -286,10 +286,11 @@ class App(object):
 		self.root.after(12, self.animation)
 
 	def startBall(self):
-		print("StartBall")		
+		print("StartBall")
+		#if glb.guipredict:		
 		global predictionParams
+		predictionParams = predict.loadPredictor(machinestate)
 		#self.w.pack_forget()
-		predictionParams = predict.loadPredictor("testing")
 		self.startButton.pack_forget()
 		self.canvas = tk.Canvas(root, width=size, height=size)
 		self.canvas.pack(expand=True)

@@ -19,9 +19,9 @@ import dill as pickle
 
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
-    createPredictor("multitest", 200, shift = True, datasetnum=1, zeroClassMultiplier=1.2)
-
-def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 1):
+    #createPredictor("test200", 150, shift = True, datasetnum=1, zeroClassMultiplier=2)
+    createPredictor("test200", 150, shift = False, datasetnum=1, zeroClassMultiplier=2)
+def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2):
     ##### Parameters
 
     if windowLength < 250 and shift == None:
@@ -79,14 +79,15 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
     XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0], scaler)
 
 
-    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
+    #clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
+    clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
     clf.fit(XLtrain,yTrain)
 
     classifier.saveMachinestate(clf, name)   #Uncomment this to save the machine state
     classifier.saveScaler(scaler, name)
 
-    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'accuracy')
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'recall_macro')
+    print("Recall: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")
     print(scores)
@@ -264,7 +265,7 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
             else:
                 popped = glb.predictionsQueue.get()
                 glb.predictionsQueue.put(prediction[0])
-                print("Prediction buffer is full")
+                #print("Prediction buffer is full")
         #print("Release prediction lock")
         if debug:
             timeStop = time.time()

@@ -19,7 +19,9 @@ def filter(newSamples, newTimeData, i, b, a):
 
 	try:
 		x, glb.Zi[i] = signal.lfilter(b, a, x, zi=glb.Zi[i])
-	except Exception:
+	except Exception as detail:
+		print(detail)
+		print(i)
 		print("Error in filter, returning")
 		return
 	#x = signal.lfilter(b, a, x)

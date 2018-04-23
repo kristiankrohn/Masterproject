@@ -356,10 +356,10 @@ def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
 	#XLtest = scaler.fit_transform(XLtest, yTest)
 
 
-	clf = svm.SVC(kernel="linear", C = 10, decision_function_shape = 'ovr')
+	#clf = svm.SVC(kernel="linear", C = 10, decision_function_shape = 'ovr')
 	#clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
 	#clf = RandomForestClassifier(n_estimators = 45, max_depth = 10,  min_samples_leaf = 1, random_state = 40)
-	#clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 50, random_state = 42)
+	clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
 	#clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
 
 

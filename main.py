@@ -20,7 +20,7 @@ import filterlib
 import dataset
 import learning #this is moved to keys() -> "learn"
 import serial
-
+from datetime import timedelta
 import hht
 from datetime import datetime
 import classifier
@@ -29,6 +29,7 @@ import webbrowser
 import controller
 import features
 import tracestack
+import psutil, os
 
 
 ####TODO############################################
@@ -52,15 +53,32 @@ ptr = 0
 p = None
 exit = False
 filtering = True
-
+killkeys = False
 predictioncondition = False
-predictioninterval = 25 #Number of new samples before a new prediction, 25 with window length of 100 worked fine
+predictioninterval = 50 #Number of new samples before a new prediction, 25 with window length of 100 worked fine
 predictionParameters = None
 counterlock = Lock()
 
 intervalcounter = 0
 dataset.printDatasetFolder()
 predictionParameters = predict.loadPredictor(machinestate)
+
+
+def setpriority(priority=2):
+	p = psutil.Process(os.getpid())
+	print("Original priority:")
+	print(p.nice())
+
+	priorityclasses = [psutil.IDLE_PRIORITY_CLASS,
+						psutil.BELOW_NORMAL_PRIORITY_CLASS,
+						psutil.NORMAL_PRIORITY_CLASS,
+						psutil.ABOVE_NORMAL_PRIORITY_CLASS,
+						psutil.HIGH_PRIORITY_CLASS,
+						psutil.REALTIME_PRIORITY_CLASS]
+
+	p.nice(priorityclasses[priority])
+	print("New priority:")
+	print(p.nice())
 
 def check_sleep(amount):
     start = datetime.now()
@@ -74,17 +92,24 @@ def housekeeper():
 	
 	longsleep = False
 	pop = False
+	error = False
+	setpriority(5)
+	start = datetime.now()
+	stop = datetime.now()
 	while True:
 		with glb.mutex:
 			if len(glb.data[0][0]) >= nSamples + 500:
-				print("Error in tme.sleep() function sleeps for too long, flushing databuffer!")
-
+				#print("Error in tme.sleep() function sleeps for too long, flushing databuffer!")
+				print("Error in tme.sleep() function, sleeps for too long")
+				
 				for i in range(numCh):
 					for j in range(3):
 						del glb.data[i][j][:]
 						
 				error = sum(abs(check_sleep(0.050)-0.050) for i in xrange(100))*10
 				print "Average error is %0.2fms" % error
+				
+				#error = True
 
 			if len(glb.data[0][0]) >= nSamples + 100:
 				longsleep = False
@@ -92,6 +117,7 @@ def housekeeper():
 			elif len(glb.data[0][0]) >= nSamples:
 				longsleep = True
 				pop = True
+				error = False
 			else:
 				pop = False
 			if pop == True:
@@ -108,17 +134,23 @@ def housekeeper():
 						print("Uneven length of timestamp")
 					if len(glb.data[i][timestamp]) != len(glb.data[i][rawdata]):
 						print("Uneven length between timestamp and raw data")
-		
-		if longsleep:
-			if glb.fs == 250.0:
-				tme.sleep(0.003)
+		if not error:
+			if longsleep:
+				if glb.fs == 250.0:
+					start = datetime.now()
+					tme.sleep(0.003)
+					stop = datetime.now()
+					#print(stop-start)
+				else:
+					tme.sleep(0.007)
 			else:
-				tme.sleep(0.007)
-		else:
-			if glb.fs == 250.0:
-				tme.sleep(0.002)
-			else:
-				tme.sleep(0.004)
+				if glb.fs == 250.0:
+					if (stop - start) > timedelta(milliseconds=10):
+						pass
+					else:
+						tme.sleep(0.002)
+				else:
+					tme.sleep(0.004)
 		
 def dataCatcher():
 	global board
@@ -204,15 +236,16 @@ def printData(sample):
 				
 	if predictioncondition == True:
 		#print("predictioncondition is true")	
-		with counterlock:
+		#with counterlock:
 			#print("got lock")
-			intervalcounter += 1
-			if intervalcounter >= predictioninterval:
-				#print("New predict:")
-				intervalcounter = 0
-				#predict.predictRealTime(clf, scaler)
-				predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
-				predictionThread.start()
+		intervalcounter += 1
+		if intervalcounter >= predictioninterval:
+			#print("New predict:")
+			intervalcounter = 0
+
+			#predict.predictRealTime(**predictionParameters)
+			predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
+			predictionThread.start()
 	
 
 	if len(glb.newSamples[0]) >= glb.window:
@@ -288,7 +321,7 @@ def keys():
 	global guiVar
 	global predictionParameters, predictioncondition
 
-	while True:
+	while not killkeys:
 		inputString = raw_input()
 		if "=" in inputString:
 			stringArr = inputString.split('=')
@@ -392,7 +425,7 @@ def keys():
 			#dataset.exportPlots("data")
 		elif string == "exporttempplots":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("temp", "time","fast")) 
+												args=("temp", "time")) 
 			exportThread.start()
 			#dataset.exportPlots("temp")
 		elif string == "exportallplots":
@@ -673,18 +706,23 @@ def gui():
 def main():
 	global graphVar, exit, guiVar, predictioncondition
 
-	print("Setup finished, starting threads")
+	
 
 			
 
 	threadHK = threading.Thread(target=housekeeper,args=())
 	threadHK.setDaemon(True)
 	threadHK.start()
+	threadKeys = threading.Thread(target=keys,args=())
+	threadKeys.setDaemon(True)
+	threadKeys.start()
+	print("Setup finished, starting threads")
 
 	if len(sys.argv) > 1:
 		if sys.argv[1] == "gui":
 			app = ttk.App()
 		elif sys.argv[1] == "drone":
+			killkeys=True
 			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 			threadDataCatcher.setDaemon(True)
 			threadDataCatcher.start()
@@ -695,10 +733,7 @@ def main():
 			controller.originalDroneController()
 			os._exit(0)
 
-	threadKeys = threading.Thread(target=keys,args=())
-	threadKeys.setDaemon(True)
-	threadKeys.start()
-	
+
 
 	#threadDataCatcher = threading.Thread(target=dataCatcher,args=())
 	#threadDataCatcher.setDaemon(True)

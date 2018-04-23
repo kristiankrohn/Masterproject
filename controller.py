@@ -97,10 +97,38 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 				gotopposite += 1
 				
 			elif prediction in otherkey[pressedKey]: 
-				if otherkey == 0:
+				if gotother == 0:
 				    print("Hover")
 				    if drone != None:
 				    	drone.hover()
+				elif gotother == 3:
+
+					pressedKey = prediction
+					if prediction == 8:
+						if drone != None:
+							drone.moveForward(0.1)
+						print("Move forwards")
+					elif prediction == 2:
+						if drone != None:
+							drone.moveBackward()
+						print("Move backwards")
+					elif prediction == 4:
+						print("Turn left")
+						#drone.turnAngle(-45,1)
+						if drone != None:
+							drone.turnLeft(1)
+							tme.sleep(0.2)
+							drone.hover()
+						print("Finished turning left")
+					elif prediction == 6:
+						print("Turn right")
+						if drone != None:
+							drone.turnRight(1)
+							tme.sleep(0.2)
+							drone.hover()
+					#drone.turnAngle(45,1)
+					print("Finished turning right")
+					gotother = 0
 				gotother += 1 
 									
 			#State transistion from S2 to S0
