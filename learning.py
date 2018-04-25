@@ -75,8 +75,8 @@ def startLearning():
     precision = []
     classificationReport = []
 
-    classifierstring = "learning260RBFsvm22Features"
-
+    #classifierstring = "learning260RBFsvm22Features"
+    classifierstring = 'AllFeatures'
 
     #X, y = dataset.loadDataset("longdata.txt")
     '''
@@ -98,7 +98,7 @@ def startLearning():
     dataset.setDatasetFolder(2)
 
     X2, y2 = dataset.loadDataset(filename="data.txt", filterCondition=True,
-                                filterType="DcNotch", removePadding=True, shift=False, windowLength=250)
+                                filterType="DcNotch", removePadding=True, shift=True, windowLength=150)
     X2, y2 = dataset.sortDataset(X2, y2, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True, zeroClassMultiplier=1) #,6,4,2,8
 
     '''
@@ -221,7 +221,7 @@ def startLearning():
 
 
 
-    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predict(XLtest2, clf, yTest2)
+    tempAccuracyScore, tempPrecision, tempClassificationReport, tempf1Score = classifier.predictTimer(XLtest2, clf, yTest2)
     accuracyScore.append(tempAccuracyScore)
     f1Score.append(tempf1Score)
     precision.append(tempPrecision)
@@ -269,7 +269,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #preprocessing.scale might need to do this scaling, also have to tune the classifier parameters in that case
 
     print("Starting to train the classifier")
-    start = time.time()
+
     print()
 
 
@@ -295,13 +295,18 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
     #clf = neighbors.KNeighborsClassifier(n_neighbors = 5, n_jobs = -1)
-    clf.fit(XLtrain,yTrain)#skaler???
-
+    cost = []
+    for i in range(500):
+        print(i)
+        start = time.time()
+        clf.fit(XLtrain,yTrain)#skaler???
+        cost.append(time.time() - start)
     #Create classifier to be able to visualize it
     #clfPlot = clf
     #clfPlot.fit(XLtrain,yTrain)
     print("Time taken to train classifier:")
-    print(time.time() - start)
+    print(min(cost))
+
     return clf, None #clfPlot Uncomment this to be able to plot the classifier
 
 

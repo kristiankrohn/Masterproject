@@ -53,6 +53,7 @@ def predictTimer(Xtest, clf, yTest):
     predictionTime = []
     print("Starting to predict")
     for i in range(10000):
+
         start = time.time()
         predictions = clf.predict(Xtest)
         stop = time.time()

@@ -83,5 +83,5 @@ def calculateAndWriteExecutionTime(classifierstring = 'AllFeatures', shift = Fal
 
 
 if __name__ == '__main__':
-	#calculateAndWriteExecutionTime(windowLength = 100)
-    print(readExecutionTime(filename = 'executionTimeAllFeatures100.txt'))
+	#calculateAndWriteExecutionTime(windowLength = 150)
+    print(getExecutionCost(features.readFeatureMask('AllFeatures'), readExecutionTime(filename = 'executionTimeAllFeatures150.txt')))
