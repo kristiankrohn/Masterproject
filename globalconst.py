@@ -7,12 +7,12 @@ import os, shutil
 
 if os.name == 'nt':
 	slash = "\\"
-	print("Running on Windows system")
+	#print("Running on Windows system")
 elif os.name == 'posix':
 	slash = "/"
-	print("Running on Linux system")
-else:
-	print("Running on " + os.name)
+	#print("Running on Linux system")
+#else:
+	#print("Running on " + os.name)
 
 
 directioncode = ["cb", "ld", "dr", "dd", "lr", "cs", "rr", "ud", "ur", "rd"]
@@ -21,7 +21,9 @@ filterdata = 1
 timestamp = 2
 numCh = 8
 nPlots = numCh
-nSamples = 2000
+#nSamples = 2000
+nSamples = 500
+
 datasetFolders = [slash + "Dataset1" + slash, slash + "Dataset2" + slash]
 longLength = 625
 shortLength = 250 ##Sjekk denne i Adrian sitt dataset

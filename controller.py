@@ -4,6 +4,7 @@ import keyboard
 import time as tme
 from datetime import datetime
 from datetime import timedelta
+import predict
 import copy
 import os
 import sys; sys.path.append('.') # help python find ps_drone.py relative to scripts folder
@@ -38,14 +39,16 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 			blinks = 0
 		lastTime = now
 
+	
 	try:
 		with glb.predictionslock:
-			prediction = glb.predictionsQueue.get(block=True, timeout=1)
+			prediction = glb.predictionsQueue.get(block=False, timeout=1)
 			print(prediction)
 	except:
 		prediction = None
 
 	if prediction != None:	
+
 		#State transition from P0 to P1
 
 		if prediction == 0:

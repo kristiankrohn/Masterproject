@@ -63,6 +63,12 @@ intervalcounter = 0
 dataset.printDatasetFolder()
 predictionParameters = predict.loadPredictor(machinestate)
 
+error = False
+
+## for debugging dataCatcher
+start = datetime.now()
+oldStart = datetime.now()
+
 
 def setpriority(priority=2):
 	p = psutil.Process(os.getpid())
@@ -89,11 +95,10 @@ def check_sleep(amount):
 
 
 def housekeeper():
-	
+	global error
 	longsleep = False
 	pop = False
-	error = False
-	setpriority(5)
+	#setpriority(5)
 	start = datetime.now()
 	stop = datetime.now()
 	while True:
@@ -109,15 +114,14 @@ def housekeeper():
 				error = sum(abs(check_sleep(0.050)-0.050) for i in xrange(100))*10
 				print "Average error is %0.2fms" % error
 				
-				#error = True
-
+				error = True
+				break
 			if len(glb.data[0][0]) >= nSamples + 100:
 				longsleep = False
 				pop = True
 			elif len(glb.data[0][0]) >= nSamples:
 				longsleep = True
 				pop = True
-				error = False
 			else:
 				pop = False
 			if pop == True:
@@ -134,24 +138,25 @@ def housekeeper():
 						print("Uneven length of timestamp")
 					if len(glb.data[i][timestamp]) != len(glb.data[i][rawdata]):
 						print("Uneven length between timestamp and raw data")
-		if not error:
-			if longsleep:
-				if glb.fs == 250.0:
-					start = datetime.now()
-					tme.sleep(0.003)
-					stop = datetime.now()
-					#print(stop-start)
-				else:
-					tme.sleep(0.007)
+
+		if longsleep:
+			if glb.fs == 250.0:
+				start = datetime.now()
+				tme.sleep(0.003)
+				stop = datetime.now()
+				#print(stop-start)
 			else:
-				if glb.fs == 250.0:
-					if (stop - start) > timedelta(milliseconds=10):
-						pass
-					else:
-						tme.sleep(0.002)
+				tme.sleep(0.007)
+		else:
+			if glb.fs == 250.0:
+				if (stop - start) > timedelta(milliseconds=10):
+					pass
 				else:
-					tme.sleep(0.004)
+					tme.sleep(0.002)
+			else:
+				tme.sleep(0.004)
 		
+	print("Fired the housekeeper")
 def dataCatcher():
 	global board
 
@@ -166,7 +171,7 @@ def dataCatcher():
 
 				port = "COM" + str(i)
 			elif os.name == 'posix':
-				print("Connecting to Linux Serial port")
+				#print("Connecting to Linux Serial port")
 				port = "/dev/ttyS" + str(i)
 			try:
 				board = bci.OpenBCIBoard(port=port, scaled_output=True, log=True, 
@@ -177,10 +182,10 @@ def dataCatcher():
 	else:
 		for i in range(10):
 			if os.name == 'nt':
-				print("Connecting to Windows serial port")
+				#print("Connecting to Windows serial port")
 				port = "COM" + str(i)
 			elif os.name == 'posix':
-				print("Connecting to Linux serial port")
+				#print("Connecting to Linux serial port")
 				port = "/dev/ttyUSB" + str(i)
 				#port = '/dev/tty.OpenBCI-DN008VTF'
 				#port = '/dev/tty.OpenBCI-DN0096XA'
@@ -210,7 +215,14 @@ def dataCatcher():
 
 
 def printData(sample):	
-	global intervalcounter, predictioncondition, counterlock
+	global intervalcounter, predictioncondition, counterlock, error
+	##For debugging
+	global start, oldStart
+	start = datetime.now()
+	#print(start-oldStart)
+	#oldStart = start
+
+
 	xt = tme.time()
 	if glb.fs == 125.0:
 		offset = 2
@@ -234,18 +246,28 @@ def printData(sample):
 				for j in range(3):
 					del glb.data[i][j][:]
 				
-	if predictioncondition == True:
+	#if predictioncondition == True:
 		#print("predictioncondition is true")	
 		#with counterlock:
 			#print("got lock")
-		intervalcounter += 1
-		if intervalcounter >= predictioninterval:
-			#print("New predict:")
-			intervalcounter = 0
+	intervalcounter += 1
+	if intervalcounter >= predictioninterval:
+		#print("New predict:")
+		intervalcounter = 0
 
-			#predict.predictRealTime(**predictionParameters)
-			predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
-			predictionThread.start()
+		#predict.predictRealTime(**predictionParameters)
+
+		with glb.rtLock:
+			#print("Serial rt lock")
+			if not glb.rtQueue.full():            
+				glb.rtQueue.put(start)
+			else:
+				popped = glb.rtQueue.get()
+				glb.rtQueue.put(start)
+			
+			#predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
+			#predictionThread.setDaemon(True)
+			#predictionThread.start()
 	
 
 	if len(glb.newSamples[0]) >= glb.window:
@@ -258,6 +280,13 @@ def printData(sample):
 				glb.newTimeData[i][:] = []
 				glb.newSamples[i][:] = []
 
+	if error:
+		with glb.mutex:
+			while len(glb.data[0][0]) >= nSamples:
+				for i in range(numCh):
+					glb.data[i][rawdata].pop(0)
+					glb.data[i][filterdata].pop(0)
+					glb.data[i][timestamp].pop(0)
 
 def update():
 	global curves, p
@@ -382,7 +411,7 @@ def keys():
 			#save()
 		elif string == "start":
 			threadDataCatcher = threading.Thread(target=dataCatcher,args=())
-			#threadDataCatcher.setDaemon(True)
+			threadDataCatcher.setDaemon(True)
 			threadDataCatcher.start()
 
 		elif string == "graph":
@@ -632,14 +661,20 @@ def keys():
 				hht.multiplottestHHT(inputval)
 		
 		elif string == "drone":
-			predictioncondition = True		
+			predictioncondition = True
+			predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
+			predictionThread.setDaemon(True)
+			predictionThread.start()		
 			#housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			#housekeepThread.start()
 			#controller.droneController()
 			controller.originalDroneController()
 
 		elif string == "online":
-			predictioncondition = True		
+			predictioncondition = True
+			predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
+			predictionThread.setDaemon(True)
+			predictionThread.start()		
 			#housekeepThread = threading.Thread(target=controller.housekeeper, args=())
 			#housekeepThread.start()
 			online = threading.Thread(target=controller.onlineVerificationController, args=())
@@ -692,7 +727,7 @@ def keys():
 		else:
 			print("Unknown command")	
 
-		tme.sleep(0.1)
+		tme.sleep(0.5)
 
 
 def save():
@@ -707,14 +742,14 @@ def main():
 	global graphVar, exit, guiVar, predictioncondition
 
 	
-
+	setpriority(5)
 			
 
 	threadHK = threading.Thread(target=housekeeper,args=())
 	threadHK.setDaemon(True)
 	threadHK.start()
 	threadKeys = threading.Thread(target=keys,args=())
-	threadKeys.setDaemon(True)
+	#threadKeys.setDaemon(True)
 	threadKeys.start()
 	print("Setup finished, starting threads")
 
@@ -762,6 +797,7 @@ def main():
 	'''
 	while not exit:
 		tme.sleep(1)
+
 	
 
 if __name__ == '__main__':

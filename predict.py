@@ -11,6 +11,7 @@ import dataset
 from globalconst import  *
 import globalvar as glb
 import classifier
+from datetime import datetime
 yTestGUI = []
 predictionsGUI = []
 import matplotlib.pyplot as plt
@@ -19,18 +20,20 @@ import dill as pickle
 
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
-    #createPredictor("test200", 150, shift = True, datasetnum=1, zeroClassMultiplier=2)
-    createPredictor("test200", 150, shift = False, datasetnum=1, zeroClassMultiplier=2)
+    #createPredictor("test200", 200, shift = True, datasetnum=1, zeroClassMultiplier=2)
+    createPredictor("test200", 200, shift = False, datasetnum=1, zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
+
 def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2):
     ##### Parameters
-
-    if windowLength < 250 and shift == None:
-        shift = True
-        print "Shift is true"
+    if shift == None:
+        if windowLength < 250:
+            shift = True
+            print "Shift is true"
+        else:
+            shift = False
+            print "Shift is false"
     else:
-        shift = False
-        print "Shift is false"
-
+        print("Shift is: %r" %shift)
     ##### Save parameters
     parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':dataset}
     pickle.dump(parameters, open( "Parameters" + slash + name + ".pkl", "wb" ) )
@@ -79,8 +82,8 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
     XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0], scaler)
 
 
-    #clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
-    clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
+    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
+    #clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
     clf.fit(XLtrain,yTrain)
 
     classifier.saveMachinestate(clf, name)   #Uncomment this to save the machine state
@@ -222,58 +225,74 @@ def classificationReportGUI():
 #def predictRealTime(clf, scaler, featuremask, debug=False):
 def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False): ### Trenger testing og implementasjon i main
     #print(X)
-    start = time.time()
-    X = dataset.shapeArray(windowLength, checkTimestamp=False)
-    #print(len(X[0][0]))
-    if (X == -1) or ((len(X[0][0]) < windowLength) and (len(glb.data[0][filterdata]) > 1500)):
-        print("Error from shape array")
-        return
-    else:
-        #Xtest = features.extractFeatures(X, 0)
-        #L = np.arange(0, len(X[0][0])/glb.fs, 1/glb.fs)
-   
-        Xtest = features.extractFeaturesWithMask(
-                X, featuremask=featuremask, printTime=False)
-        Xtest = classifier.realTimeScale(Xtest, scaler)
-        #print Xtest[0]
-        if debug:
-            L = np.arange(0, len(Xtest[0]))
-            plt.ion()
-            plt.show()
-            plt.clf()
-            #for i in range(numCh):
-            plt.plot(L, Xtest[0])
-            plt.ylabel('uV')
-            plt.xlabel('Seconds')
-            plt.draw()
-            plt.pause(0.001)
-            #print(len(Xtest[0]))
-            print("Starting to predict")
-        
-        prediction = clf.predict(Xtest)
-        #if not(prediction == 5 or prediction == 0):
-        #print("The prediction is: %d" %prediction[0])
-            #pass
-        #print(prediction)
-        #with glb.predictionslock:
-            #glb.predictions.append(prediction[0])
+    start = datetime.now()
+    oldStart = datetime.now()
+    
+    while True:
+        tme.sleep(0.010)
+        try:
+            with glb.rtLock:
+                #print("Predict Rt lock")
+                start = glb.rtQueue.get(block=False, timeout=None)
+        except:
+            start = None
 
-        with glb.predictionslock:
-            #print("Prediction lock")
-            if not glb.predictionsQueue.full():            
-                glb.predictionsQueue.put(prediction[0])
+        if start != None:
+    
+            #start = time.time()
+            #start = datetime.now()
+            #print(start-oldStart)
+            #oldStart = start
+            X = dataset.shapeArray(windowLength, checkTimestamp=False)
+            #print(len(X[0][0]))
+            if (X == -1) or ((len(X[0][0]) < windowLength) and (len(glb.data[0][filterdata]) > 1500)):
+                print("Error from shape array")
             else:
-                popped = glb.predictionsQueue.get()
-                glb.predictionsQueue.put(prediction[0])
-                #print("Prediction buffer is full")
-        #print("Release prediction lock")
-        if debug:
-            timeStop = time.time()
-            
-            #print()
-            print("Time taken to predict with given examples:")
-            print(timeStop - start)
+                #Xtest = features.extractFeatures(X, 0)
+                #L = np.arange(0, len(X[0][0])/glb.fs, 1/glb.fs)
+           
+                Xtest = features.extractFeaturesWithMask(
+                        X, featuremask=featuremask, printTime=False)
+                Xtest = classifier.realTimeScale(Xtest, scaler)
+                #print Xtest[0]
+                if debug:
+                    L = np.arange(0, len(Xtest[0]))
+                    plt.ion()
+                    plt.show()
+                    plt.clf()
+                    #for i in range(numCh):
+                    plt.plot(L, Xtest[0])
+                    plt.ylabel('uV')
+                    plt.xlabel('Seconds')
+                    plt.draw()
+                    plt.pause(0.001)
+                    #print(len(Xtest[0]))
+                    print("Starting to predict")
+                
+                prediction = clf.predict(Xtest)
+                #if not(prediction == 5 or prediction == 0):
+                #print("The prediction is: %d" %prediction[0])
+                    #pass
+                #print(prediction)
+                #with glb.predictionslock:
+                    #glb.predictions.append(prediction[0])
 
+                with glb.predictionslock:
+                    #print("Prediction lock")
+                    if not glb.predictionsQueue.full():            
+                        glb.predictionsQueue.put(prediction[0])
+                    else:
+                        popped = glb.predictionsQueue.get()
+                        glb.predictionsQueue.put(prediction[0])
+                        #print("Prediction buffer is full")
+                #print("Release prediction lock")
+                if debug:
+                    timeStop = time.time()
+                    
+                    #print()
+                    print("Time taken to predict with given examples:")
+                    print(timeStop - start)
+    print("Exiting rtPredict")
 
 if __name__ == '__main__':
     main()

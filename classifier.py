@@ -134,8 +134,8 @@ def tuneSvmParameters(XLtrain, yTrain, XLtest, yTest, debug=True, fast=False, n_
         print()
 
     if fast:
-        clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
-        #clf = svm.SVC(kernel = 'linear', C = 10, decision_function_shape = 'ovr')
+        #clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
+        clf = svm.SVC(kernel = 'linear', C = 10, decision_function_shape = 'ovr')
         clf.fit(XLtrain, yTrain)
         bestParams.append({'kernel': 'linear', 'C': 10})
     else:

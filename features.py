@@ -356,10 +356,10 @@ def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
 	#XLtest = scaler.fit_transform(XLtest, yTest)
 
 
-	#clf = svm.SVC(kernel="linear", C = 10, decision_function_shape = 'ovr')
+	clf = svm.SVC(kernel="linear", C = 10, decision_function_shape = 'ovr')
 	#clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
 	#clf = RandomForestClassifier(n_estimators = 45, max_depth = 10,  min_samples_leaf = 1, random_state = 40)
-	clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
+	#clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
 	#clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
 
 
@@ -509,7 +509,7 @@ def compareFeatures(n_jobs=1):
 	#Load dataset
 	#print("Before load")
 	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
-                                filterType="DcNotch", removePadding=True, shift=True, windowLength=100)
+                                filterType="DcNotch", removePadding=True, shift=False, windowLength=200)
 	#print("After load")
 	#print X
 	if datasetfile == "longdata.txt":
@@ -518,7 +518,7 @@ def compareFeatures(n_jobs=1):
 		classes = [0,1,2,3,4,5,6,7,8,9]
 		#classes = [9,7,3,1,0,5]
 
-	X, y = dataset.sortDataset(X, y, length=1000, classes=classes, merge=merge) #,6,4,2,8
+	X, y = dataset.sortDataset(X, y, length=1000, classes=classes, merge=merge, zeroClassMultiplier=1.2)
 	if merge:
 		classes = [0,5,6,4,2,8]
 			#y = dataset.mergeLabels(y)
@@ -725,8 +725,7 @@ def compareFeatures(n_jobs=1):
 						to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
 						cc_addr_list = [],
 						subject      = "Training finished with combinations of %d to %d features" %(minNumFeatures, maxNumFeatures),
-						message      = "Best result is with these features: "+str(allPermutations[winner]) + "\n"
-										+ classification_report(yTest, yPred),
+						message      = "Logs are ready for download ",
 						login        = 'dronemasterprosjekt',
 						password     = 'drone123')
 
@@ -735,8 +734,8 @@ def compareFeatures(n_jobs=1):
 def main():
 	#cleanLogs()
 	#compareFeatures2(n_jobs=-1)
-	#compareFeatures(-1)
-	mask = readFeatureMask("BruteForcelowenergyaverageprecision9")
-	print(convertPermutationToFeatureString(mask))
+	compareFeatures(-1)
+	#mask = readFeatureMask("BruteForcelowenergyaverageprecision9")
+	#print(convertPermutationToFeatureString(mask))
 if __name__ == '__main__':
 	main()

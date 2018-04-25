@@ -21,6 +21,9 @@ predictionslock = Lock()
 
 predictionsQueue = Queue.Queue(maxsize=20)
 
+rtLock = Lock()
+rtQueue = Queue.Queue(maxsize=20)
+
 xt = tme.time()
 fs = 250.0
 b = None
