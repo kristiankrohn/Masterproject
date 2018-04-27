@@ -4,9 +4,12 @@ from scipy import signal
 import numpy as np
 import os, shutil
 
+import win32com.client as wincl
 
 if os.name == 'nt':
 	slash = "\\"
+	speakLib = wincl.Dispatch("SAPI.SpVoice")
+	speakLib.Speak(" ")
 	#print("Running on Windows system")
 elif os.name == 'posix':
 	slash = "/"
@@ -21,8 +24,8 @@ filterdata = 1
 timestamp = 2
 numCh = 8
 nPlots = numCh
-#nSamples = 2000
-nSamples = 500
+nSamples = 2000
+#nSamples = 500
 
 datasetFolders = [slash + "Dataset1" + slash, slash + "Dataset2" + slash]
 longLength = 625

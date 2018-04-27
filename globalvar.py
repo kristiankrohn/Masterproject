@@ -10,7 +10,7 @@ import Queue
 #rawdata = [],[],[],[],[],[],[],[]
 #data = [],[],[],[],[],[],[],[]
 #timeData = [],[],[],[],[],[],[],[]
-import getpass
+#import getpass
 
 newTimeData = [],[],[],[],[],[],[],[],[]
 newSamples = [],[],[],[],[],[],[],[],[]
@@ -20,6 +20,9 @@ predictionslock = Lock()
 #predictions = []
 
 predictionsQueue = Queue.Queue(maxsize=20)
+
+speakLock = Lock()
+speakQueue = Queue.Queue(maxsize=20)
 
 rtLock = Lock()
 rtQueue = Queue.Queue(maxsize=20)

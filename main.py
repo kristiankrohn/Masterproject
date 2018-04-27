@@ -30,7 +30,7 @@ import controller
 import features
 import tracestack
 import psutil, os
-
+import speak
 
 ####TODO############################################
 ##
@@ -240,9 +240,12 @@ def printData(sample):
 		print("Lost packet, flushing databuffer")
 		print("Old packet ID = %d" %glb.oldSampleID)
 		print("Incomming packet ID = %d" %sample.id)
+		speak.Speak("Lost packet")
 		glb.oldSampleID = sample.id
 		with glb.mutex:
 			for i in range(numCh):
+				del glb.newTimeData[i][:]
+				del glb.newSamples[i][:]
 				for j in range(3):
 					del glb.data[i][j][:]
 				
@@ -276,9 +279,9 @@ def printData(sample):
 			#print glb.b
 
 			for i in range(numCh):
-				filterlib.filter(glb.newSamples, glb.newTimeData, i, glb.b, glb.a)
-				glb.newTimeData[i][:] = []
-				glb.newSamples[i][:] = []
+				if filterlib.filter(glb.newSamples, glb.newTimeData, i, glb.b, glb.a):
+					glb.newTimeData[i][:] = []
+					glb.newSamples[i][:] = []
 
 	if error:
 		with glb.mutex:
@@ -383,7 +386,10 @@ def keys():
 			bandpassFilter = False
 		'''
 		if string == "exit":
+			speak.Speak("The cake is a lie")
+			
 			print("Initiating exit sequence")
+			tme.sleep(1.5)
 			exit = True
 			#if root != None:
 				#root.destroy()
@@ -669,7 +675,10 @@ def keys():
 			#housekeepThread.start()
 			#controller.droneController()
 			controller.originalDroneController()
-
+		elif string == "speak":
+			threadSpeak = threading.Thread(target=speak.speakSystem,args=())
+			threadSpeak.setDaemon(True)
+			threadSpeak.start()
 		elif string == "online":
 			predictioncondition = True
 			predictionThread = threading.Thread(target=predict.predictRealTime,kwargs=(predictionParameters))
@@ -751,6 +760,9 @@ def main():
 	threadKeys = threading.Thread(target=keys,args=())
 	#threadKeys.setDaemon(True)
 	threadKeys.start()
+	
+
+
 	print("Setup finished, starting threads")
 
 	if len(sys.argv) > 1:

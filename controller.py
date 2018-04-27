@@ -9,6 +9,9 @@ import copy
 import os
 import sys; sys.path.append('.') # help python find ps_drone.py relative to scripts folder
 sys.path.append('../ps_drone')
+import speak
+
+
 #key = None
 def print_pressed_keys(e):
 	global key
@@ -30,6 +33,7 @@ def print_pressed_keys(e):
 	#print key
 
 def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPrediction, prevPreviousPrediction, gotfive, gotother, gotopposite, lastTime, drone=None):
+	#global speak
 	now = datetime.now()
 
 	if (now - lastTime) > timedelta(seconds=3):
@@ -43,7 +47,7 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 	try:
 		with glb.predictionslock:
 			prediction = glb.predictionsQueue.get(block=False, timeout=1)
-			#print(prediction)
+			print(prediction)
 	except:
 		prediction = None
 
@@ -56,6 +60,7 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 				if prevPreviousPrediction != 0 and not keypress:
 					blinks += 1
 					print("Blinks: %d" %blinks)
+					speak.Speak(str(blinks) + "blinks")
 
 		#if prediction != 5 and prediction != previousPrediction: 
 		if not keypress and prediction == previousPrediction:	
@@ -69,12 +74,15 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 					if drone != None:
 						drone.moveForward(0.1)
 					print("Move forwards")
+					speak.Speak("Forwards")
 				elif prediction == 2:
 					if drone != None:
 						drone.moveBackward()
 					print("Move backwards")
+					speak.Speak("Backwards")
 				elif prediction == 4:
 					print("Turn left")
+					speak.Speak("Left")
 					#drone.turnAngle(-45,1)
 					if drone != None:
 						drone.turnLeft(1)
@@ -83,6 +91,7 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 					print("Finished turning left")
 				elif prediction == 6:
 					print("Turn right")
+					speak.Speak("Right")
 					if drone != None:
 						drone.turnRight(1)
 						tme.sleep(0.2)
@@ -95,6 +104,7 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 			if prediction == opposite[pressedKey]:
 			    if gotopposite == 0:
 			        print("Hover")
+			        speak.Speak("Hover")
 			        if drone != None:
 			        	drone.hover()
 				gotopposite += 1
@@ -102,21 +112,27 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 			elif prediction in otherkey[pressedKey]: 
 				if gotother == 0:
 				    print("Hover")
+				    speak.Speak("Hover")
 				    if drone != None:
 				    	drone.hover()
 				elif gotother == 3:
-
 					pressedKey = prediction
+					
 					if prediction == 8:
+						
 						if drone != None:
 							drone.moveForward(0.1)
 						print("Move forwards")
+						speak.Speak("Forwards")
 					elif prediction == 2:
+						
 						if drone != None:
 							drone.moveBackward()
 						print("Move backwards")
+						speak.Speak("Backwards")
 					elif prediction == 4:
 						print("Turn left")
+						speak.Speak("Left")
 						#drone.turnAngle(-45,1)
 						if drone != None:
 							drone.turnLeft(1)
@@ -125,6 +141,7 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 						print("Finished turning left")
 					elif prediction == 6:
 						print("Turn right")
+						speak.Speak("Right")
 						if drone != None:
 							drone.turnRight(1)
 							tme.sleep(0.2)
@@ -141,10 +158,13 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 					gotopposite = 0
 					gotfive = 0
 					keypress = False
+					speak.Speak("Finished")
 					print("Ready for new prediction, other/opposite exit")
+					print()
 				if pressedKey != 8:
 					if ((previousPrediction == 5) and 
 						(prevPreviousPrediction == 5)):
+						speak.Speak("Hover")
 						print("Hover")
 						if drone != None:
 							drone.hover()
@@ -152,7 +172,9 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 						gotopposite = 0
 						gotfive = 0
 						keypress = False
+						speak.Speak("Finished")
 						print("Ready for new prediction, five exit")
+						print()
 
 
 		prevPreviousPrediction = previousPrediction
@@ -280,7 +302,7 @@ def originalDroneController(video = False):
 def onlineVerificationController():
 	##### Controller variables ######
 	#translate = {0:'up', 2:'down', 4:'left', 6:'right',8:'down'}
-	
+	#speak = wincl.Dispatch("SAPI.SpVoice")
 	opposite = {2:8, 4:6, 6:4, 8:2, 0:0}
 	otherkey = {2:[4,6], 4:[2,8], 6:[2,8], 8:[4,6], 0:[2,4,6,8]}
 	pressedKey = None
@@ -294,7 +316,7 @@ def onlineVerificationController():
 	blinks = 0
 	lastTime = datetime.now()
 	takeoff = False
-
+	speak.Speak("Starting online verifiaction controller")
 	with glb.predictionslock:
 		#del glb.predictions[:]
 		glb.predictionsQueue.queue.clear()

@@ -23,14 +23,14 @@ def filter(newSamples, newTimeData, i, b, a):
 		print(detail)
 		print(i)
 		print("Error in filter, returning")
-		return
+		return False
 	#x = signal.lfilter(b, a, x)
 	for j in range(len(x)):
 
 		glb.data[i][rawdata].append(xr[j])
 		glb.data[i][filterdata].append(x[j])
 		glb.data[i][timestamp].append(xt[j])
-
+	return True
 def savefiltercoeff():
 	np.savetxt('bcoeff.out', glb.b)
 	np.savetxt('acoeff.out', glb.a)

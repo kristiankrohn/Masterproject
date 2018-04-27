@@ -21,8 +21,9 @@ import dill as pickle
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
     #createPredictor("test200", 200, shift = True, datasetnum=1, zeroClassMultiplier=2)
-    createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
-
+    #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
+    setPredictor()
+    
 def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2):
     ##### Parameters
     if shift == None:
@@ -123,7 +124,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
 
 def loadPredictor(name):
     print glb.b
-    print(code_path)
+    print(dir_path)
     params = pickle.load( open( code_path + slash + "Parameters" + slash + name + ".pkl", "rb" ) )
     print glb.b
     print params
@@ -294,6 +295,28 @@ def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False):
                     print("Time taken to predict with given examples:")
                     print(timeStop - start)
     print("Exiting rtPredict")
+
+def printPredictor():
+    dirs = os.listdir(code_path+slash+"Parameters")
+    for i in range(len(dirs)):
+        print(str(i) + ". " + dirs[i])
+    return dirs
+
+def setPredictor():
+    dirs = printPredictor()
+    print("Enter predictor index: ")
+    dir_index = raw_input()
+    dir_index = int(dir_index)
+    if dir_index > len(dirs):
+        print(dir_index)
+        print(len(dirs))
+        print("Invalid input, returning")
+        return
+    else:
+        filename = dirs[dir_index]
+        loadfile = filename.split('.')
+        params = loadPredictor(loadfile[0])
+        return params
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,6 @@
 import Tkinter as tk
 #from mttkinter import *
+#import mttkinter as tk
 import time as tme
 import numpy as np
 from numpy.random import randint
