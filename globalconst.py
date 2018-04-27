@@ -28,6 +28,7 @@ datasetFolders = [slash + "Dataset1" + slash, slash + "Dataset2" + slash]
 longLength = 625
 shortLength = 250 ##Sjekk denne i Adrian sitt dataset
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+code_path = os.path.dirname(os.path.realpath(__file__))
 machinestate = "test200"
 '''
 movements = ["\\Center_blink", "\\Center_still", 

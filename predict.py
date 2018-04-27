@@ -21,7 +21,7 @@ import dill as pickle
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
     #createPredictor("test200", 200, shift = True, datasetnum=1, zeroClassMultiplier=2)
-    createPredictor("test200", 200, shift = False, datasetnum=1, zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
+    createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
 
 def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2):
     ##### Parameters
@@ -63,7 +63,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
                                     filterType="DcNotch", removePadding=True, 
                                     shift=shift, windowLength=windowLength)
 
-        Xl, Y = dataset.sortDataset(X, Y, length=1000, classes=[0,1,2,3,4,5,6,7,8,9], 
+        Xl, Y = dataset.sortDataset(X, Y, length=130, classes=[0,1,2,3,4,5,6,7,8,9], 
                                         merge = True, zeroClassMultiplier=zeroClassMultiplier)
 
         for j in range(numCh):
@@ -122,17 +122,18 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
 
 
 def loadPredictor(name):
-	print glb.b
-	params = pickle.load( open( "Parameters" + slash + name + ".pkl", "rb" ) )
-	print glb.b
-	print params
-	#dataset.setDatasetFolder(params['dataset'])    
-	clf = classifier.loadMachineState(name)
-	featuremask = features.readFeatureMask(name)
-	scaler = classifier.loadScaler(name)
-	parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':params['windowLength'], 'shift':params['shift']}
-	#parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':100, 'shift':True}
-	return parameters
+    print glb.b
+    print(code_path)
+    params = pickle.load( open( code_path + slash + "Parameters" + slash + name + ".pkl", "rb" ) )
+    print glb.b
+    print params
+    #dataset.setDatasetFolder(params['dataset'])    
+    clf = classifier.loadMachineState(name)
+    featuremask = features.readFeatureMask(name)
+    scaler = classifier.loadScaler(name)
+    parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':params['windowLength'], 'shift':params['shift']}
+    #parameters = {'clf':clf, 'scaler':scaler, 'featuremask':featuremask, 'windowLength':100, 'shift':True}
+    return parameters
 
 
 def predictGUI(y, clf, scaler, featuremask, windowLength, shift):  ### Trenger testing og implementasjon i gui.py  

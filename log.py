@@ -9,6 +9,86 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
 
+def readPermutations(length):
+    permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+ str(length)+".txt", 'r')
+    PermutationsString = permfile.read()
+    permfile.close()
+    PermutationsList = PermutationsString.split(':')
+    PermutationsList.pop(0)
+    #print(PermutationsList[50388])
+    #print(PermutationsList[50389])
+    #print(PermutationsList[50390])
+    #print(len(PermutationsList[0]))
+    #PermutationsList = tuple(PermutationsList)
+    #Might need some more processing, now returns a list of tuples
+    #print PermutationsList[28]
+    for i in range(len(PermutationsList)):
+		#print(eval(PermutationsList[i]))
+		#print(i)
+		#PermutationsList[i] = tuple(map(int, PermutationsList[i][1:-1].split(',')))
+		var = PermutationsList[i]
+		#print var
+		var = var.replace('(', ',').replace(')', ',')
+		#print var
+		numlist = var.split(',')
+		#print numlist
+		numlist[:] = (value for value in numlist if value != '')
+		#print numlist
+		num = [int(q) for q in numlist]
+		#print(len(num))
+		if len(num) == length:
+			try:
+				featuremaskString = PermutationsList[i][1:-1]
+				PermutationsList[i] = map(int, featuremaskString.split(', '))
+				#PermutationsList[i] = tuple(eval(PermutationsList[i]))
+			except:
+				print("Unhandeled error")
+				print(PermutationsList[i])
+				print("Index = %d" %i)
+		else:
+			print(PermutationsList[i])
+			print("Index = %d" %i)
+
+	return PrecisionList
+
+def readPrecision(length):
+    permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(length)+".txt", 'r')
+    PrecisionString = permfile.read()
+    permfile.close()
+    PrecisionList = PrecisionString.split(":")
+    PrecisionList.pop(0)
+
+    for j in range(len(PrecisionList)):
+        PrecisionSubList = PrecisionList[j].split(',')
+        PrecisionSubList.pop(0)
+        PrecisionList[j] = list([float(i) for i in PrecisionSubList])
+	return PrecisionList
+
+def readRecall(length):
+    permfile = open(dir_path+slash+"Logs"+slash+"RecallLog"+ str(length)+".txt", 'r')
+    RecallString = permfile.read()
+    permfile.close()
+    RecallList = RecallString.split(":")
+    RecallList.pop(0)
+
+    for j in range(len(RecallList)):
+        RecallSubList = RecallList[j].split(',')
+        RecallSubList.pop(0)
+        RecallList[j] = list([float(i) for i in RecallSubList])
+	return RecallList
+
+def readf1(length):
+    permfile = open(dir_path+slash+"Logs"+slash+"F1Log"+ str(length)+".txt", 'r')
+    f1String= permfile.read()
+    permfile.close()
+    f1List = f1String.split(":")
+    f1List.pop(0)
+
+    for j in range(len(f1List)):
+        f1SubList = f1List[j].split(',')
+        f1SubList.pop(0)
+        f1List[j] = list([float(i) for i in f1SubList])
+	return f1List	
 
 def readLogs(length):
     import ast

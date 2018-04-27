@@ -43,7 +43,7 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 	try:
 		with glb.predictionslock:
 			prediction = glb.predictionsQueue.get(block=False, timeout=1)
-			print(prediction)
+			#print(prediction)
 	except:
 		prediction = None
 
@@ -60,8 +60,8 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 		#if prediction != 5 and prediction != previousPrediction: 
 		if not keypress and prediction == previousPrediction:	
 			#State transition from S0 to S1
-			#if prediction in [2,4,6,8] and keypress == False: 
-			if prediction in [4,6,8] and keypress == False: 
+			if prediction in [2,4,6,8] and keypress == False: 
+			#if prediction in [4,6,8] and keypress == False: 
 				keypress = True
 				pressedKey = prediction
 

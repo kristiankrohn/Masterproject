@@ -528,7 +528,8 @@ def compareFeatures(n_jobs=1):
 	#XL = extractAllFeatures(X, channel=0)
 	XL = extractFeaturesWithMask(X, featuremask=range(len(FUNC_MAP)))
 	#XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
-	XLtrain, XLtest, yTrain, yTest, XL, scaler = classifier.scaleAndSplit(XL, y[0])
+	scaler = classifier.makeScaler(XL)
+	XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0], scaler)
 	features = range(len(XL[0]))
 	print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
 
