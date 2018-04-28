@@ -2,6 +2,17 @@ from globalconst import  *
 import globalvar as glb
 import time as tme
 
+'''
+import os #Example for linux
+from time import sleep
+ 
+text = "text to speak"
+ 
+cmd = 'espeak "{0}" 2>/dev/null'.format(text)
+os.system(cmd)
+sleep(1)
+os.system(cmd)
+'''
 
 def Speak(sentence):
 	with glb.speakLock:
