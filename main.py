@@ -29,7 +29,7 @@ import webbrowser
 import controller
 import features
 import tracestack
-import psutil, os
+#import psutil, os
 import speak
 
 ####TODO############################################
@@ -751,7 +751,7 @@ def main():
 	global graphVar, exit, guiVar, predictioncondition
 
 	
-	setpriority(5)
+	#setpriority(5)
 			
 
 	threadHK = threading.Thread(target=housekeeper,args=())

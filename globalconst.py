@@ -4,10 +4,11 @@ from scipy import signal
 import numpy as np
 import os, shutil
 
-import win32com.client as wincl
+
 
 if os.name == 'nt':
 	slash = "\\"
+	import win32com.client as wincl
 	speakLib = wincl.Dispatch("SAPI.SpVoice")
 	speakLib.Speak(" ")
 	#print("Running on Windows system")

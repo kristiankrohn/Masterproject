@@ -65,8 +65,8 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 		#if prediction != 5 and prediction != previousPrediction: 
 		if not keypress and prediction == previousPrediction:	
 			#State transition from S0 to S1
-			if prediction in [2,4,6,8] and keypress == False: 
-			#if prediction in [4,6,8] and keypress == False: 
+			#if prediction in [2,4,6,8] and keypress == False: 
+			if prediction in [4,6,8] and keypress == False: 
 				keypress = True
 				pressedKey = prediction
 
@@ -115,22 +115,26 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 				    speak.Speak("Hover")
 				    if drone != None:
 				    	drone.hover()
+				
 				elif gotother == 3:
-					pressedKey = prediction
+					
 					
 					if prediction == 8:
-						
+						pressedKey = prediction	
 						if drone != None:
 							drone.moveForward(0.1)
 						print("Move forwards")
 						speak.Speak("Forwards")
-					elif prediction == 2:
-						
-						if drone != None:
-							drone.moveBackward()
-						print("Move backwards")
-						speak.Speak("Backwards")
+					
+					#elif prediction == 2:
+						#pressedKey = prediction
+						#if drone != None:
+							#drone.moveBackward()
+						#print("Move backwards")
+						#speak.Speak("Backwards")
+					
 					elif prediction == 4:
+						pressedKey = prediction
 						print("Turn left")
 						speak.Speak("Left")
 						#drone.turnAngle(-45,1)
@@ -139,7 +143,9 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress, previousPredi
 							tme.sleep(0.2)
 							drone.hover()
 						print("Finished turning left")
+					
 					elif prediction == 6:
+						pressedKey = prediction
 						print("Turn right")
 						speak.Speak("Right")
 						if drone != None:
@@ -224,7 +230,7 @@ def originalDroneController(video = False):
 	#gotfive = 0
 	blinks = 0
 	lastTime = datetime.now()
-	brainz = False
+	brainz = True
 
 
 	print("Setup finished")

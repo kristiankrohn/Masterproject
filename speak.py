@@ -1,18 +1,13 @@
 from globalconst import  *
 import globalvar as glb
 import time as tme
-
-'''
 import os #Example for linux
-from time import sleep
+
  
-text = "text to speak"
- 
-cmd = 'espeak "{0}" 2>/dev/null'.format(text)
-os.system(cmd)
-sleep(1)
-os.system(cmd)
-'''
+#from gtts import gTTS
+
+#tts = gTTS(text='Good morning', lang='en')
+
 
 def Speak(sentence):
 	with glb.speakLock:
@@ -24,7 +19,10 @@ def Speak(sentence):
 			glb.speakQueue.put(sentence)
 
 def speakSystem():
-	speakLib.Speak("Text to speech engine started")
+	if os.name == 'nt':	
+		speakLib.Speak("Text to speech engine started")
+	elif os.name == 'posix':
+		os.system('espeak "{0}" 2>/dev/null'.format("Text to speech engine started"))	
 	while True:
 		try:
 			with glb.speakLock:
@@ -32,7 +30,12 @@ def speakSystem():
 		except:
 			sentence = None
 
-		if sentence != None:	
-			speakLib.Speak(sentence)
-		else:
+		if sentence != None:
+			if os.name == 'nt':	
+				speakLib.Speak(sentence)
+			elif os.name == 'posix':
+				
+				os.system('espeak "{0}" 2>/dev/null'.format(sentence))
+				#os.system('espeak -ven-en+f1 -s170'.format(sentence))
+		else:	
 			tme.sleep(0.1)
