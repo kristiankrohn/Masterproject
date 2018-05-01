@@ -70,8 +70,8 @@ def stateMachine(blinks, opposite, otherkey, pressedKey, keypress,
 		#State transition from S0 to S1
 		if not keypress and prediction == previousPrediction:	
 			
-			if prediction in [2,4,6,8]: 
-			#if prediction in [4,6,8]: #without backwards
+			#if prediction in [2,4,6,8]: 
+			if prediction in [4,6,8]: #without backwards
 				keypress = True
 				pressedKey = prediction
 

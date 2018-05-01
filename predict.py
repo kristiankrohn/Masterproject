@@ -21,7 +21,8 @@ import dill as pickle
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
     #createPredictor("test200", 200, shift = False, datasetnum=1, zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
-    createPredictor("multitest200", 250, shift = False, datasetnum=[1,2], zeroClassMultiplier=2) 
+    #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.5) ## Works good
+    createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.5)
     #setPredictor()
     #createPredictor("printstats", 250, shift = False, datasetnum=2, zeroClassMultiplier=1.2)
 
