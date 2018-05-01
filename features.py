@@ -324,7 +324,7 @@ def convertPermutationToFeatureString(p):
 		print(type(p))
 		return str(p)
 
-def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
+def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None, plot=True):
 	#datasetfile = "longdata.txt"
 	datasetfile = "data.txt"
 	merge = True
@@ -377,15 +377,16 @@ def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
 	print(rfecv.ranking_)
 	print("The scores for each feature combination:")
 	print(rfecv.grid_scores_)
-	# Plot number of features VS. cross-validation scores
-	plt.figure()
-	plt.xlabel("Number of features selected")
-	plt.ylabel("Cross validation score (nb of correct classifications)")
-	plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-	plt.show()
+	if plot:
+		# Plot number of features VS. cross-validation scores
+		plt.figure()
+		plt.xlabel("Number of features selected")
+		plt.ylabel("Cross validation score (nb of correct classifications)")
+		plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+		plt.show()
 
 	print("After feature selection: ")
-	scores = cross_val_score(rfecv.estimator_, XLtrain, yTrain, cv=50, scoring = 'accuracy')
+	scores = cross_val_score(rfecv.estimator_, XLtrain, yTrain, cv=10, scoring = 'accuracy')
 	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 	print()
 	print("Scores")
@@ -508,6 +509,7 @@ def compareFeatures(n_jobs=1):
 			logging = False
 	#Load dataset
 	#print("Before load")
+	
 	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=200)
 	#print("After load")

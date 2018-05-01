@@ -20,10 +20,11 @@ import dill as pickle
 
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
-    #createPredictor("test200", 200, shift = True, datasetnum=1, zeroClassMultiplier=2)
-    #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
-    setPredictor()
-    
+    #createPredictor("test200", 200, shift = False, datasetnum=1, zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
+    createPredictor("multitest200", 250, shift = False, datasetnum=[1,2], zeroClassMultiplier=2) 
+    #setPredictor()
+    #createPredictor("printstats", 250, shift = False, datasetnum=2, zeroClassMultiplier=1.2)
+
 def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2):
     ##### Parameters
     if shift == None:
@@ -36,8 +37,9 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
     else:
         print("Shift is: %r" %shift)
     ##### Save parameters
-    parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':dataset}
+    parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':datasetnum}
     pickle.dump(parameters, open( "Parameters" + slash + name + ".pkl", "wb" ) )
+
     ##### Declarations
     bestParams = []
     accuracyScore = []
@@ -46,7 +48,14 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
     classificationReport = []
     XL = [[],[],[],[],[],[],[],[]]
     y = [[],[],[],[],[],[],[],[]]
+    XLlist = []
+    ylist = []
+    XLtrain = None
+    XLtest = None
+    yTrain = None
+    yTest = None
     
+
     ##### Code
 
     if isinstance(datasetnum, int):
@@ -66,31 +75,50 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
 
         Xl, Y = dataset.sortDataset(X, Y, length=130, classes=[0,1,2,3,4,5,6,7,8,9], 
                                         merge = True, zeroClassMultiplier=zeroClassMultiplier)
+        
+        XLlist.append(Xl)
+        ylist.append(Y)
+        XL, y = dataset.mergeDatasets(XL, Xl, y, Y)
+    #XL, y = dataset.mergeDatasets(XLlist, XLtest, yTrain, yTest) 
 
-        for j in range(numCh):
-            for k in range(len(Xl[j])):
-                XL[j].append(Xl[j][k])
-                y[j].append(Y[j][k])
-        print(len(XL[0]))
     if bruteForcemask == None:
-        features.compareFeatures2(name, shift, windowLength, X=XL, y=y)
+        features.compareFeatures2(name, shift, windowLength, X=XL, y=y, plot=False)
         featuremask = features.readFeatureMask(name)
     else:
-        featuremask = features.readFeatureMask(bruteForcemask)
+        featuremask = features.readFeatureMask(bruteForcemask)   
+    
+    for i in range(len(XLlist)):
+        XLlist[i] = features.extractFeaturesWithMask(
+                XLlist[i], featuremask=featuremask, printTime=False)
+    print("XL list featureextraction finished")
+    
     XL = features.extractFeaturesWithMask(
-            XL, featuremask=featuremask, printTime=False)
+                XL, featuremask=featuremask, printTime=False)
+    print("XL featureextraction finished")
+    
     scaler = classifier.makeScaler(XL)
-    XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0], scaler)
 
-
+    for i in range(len(XLlist)):
+        XLtrain1, XLtest1, yTrain1, yTest1, XLlist[i] = classifier.scaleAndSplit(XLlist[i], ylist[i][0], scaler)
+        if i == 0:
+            XLtrain = XLtrain1
+            yTrain = yTrain1
+            XLtest = XLtest1
+            yTest = yTest1
+        else:
+            XLtrain, yTrain = dataset.mergeDatasets(XLtrain, XLtrain1, yTrain, yTrain1)
+            XLtest, yTest = dataset.mergeDatasets(XLtest, XLtest1, yTest, yTest1)
+    print("Split fininshed, starting training")
+    
     clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
     #clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
+    
     clf.fit(XLtrain,yTrain)
 
-    classifier.saveMachinestate(clf, name)   #Uncomment this to save the machine state
+    classifier.saveMachinestate(clf, name)   
     classifier.saveScaler(scaler, name)
 
-    scores = cross_val_score(clf, XLtrain, yTrain, cv=50, scoring = 'recall_macro')
+    scores = cross_val_score(clf, XLtrain, yTrain, cv=10, scoring = 'recall_macro')
     print("Recall: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
     print()
     print("Scores")

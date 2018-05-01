@@ -38,4 +38,4 @@ def speakSystem():
 				os.system('espeak "{0}" 2>/dev/null'.format(sentence))
 				#os.system('espeak -ven-en+f1 -s170'.format(sentence))
 		else:	
-			tme.sleep(0.1)
+			tme.sleep(0.05)

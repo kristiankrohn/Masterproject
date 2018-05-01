@@ -22,7 +22,7 @@ predictionslock = Lock()
 predictionsQueue = Queue.Queue(maxsize=20)
 
 speakLock = Lock()
-speakQueue = Queue.Queue(maxsize=20)
+speakQueue = Queue.Queue(maxsize=3)
 
 rtLock = Lock()
 rtQueue = Queue.Queue(maxsize=20)

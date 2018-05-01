@@ -228,10 +228,14 @@ def makeScaler(XL):
     scaler.fit(np.array(XL))
     return scaler
 
-def split(XL, y):
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled,
+def split(XL, labels):
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XL,
         labels, test_size = 0.2, random_state = 42, stratify = labels)
     return XLtrain, XLtest, yTrain, yTest
+
+def scale(XL, scaler):
+    XLscaled = scaler.transform(np.array(XL))
+    return XLscaled
 
 def scaleAndSplit(XL, labels, scaler):
     XLscaled = scaler.transform(np.array(XL))

@@ -281,7 +281,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     C = 10
     #C = 50
-    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
+    #clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
     #clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
     #clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
     #clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
@@ -294,7 +294,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #clf = RandomForestClassifier(n_estimators = 54, max_depth = 30,  min_samples_leaf = 1, random_state = 40)
     #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
-    #clf = neighbors.KNeighborsClassifier(n_neighbors = 5, n_jobs = -1)
+    clf = neighbors.KNeighborsClassifier(n_neighbors = 5, n_jobs = -1)
     cost = []
     for i in range(500):
         print(i)

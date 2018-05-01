@@ -386,10 +386,7 @@ def keys():
 			bandpassFilter = False
 		'''
 		if string == "exit":
-			speak.Speak("The cake is a lie")
-			
 			print("Initiating exit sequence")
-			tme.sleep(1.5)
 			exit = True
 			#if root != None:
 				#root.destroy()
@@ -460,7 +457,7 @@ def keys():
 			#dataset.exportPlots("data")
 		elif string == "exporttempplots":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("temp", "time")) 
+												args=("temp", "time","fast")) 
 			exportThread.start()
 			#dataset.exportPlots("temp")
 		elif string == "exportallplots":
@@ -631,7 +628,7 @@ def keys():
 			#x,y = dataset.sortDataset(x, y, classes=[0,5,2,4,6,8])
 			print(x[0][0])
 		elif string == "stats":
-			dataset.datasetStats("longdata.txt")	
+			dataset.datasetStats("data.txt")	
 
 		elif string == "testsave":
 			dataset.saveLongTemp(0)
