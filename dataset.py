@@ -350,12 +350,13 @@ def exportPlots(command, plottype="time", speed="slow"):
 
 								if l == 0:
 									peakIndex = findPeakIndex(featureData1)
-								
+									#featureData1[frontPadding + peakIndex]=200
 								if len(featureData1) > 1600:
 									featureData1 = featureData1[frontPadding:-backPadding] #Remove paddings
 									print("Statically remove padding")
 								else: #Short set
 									featureData1 = rmPadding(featureData1, peakIndex)
+									#pass
 									#print("Dynamicaly remove padding with centering")
 							if plottype == "fft":
 								plot.exportFftPlot(featureData1, channels[l], ax1)
@@ -1132,13 +1133,13 @@ def rmPadding(data, peakIndex, windowLength=250):
 	return data
 
 def mergeDatasets(x1, x2, y1, y2): #Merge set 2 into set 1
-	print("Len x2")
-	print(len(x2))
-	print("len x2[0]")
-	print(len(x2[0]))
+	#print("Len x2")
+	#print(len(x2))
+	#print("len x2[0]")
+	#print(len(x2[0]))
 	
-	print("Len y2")
-	print(len(y2))
+	#print("Len y2")
+	#print(len(y2))
 	
 	if isinstance(y2[0], int):
 		y1 = np.append(y1, y2, axis = 0)
@@ -1153,8 +1154,8 @@ def mergeDatasets(x1, x2, y1, y2): #Merge set 2 into set 1
 			y1.append(y2[j])
 		'''
 	else:
-		print("len y2[0]")
-		print(len(y2[0]))	
+		#print("len y2[0]")
+		#print(len(y2[0]))	
 		for j in range(len(x2)):
 			for k in range(len(x2[j])):
 				x1[j].append(x2[j][k])

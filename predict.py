@@ -20,13 +20,14 @@ import dill as pickle
 
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
-    #createPredictor("test200", 200, shift = False, datasetnum=1, zeroClassMultiplier=1.2) ##With RBF kernel, best classifier so far
-    #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.5) ## Works good
-    createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.5)
+    createPredictor("test200BF", 200, shift = False, datasetnum = 1, zeroClassMultiplier = 1.2, datasetLength = 130, bruteForcemask = "BruteForcemaxminrecalllow9")
+    #createPredictor("test200", 200, shift = False, datasetnum = 1, zeroClassMultiplier = 1.2, datasetLength = 130) ##With RBF kernel, best classifier so far
+    #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.5, datasetLength=60) ## Works good
+    #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=2)
     #setPredictor()
     #createPredictor("printstats", 250, shift = False, datasetnum=2, zeroClassMultiplier=1.2)
 
-def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2):
+def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2, datasetLength=130):
     ##### Parameters
     if shift == None:
         if windowLength < 250:
@@ -38,7 +39,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
     else:
         print("Shift is: %r" %shift)
     ##### Save parameters
-    parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':datasetnum}
+    parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':datasetnum, 'datasetLength': datasetLength}
     pickle.dump(parameters, open( "Parameters" + slash + name + ".pkl", "wb" ) )
 
     ##### Declarations
@@ -74,7 +75,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
                                     filterType="DcNotch", removePadding=True, 
                                     shift=shift, windowLength=windowLength)
 
-        Xl, Y = dataset.sortDataset(X, Y, length=130, classes=[0,1,2,3,4,5,6,7,8,9], 
+        Xl, Y = dataset.sortDataset(X, Y, length=datasetLength, classes=[0,1,2,3,4,5,6,7,8,9], 
                                         merge = True, zeroClassMultiplier=zeroClassMultiplier)
         
         XLlist.append(Xl)
@@ -87,7 +88,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
         featuremask = features.readFeatureMask(name)
     else:
         featuremask = features.readFeatureMask(bruteForcemask)   
-    
+        features.writeFeatureMask(featuremask, name)
     for i in range(len(XLlist)):
         XLlist[i] = features.extractFeaturesWithMask(
                 XLlist[i], featuremask=featuremask, printTime=False)

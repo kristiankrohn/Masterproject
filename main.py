@@ -596,6 +596,9 @@ def keys():
 				#dataset.viewtempelement(inputval)
 			#else:
 				#print("Invalid input")
+		elif string == "loadpredictor":
+			predictionParameters = predict.setPredictor()
+
 		elif string == "setdatasetfolder":
 			if inputval != None:
 				dataset.setDatasetFolder(inputval)
@@ -612,7 +615,7 @@ def keys():
 			#dataset.exportPlots("temp", "fft")
 		elif string == "exportraw":
 			exportThread = threading.Thread(target=dataset.exportPlots, 
-												args=("temp", "raw","fast")) 
+												args=("data", "raw")) 
 			exportThread.start()
 			#dataset.exportPlots("temp", "raw")
 		elif string == "fftplot":
