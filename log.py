@@ -292,7 +292,7 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 
 		maximum = max(allList)
 		threshold = maximum - 0.01
-		executionTimeList = executiontime.readExecutionTime(filename = 'executionTimeAllFeatures100.txt')
+		executionTimeList = executiontime.readExecutionTime(filename = 'executionTimeAllFeatures200.txt')
 		costs = []
 		candidates = []
 

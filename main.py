@@ -29,8 +29,8 @@ import webbrowser
 import controller
 import features
 import tracestack
-#import psutil, os
 import speak
+import executiontime
 
 ####TODO############################################
 ##
@@ -62,6 +62,9 @@ counterlock = Lock()
 intervalcounter = 0
 dataset.printDatasetFolder()
 predictionParameters = predict.loadPredictor(machinestate)
+print(predictionParameters)
+executionTimeList = executiontime.readExecutionTime(filename = 'executionTimeAllFeatures200.txt')
+print("Executiontime for featuremask: %.6f" %executiontime.getExecutionCost(predictionParameters['featuremask'], executionTimeList))
 
 error = False
 
@@ -71,6 +74,7 @@ oldStart = datetime.now()
 
 
 def setpriority(priority=2):
+	import psutil
 	p = psutil.Process(os.getpid())
 	print("Original priority:")
 	print(p.nice())

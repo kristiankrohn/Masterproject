@@ -24,11 +24,11 @@ def onlineConfusion():
     predictions = []
     numberOfMovements = []
     actualMovements = [
-                    [37,1,0,0,0], #Blink
-                    [2,60,7,2,1], #Centern
-                    [0,0,14,0,0], #Left
-                    [0,0,1,15,0], #Right
-                    [0,0,0,0,18], #Up
+                    [19,0,0,0,18], #Blink
+                    [2,104,0,0,3], #Center
+                    [0,0,23,0,0], #Left
+                    [0,0,1,22,1], #Right
+                    [0,1,0,0,21], #Up
                     ]
 
     #Create actual prediction list

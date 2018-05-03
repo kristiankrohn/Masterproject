@@ -20,14 +20,15 @@ import dill as pickle
 
 def main():
     #createPredictor("Bfmmrl9", 100, datasetnum=1, zeroClassMultiplier=2, bruteForcemask = "BruteForcemaxminrecalllow9")
-    createPredictor("test200BF", 200, shift = False, datasetnum = 1, zeroClassMultiplier = 1.2, datasetLength = 130, bruteForcemask = "BruteForcemaxminrecalllow9")
-    #createPredictor("test200", 200, shift = False, datasetnum = 1, zeroClassMultiplier = 1.2, datasetLength = 130) ##With RBF kernel, best classifier so far
+    #createPredictor("test200BF", 200, shift = False, datasetnum = 1, zeroClassMultiplier = 1.2, datasetLength = 130, bruteForcemask = "BruteForcemaxminrecalllow9")
+    createPredictor("test200", 200, shift = False, datasetnum = 1, zeroClassMultiplier = 1.2, datasetLength = 130) ##With RBF kernel, best classifier so far
+    createPredictor("test200linear", 200, shift = False, datasetnum = 1, zeroClassMultiplier = 1.2, datasetLength = 130, kernel='linearSVC')
     #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=1.5, datasetLength=60) ## Works good
     #createPredictor("multitest200", 200, shift = False, datasetnum=[1,2], zeroClassMultiplier=2)
     #setPredictor()
     #createPredictor("printstats", 250, shift = False, datasetnum=2, zeroClassMultiplier=1.2)
 
-def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2, datasetLength=130):
+def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForcemask = None, zeroClassMultiplier = 2, datasetLength=130, kernel='rbf'):
     ##### Parameters
     if shift == None:
         if windowLength < 250:
@@ -39,7 +40,7 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
     else:
         print("Shift is: %r" %shift)
     ##### Save parameters
-    parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':datasetnum, 'datasetLength': datasetLength}
+    parameters = {'windowLength': windowLength, 'shift': shift, 'dataset':datasetnum, 'datasetLength': datasetLength, 'kernel': kernel}
     pickle.dump(parameters, open( "Parameters" + slash + name + ".pkl", "wb" ) )
 
     ##### Declarations
@@ -112,8 +113,12 @@ def createPredictor(name, windowLength, datasetnum = 1, shift = None, bruteForce
             XLtest, yTest = dataset.mergeDatasets(XLtest, XLtest1, yTest, yTest1)
     print("Split fininshed, starting training")
     
-    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
-    #clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
+    if kernel == 'rbf':
+        clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
+    elif kernel == 'linear':
+        clf = svm.SVC(kernel = 'linear', gamma = 0.01, C = 10, decision_function_shape = 'ovr')
+    elif kernel == 'linearSVC':
+        clf = svm.LinearSVC(penalty = 'l2', dual = False, C = 10, random_state = 42)
     
     clf.fit(XLtrain,yTrain)
 
@@ -254,12 +259,13 @@ def classificationReportGUI():
 
 
 
-#def predictRealTime(clf, scaler, featuremask, debug=False):
 def predictRealTime(clf, scaler, featuremask, windowLength, shift, debug=False): ### Trenger testing og implementasjon i main
     #print(X)
     start = datetime.now()
     oldStart = datetime.now()
-    
+    print(clf)
+    print(featuremask)
+    print(windowLength)
     while True:
         tme.sleep(0.010)
         try:
