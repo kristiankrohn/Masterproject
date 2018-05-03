@@ -37,7 +37,6 @@ def onlineConfusion():
         counter = 0
         for j in range(len(actualMovements[i])):
             counter += actualMovements[i][j]
-            print("j %d" %j)
             if actualMovements[i][j] == 0:
                 pass
             else:
