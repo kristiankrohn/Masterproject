@@ -18,75 +18,165 @@ from globalconst import  *
 import globalvar
 import itertools
 
+import math
+
+
+def ci(positive, n, z):
+    # z = 1.96
+    phat = positive / n
+
+    return (phat + z * z / (2 * n) - z * math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n)) / (1 + z * z / n), \
+           (phat + z * z / (2 * n) + z * math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n)) / (1 + z * z / n)
+
+'''
+sample_size = [50, 100, 200, 400, 8000]
+z_rate_confidence = {'95%': 1.96, '90%': 1.92, '75%': 1.02}
+success_rate = [0.6, 0.7, 0.8]
+for confidence, z in z_rate_confidence.iteritems():
+    print 'confidence: '+confidence + '\n'
+    for n in sample_size:
+        print 'sample size: ',n
+        for s in success_rate:
+            print ci(s * n, n, z)
+'''
 
 def onlineConfusion():
     yTest = []
     predictions = []
     numberOfMovements = []
-    actualMovements = [
-                    [19,0,0,0,18], #Blink
-                    [2,104,0,0,3], #Center
-                    [0,0,23,0,0], #Left
-                    [0,0,1,22,1], #Right
-                    [0,1,0,0,21], #Up
-                    ]
+    classes=5
 
-    #Create actual prediction list
+    if classes == 5:
+        actualMovements = [
+                        [19,0,0,0,18], #Blink
+                        [0,104,0,0,3], #Center
+                        [0,0,23,0,0], #Left
+                        [0,0,1,22,1], #Right
+                        [0,1,0,0,21], #Up
+                        ]
+            #Create actual prediction lists
 
-    for i in range(len(actualMovements)):
-        counter = 0
-        for j in range(len(actualMovements[i])):
-            counter += actualMovements[i][j]
-            if actualMovements[i][j] == 0:
-                pass
-            else:
-                if j == 0:
-                    for z in range(actualMovements[i][j]):
-                        predictions.append(0)
-                elif j == 1:
-                    for z in range(actualMovements[i][j]):
-                        predictions.append(5)
-                elif j == 2:
-                    for z in range(actualMovements[i][j]):
-                        predictions.append(4)
-                elif j == 3:
-                    for z in range(actualMovements[i][j]):
-                        predictions.append(6)
+        for i in range(len(actualMovements)):
+            counter = 0
+            for j in range(len(actualMovements[i])):
+                counter += actualMovements[i][j]
+                if actualMovements[i][j] == 0:
+                    pass
                 else:
-                    for z in range(actualMovements[i][j]):
-                        predictions.append(8)
-        numberOfMovements.append(counter)
-    #Create the solution
-    for i in range(len(numberOfMovements)):
-        if i == 0:
-            for j in range(numberOfMovements[i]):
-                yTest.append(0)
-        elif i == 1:
-            for j in range(numberOfMovements[i]):
-                yTest.append(5)
-        elif i == 2:
-            for j in range(numberOfMovements[i]):
-                yTest.append(4)
-        elif i == 3:
-            for j in range(numberOfMovements[i]):
-                yTest.append(6)
-        else:
-            for j in range(numberOfMovements[i]):
-                yTest.append(8)
+                    if j == 0:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(0)
+                    elif j == 1:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(5)
+                    elif j == 2:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(4)
+                    elif j == 3:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(6)
+                    else:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(8)
+            numberOfMovements.append(counter)
+        #Create the solution
+        for i in range(len(numberOfMovements)):
+            if i == 0:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(0)
+            elif i == 1:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(5)
+            elif i == 2:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(4)
+            elif i == 3:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(6)
+            else:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(8)
+    elif classes == 6:
+        actualMovements = [
+                        [7,3,3,0,0,0], #Blink
+                        [1,25,3,0,0,1], #Center
+                        [1,0,4,0,0,0], #Down
+                        [0,0,0,5,1,0], #Left
+                        [0,0,0,0,5,0], #Right
+                        [0,1,0,0,0,6], #Up
+                        ]
+        #Create actual prediction lists
 
+        for i in range(len(actualMovements)):
+            counter = 0
+            for j in range(len(actualMovements[i])):
+                counter += actualMovements[i][j]
+                if actualMovements[i][j] == 0:
+                    pass
+                else:
+                    if j == 0:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(0)
+                    elif j == 1:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(5)
+                    elif j == 2:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(2)
+                    elif j == 3:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(4)
+                    elif j == 4:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(6)
+                    else:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(8)
+            numberOfMovements.append(counter)
+        #Create the solution
+        for i in range(len(numberOfMovements)):
+            if i == 0:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(0)
+            elif i == 1:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(5)
+            elif i == 2:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(2)
+            elif i == 3:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(4)
+            elif i == 4:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(6)
+            else:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(8)
+    z=1.96
+    n=sum(numberOfMovements)
+    print("\nNumber of movements: %d\n" %n)
+    s = accuracy_score(yTest, predictions)
+    print("Number of correct predictions: %.f \n" %(s*n))
+    m, p = ci(s * n, n, z)
+    print("Accuracy Score: %.3f pm (%.3f, %.3f)\n" %(s, p, m))
+    prec = precision_score(yTest, predictions, average = 'macro')
+    print("Precision Score: %.3f \n" %prec)
+    rec = recall_score(yTest, predictions, average = 'macro')
+    print("Recall Score: %.3f \n" %rec)
 
-    print("Accuracy Score: \n")
-    print(accuracy_score(yTest, predictions))
-    print("Precision Score: \n")
-    print(precision_score(yTest, predictions, average = 'macro'))
-    print("Recall Score: \n")
-    print(recall_score(yTest, predictions, average = 'macro'))
     print("\n")
     print(classification_report(yTest, predictions))
-    print("number of max true positives: ")
+    print("number of test samples: ")
     print(numberOfMovements)
-    confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,4,6,8])
-    plotConfusionMatrix(confusionMatrix, ["blink","straight", "left", "right", "up"], normalize = True)
+    
+    
+    if classes == 5:
+        confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,4,6,8])
+        plotConfusionMatrix(confusionMatrix, ["blink","straight", "left", "right", "up"], normalize = True)
+    elif classes == 6:
+        confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,2,4,6,8])
+        plotConfusionMatrix(confusionMatrix, ["blink","straight", "down", "left", "right", "up"], normalize = True)
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
