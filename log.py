@@ -9,20 +9,32 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
 
+def main():
+
+	#cleanLogs()
+	#compareFeatures2(n_jobs=-1)
+	#compareFeatures(-1)
+	#readLogs(12)
+	#fixLogs(9)
+	#evaluateLogs(9, evaluationParam="min", metric="precision", energy="high")
+	evaluateLogs(9, evaluationParam="maxmin", metric="recall", energy="low")
+	#evaluateLogs(9, evaluationParam="plot", metric="precision", energy="high")
+	
+
 def readPermutations(length):
-    permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+ str(length)+".txt", 'r')
-    PermutationsString = permfile.read()
-    permfile.close()
-    PermutationsList = PermutationsString.split(':')
-    PermutationsList.pop(0)
-    #print(PermutationsList[50388])
-    #print(PermutationsList[50389])
-    #print(PermutationsList[50390])
-    #print(len(PermutationsList[0]))
-    #PermutationsList = tuple(PermutationsList)
-    #Might need some more processing, now returns a list of tuples
-    #print PermutationsList[28]
-    for i in range(len(PermutationsList)):
+	permfile = open(dir_path+slash+"Logs"+slash+"PermutationLog"+ str(length)+".txt", 'r')
+	PermutationsString = permfile.read()
+	permfile.close()
+	PermutationsList = PermutationsString.split(':')
+	PermutationsList.pop(0)
+	#print(PermutationsList[50388])
+	#print(PermutationsList[50389])
+	#print(PermutationsList[50390])
+	#print(len(PermutationsList[0]))
+	#PermutationsList = tuple(PermutationsList)
+	#Might need some more processing, now returns a list of tuples
+	#print PermutationsList[28]
+	for i in range(len(PermutationsList)):
 		#print(eval(PermutationsList[i]))
 		#print(i)
 		#PermutationsList[i] = tuple(map(int, PermutationsList[i][1:-1].split(',')))
@@ -48,46 +60,47 @@ def readPermutations(length):
 		else:
 			print(PermutationsList[i])
 			print("Index = %d" %i)
-
+	
 	return PrecisionList
 
-def readPrecision(length):
-    permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(length)+".txt", 'r')
-    PrecisionString = permfile.read()
-    permfile.close()
-    PrecisionList = PrecisionString.split(":")
-    PrecisionList.pop(0)
 
-    for j in range(len(PrecisionList)):
-        PrecisionSubList = PrecisionList[j].split(',')
-        PrecisionSubList.pop(0)
-        PrecisionList[j] = list([float(i) for i in PrecisionSubList])
+def readPrecision(length):
+	permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(length)+".txt", 'r')
+	PrecisionString = permfile.read()
+	permfile.close()
+	PrecisionList = PrecisionString.split(":")
+	PrecisionList.pop(0)
+
+	for j in range(len(PrecisionList)):
+		PrecisionSubList = PrecisionList[j].split(',')
+		PrecisionSubList.pop(0)
+		PrecisionList[j] = list([float(i) for i in PrecisionSubList])	
 	return PrecisionList
 
 def readRecall(length):
-    permfile = open(dir_path+slash+"Logs"+slash+"RecallLog"+ str(length)+".txt", 'r')
-    RecallString = permfile.read()
-    permfile.close()
-    RecallList = RecallString.split(":")
-    RecallList.pop(0)
+	permfile = open(dir_path+slash+"Logs"+slash+"RecallLog"+ str(length)+".txt", 'r')
+	RecallString = permfile.read()
+	permfile.close()
+	RecallList = RecallString.split(":")
+	RecallList.pop(0)
 
-    for j in range(len(RecallList)):
-        RecallSubList = RecallList[j].split(',')
-        RecallSubList.pop(0)
-        RecallList[j] = list([float(i) for i in RecallSubList])
+	for j in range(len(RecallList)):
+		RecallSubList = RecallList[j].split(',')
+		RecallSubList.pop(0)
+		RecallList[j] = list([float(i) for i in RecallSubList])
 	return RecallList
 
 def readf1(length):
-    permfile = open(dir_path+slash+"Logs"+slash+"F1Log"+ str(length)+".txt", 'r')
-    f1String= permfile.read()
-    permfile.close()
-    f1List = f1String.split(":")
-    f1List.pop(0)
+	permfile = open(dir_path+slash+"Logs"+slash+"F1Log"+ str(length)+".txt", 'r')
+	f1String= permfile.read()
+	permfile.close()
+	f1List = f1String.split(":")
+	f1List.pop(0)
 
-    for j in range(len(f1List)):
-        f1SubList = f1List[j].split(',')
-        f1SubList.pop(0)
-        f1List[j] = list([float(i) for i in f1SubList])
+	for j in range(len(f1List)):
+		f1SubList = f1List[j].split(',')
+		f1SubList.pop(0)
+		f1List[j] = list([float(i) for i in f1SubList])
 	return f1List	
 
 def readLogs(length):
@@ -279,7 +292,7 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 
 		maximum = max(allList)
 		threshold = maximum - 0.01
-		executionTimeList = executiontime.readExecutionTime(filename = 'executionTimeAllFeatures100.txt')
+		executionTimeList = executiontime.readExecutionTime(filename = 'executionTimeAllFeatures200.txt')
 		costs = []
 		candidates = []
 
@@ -290,7 +303,7 @@ def evaluateLogs(length, evaluationParam="average", metric="precision", energy="
 		print("Number of candidates with high enough accuracy: %d" %len(candidates))
 		winnerCostIndex = costs.index(min(costs))
 		winner = candidates[winnerCostIndex]
-		
+		print("Cost of winner: %d" %costs[winnerCostIndex])
 	'''
 	if evaluationParam == "averageprecision":
 		allPavg = []
@@ -364,15 +377,6 @@ def cleanLogs(num):
     permfile.truncate(0)
     permfile.close()
 
-def main():
 
-	#cleanLogs()
-	#compareFeatures2(n_jobs=-1)
-	#compareFeatures(-1)
-	#readLogs(12)
-	#evaluateLogs(9, evaluationParam="min", metric="precision", energy="high")
-	#evaluateLogs(10, evaluationParam="maxmin", metric="recall", energy="low")
-	#evaluateLogs(9, evaluationParam="plot", metric="precision", energy="high")
-	fixLogs(11)
 if __name__ == '__main__':
 	main()

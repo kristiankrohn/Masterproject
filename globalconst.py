@@ -9,8 +9,15 @@ import os, shutil
 if os.name == 'nt':
 	slash = "\\"
 	import win32com.client as wincl
+
+	# range -10(slow) - 10(fast)
+	rate = 5
+
 	speakLib = wincl.Dispatch("SAPI.SpVoice")
+
+	speakLib.Rate = rate
 	speakLib.Speak(" ")
+	
 	#print("Running on Windows system")
 elif os.name == 'posix':
 	slash = "/"
@@ -25,8 +32,8 @@ filterdata = 1
 timestamp = 2
 numCh = 8
 nPlots = numCh
-nSamples = 2000
-#nSamples = 500
+#nSamples = 2000
+nSamples = 500
 
 datasetFolders = [slash + "Dataset1" + slash, slash + "Dataset2" + slash]
 longLength = 625

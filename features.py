@@ -324,7 +324,7 @@ def convertPermutationToFeatureString(p):
 		print(type(p))
 		return str(p)
 
-def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
+def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None, plot=True):
 	#datasetfile = "longdata.txt"
 	datasetfile = "data.txt"
 	merge = True
@@ -377,15 +377,16 @@ def compareFeatures2(name, shift, windowLength, n_jobs=-1, X = None, y = None):
 	print(rfecv.ranking_)
 	print("The scores for each feature combination:")
 	print(rfecv.grid_scores_)
-	# Plot number of features VS. cross-validation scores
-	plt.figure()
-	plt.xlabel("Number of features selected")
-	plt.ylabel("Cross validation score (nb of correct classifications)")
-	plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-	plt.show()
+	if plot:
+		# Plot number of features VS. cross-validation scores
+		plt.figure()
+		plt.xlabel("Number of features selected")
+		plt.ylabel("Cross validation score (nb of correct classifications)")
+		plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+		plt.show()
 
 	print("After feature selection: ")
-	scores = cross_val_score(rfecv.estimator_, XLtrain, yTrain, cv=50, scoring = 'accuracy')
+	scores = cross_val_score(rfecv.estimator_, XLtrain, yTrain, cv=10, scoring = 'accuracy')
 	print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 	print()
 	print("Scores")
@@ -419,7 +420,7 @@ def nCr(n,r):
     f = math.factorial
     return f(n) / f(r) / f(n-r)
 
-def compareFeatures(n_jobs=1):
+def compareFeatures(n_jobs=1, datasetnum=1, shift=False, windowLength=250, zeroClassMultiplier=1):
 	#array declaration
 	trainings = 0
 	allPermutations = []
@@ -508,6 +509,7 @@ def compareFeatures(n_jobs=1):
 			logging = False
 	#Load dataset
 	#print("Before load")
+	'''
 	X, y = dataset.loadDataset(filename="data.txt", filterCondition=True,
                                 filterType="DcNotch", removePadding=True, shift=False, windowLength=200)
 	#print("After load")
@@ -530,6 +532,68 @@ def compareFeatures(n_jobs=1):
 	#XLtrain, XLtest, yTrain, yTest = classifier.scaleAndSplit(XL, y[0])
 	scaler = classifier.makeScaler(XL)
 	XLtrain, XLtest, yTrain, yTest, XL = classifier.scaleAndSplit(XL, y[0], scaler)
+	'''
+
+	XL = [[],[],[],[],[],[],[],[]]
+	y = [[],[],[],[],[],[],[],[]]
+	XLlist = []
+	ylist = []
+	XLtrain = None
+	XLtest = None
+	yTrain = None
+	yTest = None
+
+
+    ##### Code
+
+	if isinstance(datasetnum, int):
+		var = datasetnum
+		datasetnum = []
+		datasetnum.append(var)
+
+	print(datasetnum)
+
+	for i in datasetnum:
+		print i
+		dataset.setDatasetFolder(i)
+
+		X, Y = dataset.loadDataset(filename=datasetfile, filterCondition=True,
+                                    filterType="DcNotch", removePadding=True, 
+                                    shift=shift, windowLength=windowLength)
+
+		Xl, Y = dataset.sortDataset(X, Y, length=130, classes=[0,1,2,3,4,5,6,7,8,9], 
+                                        merge = True, zeroClassMultiplier=zeroClassMultiplier)
+        
+		XLlist.append(Xl)
+		ylist.append(Y)
+		XL, y = dataset.mergeDatasets(XL, Xl, y, Y)
+
+
+	for i in range(len(XLlist)):
+		XLlist[i] = extractFeaturesWithMask(
+                XLlist[i], featuremask=range(len(FUNC_MAP)), printTime=False)
+	print("XL list featureextraction finished")
+    
+	XL = extractFeaturesWithMask(
+                XL, featuremask=range(len(FUNC_MAP)), printTime=False)
+	print("XL featureextraction finished")
+    
+	scaler = classifier.makeScaler(XL)
+
+	for i in range(len(XLlist)):
+		XLtrain1, XLtest1, yTrain1, yTest1, XLlist[i] = classifier.scaleAndSplit(XLlist[i], ylist[i][0], scaler)
+		if i == 0:
+			XLtrain = XLtrain1
+			yTrain = yTrain1
+			XLtest = XLtest1
+			yTest = yTest1
+		else:
+			XLtrain, yTrain = dataset.mergeDatasets(XLtrain, XLtrain1, yTrain, yTrain1)
+			XLtest, yTest = dataset.mergeDatasets(XLtest, XLtest1, yTest, yTest1)
+	print("Split fininshed, starting training")
+    
+
+
 	features = range(len(XL[0]))
 	print("Featureextraction finished, number of features to check: %d"%len(XL[0]))
 
@@ -637,12 +701,6 @@ def compareFeatures(n_jobs=1):
 					permfile.write(str(p))
 					permfile.close()
 
-					'''
-					permfile = open(dir_path+slash+"Logs"+slash+"ParameterLog"+ str(i)+".txt", 'a+')
-					permfile.write(";")
-					permfile.write(str(bestParams))
-					permfile.close()
-					'''
 
 					permfile = open(dir_path+slash+"Logs"+slash+"PrecisionLog"+ str(i)+".txt", 'a+')
 					permfile.write(":")
@@ -676,7 +734,7 @@ def compareFeatures(n_jobs=1):
 					print("Best features so far are: " + convertPermutationToFeatureString(allPermutations[winner]))
 					print("Best result so far are: ", allPavg[winner])
 
-				#print("Pest parameters for this feature combination: " + str(bestParams))
+				#print("Best parameters for this feature combination: " + str(bestParams))
 				stop = datetime.now()
 				numberOfCombinations -= 1
 				trainings += 1
@@ -686,7 +744,7 @@ def compareFeatures(n_jobs=1):
 				print("Remaining combinations: %d" %numberOfCombinations)
 				print("Elapsed time for training with this combination: " + str(elapsedTime))
 				print("Estimated remaining time: " + str(remainingTime))
-
+	'''
 	#Evaluate score
 	if len(allPavg) > 1:
 		winner = allPavg.index(max(allPavg)) #Check for max average precision
@@ -720,7 +778,7 @@ def compareFeatures(n_jobs=1):
 
 		yPred = clf.predict(XLtestPerm)
 		print(classification_report(yTest, yPred))
-
+	'''
 	if sendMail:
 	    mail.sendemail(from_addr    = 'dronemasterprosjekt@gmail.com',
 						to_addr_list = ['krishk@stud.ntnu.no','adriari@stud.ntnu.no'],
@@ -735,7 +793,7 @@ def compareFeatures(n_jobs=1):
 def main():
 	#cleanLogs()
 	#compareFeatures2(n_jobs=-1)
-	compareFeatures(-1)
+	compareFeatures(-1, datasetnum = [1,2], shift=False, windowLength=250, zeroClassMultiplier=2)
 	#mask = readFeatureMask("BruteForcelowenergyaverageprecision9")
 	#print(convertPermutationToFeatureString(mask))
 if __name__ == '__main__':

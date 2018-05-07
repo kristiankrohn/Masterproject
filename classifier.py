@@ -3,6 +3,7 @@ from sklearn import svm
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import StandardScaler
@@ -17,8 +18,195 @@ from globalconst import  *
 import globalvar
 import itertools
 
+import math
 
 
+def ci(positive, n, z):
+    # z = 1.96
+    phat = positive / n
+
+    return (phat + z * z / (2 * n) - z * math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n)) / (1 + z * z / n), \
+           (phat + z * z / (2 * n) + z * math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n)) / (1 + z * z / n)
+
+'''
+sample_size = [50, 100, 200, 400, 8000]
+z_rate_confidence = {'95%': 1.96, '90%': 1.92, '75%': 1.02}
+success_rate = [0.6, 0.7, 0.8]
+for confidence, z in z_rate_confidence.iteritems():
+    print 'confidence: '+confidence + '\n'
+    for n in sample_size:
+        print 'sample size: ',n
+        for s in success_rate:
+            print ci(s * n, n, z)
+'''
+
+def onlineConfusion():
+    yTest = []
+    predictions = []
+    numberOfMovements = []
+    classes=5
+
+    if classes == 5:
+        '''
+        #RBF Sub1
+        actualMovements = [
+                        [56,1,0,0,1], #Blink
+                        [1,187,1,0,0], #Center
+                        [0,0,44,0,1], #Left
+                        [0,0,1,42,0], #Right
+                        [3,0,0,1,45], #Up
+                        ]
+                     
+        #Linear SVC sub1                 
+        actualMovements = [
+                        [19,0,0,0,18], #Blink
+                        [1,104,0,0,3], #Center
+                        [0,0,23,0,0], #Left
+                        [0,0,1,22,1], #Right
+                        [0,1,0,0,21], #Up
+                        ]
+        
+        #unified RBF sub 1
+        actualMovements = [
+                        [26,0,0,0,6], #Blink
+                        [2,122,1,0,4], #Center
+                        [0,0,30,4,0], #Left
+                        [0,0,0,32,1], #Right
+                        [0,0,0,0,31], #Up
+                        ]
+        '''
+        #Brute force
+        actualMovements = [
+                [93,0,0,2,4], #Blink
+                [1,208,2,0,0], #Center
+                [0,1,46,5,1], #Left
+                [0,0,2,51,0], #Right
+                [3,1,0,0,47], #Up
+                ]
+        #Create actual prediction lists
+
+        for i in range(len(actualMovements)):
+            counter = 0
+            for j in range(len(actualMovements[i])):
+                counter += actualMovements[i][j]
+                if actualMovements[i][j] == 0:
+                    pass
+                else:
+                    if j == 0:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(0)
+                    elif j == 1:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(5)
+                    elif j == 2:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(4)
+                    elif j == 3:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(6)
+                    else:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(8)
+            numberOfMovements.append(counter)
+        #Create the solution
+        for i in range(len(numberOfMovements)):
+            if i == 0:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(0)
+            elif i == 1:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(5)
+            elif i == 2:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(4)
+            elif i == 3:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(6)
+            else:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(8)
+    elif classes == 6:
+        #RBF with down sub1
+        actualMovements = [
+                        [7,3,3,0,0,0], #Blink
+                        [1,25,3,0,0,1], #Center
+                        [1,0,4,0,0,0], #Down
+                        [0,0,0,5,1,0], #Left
+                        [0,0,0,0,5,0], #Right
+                        [0,1,0,0,0,6], #Up
+                        ]
+        #Create actual prediction lists
+
+        for i in range(len(actualMovements)):
+            counter = 0
+            for j in range(len(actualMovements[i])):
+                counter += actualMovements[i][j]
+                if actualMovements[i][j] == 0:
+                    pass
+                else:
+                    if j == 0:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(0)
+                    elif j == 1:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(5)
+                    elif j == 2:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(2)
+                    elif j == 3:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(4)
+                    elif j == 4:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(6)
+                    else:
+                        for z in range(actualMovements[i][j]):
+                            predictions.append(8)
+            numberOfMovements.append(counter)
+        #Create the solution
+        for i in range(len(numberOfMovements)):
+            if i == 0:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(0)
+            elif i == 1:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(5)
+            elif i == 2:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(2)
+            elif i == 3:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(4)
+            elif i == 4:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(6)
+            else:
+                for j in range(numberOfMovements[i]):
+                    yTest.append(8)
+    z=1.96
+    n=sum(numberOfMovements)
+    print("\nNumber of movements: %d\n" %n)
+    s = accuracy_score(yTest, predictions)
+    print("Number of correct predictions: %.f \n" %(s*n))
+    m, p = ci(s * n, n, z)
+    print("Accuracy Score: %.3f pm (%.3f, %.3f)\n" %(s, p, m))
+    prec = precision_score(yTest, predictions, average = 'macro')
+    print("Precision Score: %.3f \n" %prec)
+    rec = recall_score(yTest, predictions, average = 'macro')
+    print("Recall Score: %.3f \n" %rec)
+
+    print("\n")
+    print(classification_report(yTest, predictions))
+    print("number of test samples: ")
+    print(numberOfMovements)
+    
+    
+    if classes == 5:
+        confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,4,6,8])
+        plotConfusionMatrix(confusionMatrix, ["blink","straight", "left", "right", "up"], normalize = True)
+    elif classes == 6:
+        confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,2,4,6,8])
+        plotConfusionMatrix(confusionMatrix, ["blink","straight", "down", "left", "right", "up"], normalize = True)
 
 def predict(Xtest, clf, yTest):
     print("Starting to predict")
@@ -27,7 +215,6 @@ def predict(Xtest, clf, yTest):
     stop = time.time()
     print("Time taken to predict with given examples:")
     print(stop-start)
-
     #Print the test data to see how well it performs.
     confusionMatrix = confusion_matrix(yTest, predictions, labels = [0,5,2,4,6,8])
     plotConfusionMatrix(confusionMatrix, ["blink","straight", "down", "left", "right", "up"])
@@ -92,6 +279,7 @@ def plotConfusionMatrix(cm, classes,
 
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        cm = cm*100
         print("Normalized confusion matrix")
     else:
         print('Confusion matrix, without normalization')
@@ -105,7 +293,7 @@ def plotConfusionMatrix(cm, classes,
     plt.xticks(tick_marks, classes, rotation=45)
     plt.yticks(tick_marks, classes)
 
-    fmt = '.2f' if normalize else 'd'
+    fmt = '.0f' if normalize else 'd'
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(j, i, format(cm[i, j], fmt),
@@ -228,10 +416,14 @@ def makeScaler(XL):
     scaler.fit(np.array(XL))
     return scaler
 
-def split(XL, y):
-    XLtrain, XLtest, yTrain, yTest = train_test_split(XLscaled,
+def split(XL, labels):
+    XLtrain, XLtest, yTrain, yTest = train_test_split(XL,
         labels, test_size = 0.2, random_state = 42, stratify = labels)
     return XLtrain, XLtest, yTrain, yTest
+
+def scale(XL, scaler):
+    XLscaled = scaler.transform(np.array(XL))
+    return XLscaled
 
 def scaleAndSplit(XL, labels, scaler):
     XLscaled = scaler.transform(np.array(XL))
@@ -258,3 +450,6 @@ def loadMachineState(string):
 
     clf = joblib.load("Classifiers"+slash + string + ".pkl")
     return clf
+
+if __name__ == '__main__':
+	onlineConfusion()

@@ -72,7 +72,7 @@ def calculateAndWriteExecutionTime(classifierstring = 'AllFeatures', shift = Fal
         print("finished with feature %d" %i)
         executionTimeList.append(dictionary[featureName])
 
-    #writeToFile(executionTimeList, windowLength)
+    writeToFile(executionTimeList, windowLength)
     #Should the list be sorted and printed?
     if Sort:
         sortedValues = sorted(list(dictionary.values()))
@@ -83,5 +83,5 @@ def calculateAndWriteExecutionTime(classifierstring = 'AllFeatures', shift = Fal
 
 
 if __name__ == '__main__':
-	#calculateAndWriteExecutionTime(windowLength = 150)
+    calculateAndWriteExecutionTime(windowLength = 200)
     print(getExecutionCost(features.readFeatureMask('AllFeatures'), readExecutionTime(filename = 'executionTimeAllFeatures150.txt')))
