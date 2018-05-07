@@ -47,14 +47,43 @@ def onlineConfusion():
     classes=5
 
     if classes == 5:
+        '''
+        #RBF Sub1
+        actualMovements = [
+                        [56,1,0,0,1], #Blink
+                        [1,187,1,0,0], #Center
+                        [0,0,44,0,1], #Left
+                        [0,0,1,42,0], #Right
+                        [3,0,0,1,45], #Up
+                        ]
+                     
+        #Linear SVC sub1                 
         actualMovements = [
                         [19,0,0,0,18], #Blink
-                        [0,104,0,0,3], #Center
+                        [1,104,0,0,3], #Center
                         [0,0,23,0,0], #Left
                         [0,0,1,22,1], #Right
                         [0,1,0,0,21], #Up
                         ]
-            #Create actual prediction lists
+        
+        #unified RBF sub 1
+        actualMovements = [
+                        [26,0,0,0,6], #Blink
+                        [2,122,1,0,4], #Center
+                        [0,0,30,4,0], #Left
+                        [0,0,0,32,1], #Right
+                        [0,0,0,0,31], #Up
+                        ]
+        '''
+        #Brute force
+        actualMovements = [
+                [93,0,0,2,4], #Blink
+                [1,208,2,0,0], #Center
+                [0,1,46,5,1], #Left
+                [0,0,2,51,0], #Right
+                [3,1,0,0,47], #Up
+                ]
+        #Create actual prediction lists
 
         for i in range(len(actualMovements)):
             counter = 0
@@ -97,6 +126,7 @@ def onlineConfusion():
                 for j in range(numberOfMovements[i]):
                     yTest.append(8)
     elif classes == 6:
+        #RBF with down sub1
         actualMovements = [
                         [7,3,3,0,0,0], #Blink
                         [1,25,3,0,0,1], #Center
