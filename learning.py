@@ -98,7 +98,7 @@ def startLearning():
     dataset.setDatasetFolder(2)
 
     X2, y2 = dataset.loadDataset(filename="data.txt", filterCondition=True,
-                                filterType="DcNotch", removePadding=True, shift=True, windowLength=150)
+                                filterType="DcNotch", removePadding=True, shift=True, windowLength=2)
     X2, y2 = dataset.sortDataset(X2, y2, length=130, classes=[0,1,2,3,4,5,6,7,8,9], merge = True, zeroClassMultiplier=1) #,6,4,2,8
 
     '''
@@ -128,12 +128,13 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
+    '''
     featuremask = features.readFeatureMask(classifierstring)
     XL1 = features.extractFeaturesWithMask(
             X1, featuremask=featuremask, printTime=False)
     XL2 = features.extractFeaturesWithMask(
             X2, featuremask=featuremask, printTime=False)
-
+    '''
     #If a test set is needed for the combined subject model
     '''
     XL1T = features.extractFeaturesWithMask(
@@ -142,35 +143,32 @@ def startLearning():
             X2T, featuremask=featuremask, printTime=False)
     '''
     #uncomment for using samples as features
-    '''
+
     XL2 = X2[0]
     print(len(X2[0]))
-    for i in range(len(X2[0])):
-        XL2[i] = np.concatenate((XL2[i], X2[1][i], X2[3][i]))
-        #np.append(XL[i], X[1][i])
-        #np.append(XL[i], X[2][i])
-        #np.append(XL[i], X[3][i])
-    print(len(XL2[0]))
-    '''
-    #XL = PCA(n_components = 10).fit_transform(XL)
+    if len(XL2[0] == 2):
+        for i in range(len(X2[0])):
+            #XL2[i] = np.concatenate((XL2[i], X2[1][i], X2[3][i]))
+            XL2[i] = np.array([XL2[i][0]])
+            print(XL2[i])
+            #np.append(XL[i], X[1][i])
+            #np.append(XL[i], X[2][i])
+            #np.append(XL[i], X[3][i])
+        print(len(XL2[0]))
+    else:
+        pass
 
-    #XL = features.extractFeaturesWithMask(
-            #X, channelIndex, featuremask=[0,1,2,3,4,5,6,7,9,10,12,13,15,17,18,19,20,21,22,23,25,26], printTime=False)
-    #XLreturn = features.extractFeaturesWithMask(Xreturn, channelIndex, featuremask=[0,1,2,3,4,5,6], printTime=True)
+
 
 
     #Scale the data if needed and split dataset into training and testing
 
-    #Migth be an idea to use the same scaler, see classifier.py file
-    #scaler = classifier.makeScaler(joinedXL)
-    # scaledData = classifier.realTimescale(XL, scaler)
-    # XLtrain, XLtest, yTrain, yTest = split(XL, y)
 
     #proposed solution, change input to makeScaler when creating for one subject. See classifier.py
     #XLjoined = np.append(XL1, XL2, axis = 0)
     scaler = classifier.makeScaler(XL2)
 
-    XLtrain1, XLtest1, yTrain1, yTest1, XL1 = classifier.scaleAndSplit(XL1, y1[0], scaler)
+    #XLtrain1, XLtest1, yTrain1, yTest1, XL1 = classifier.scaleAndSplit(XL1, y1[0], scaler)
     XLtrain2, XLtest2, yTrain2, yTest2, XL2 = classifier.scaleAndSplit(XL2, y2[0], scaler)
 
 
@@ -281,7 +279,7 @@ def createAndTrain(XLtrain, yTrain, bestParams):
 
     C = 10
     #C = 50
-    #clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
+    clf = svm.SVC(kernel = 'rbf', gamma = 0.01, C = C, decision_function_shape = 'ovr')
     #clf = svm.LinearSVC(penalty = 'l2',  loss='squared_hinge', dual = False, C = 10, random_state = 42)
     #clf = svm.SVC(kernel = 'linear', C = C, decision_function_shape = 'ovr')
     #clf = linear_model.SGDClassifier(penalty = 'l2', random_state = 42)
@@ -294,18 +292,16 @@ def createAndTrain(XLtrain, yTrain, bestParams):
     #clf = RandomForestClassifier(n_estimators = 54, max_depth = 30,  min_samples_leaf = 1, random_state = 40)
     #clf = RandomForestClassifier(max_depth = bestParams['max_depth'], min_samples_leaf = bestParams['min_samples_leaf'], n_estimators = bestParams['n_estimators'], random_state = 40)
 
-    clf = neighbors.KNeighborsClassifier(n_neighbors = 5, n_jobs = -1)
-    cost = []
-    for i in range(500):
-        print(i)
-        start = time.time()
-        clf.fit(XLtrain,yTrain)#skaler???
-        cost.append(time.time() - start)
+    #clf = neighbors.KNeighborsClassifier(n_neighbors = 5, n_jobs = -1)
+
+    start = time.time()
+    clf.fit(XLtrain,yTrain)#skaler???
+    stop = time.time()
     #Create classifier to be able to visualize it
     #clfPlot = clf
     #clfPlot.fit(XLtrain,yTrain)
     print("Time taken to train classifier:")
-    print(min(cost))
+    print(stop - start)
 
     return clf, None #clfPlot Uncomment this to be able to plot the classifier
 
