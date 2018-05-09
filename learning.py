@@ -128,13 +128,13 @@ def startLearning():
             9: pearsonCoeff13}
     '''
     #XL = features.extractFeatures(X, channelIndex)
-    '''
+
     featuremask = features.readFeatureMask(classifierstring)
     XL1 = features.extractFeaturesWithMask(
             X1, featuremask=featuremask, printTime=False)
     XL2 = features.extractFeaturesWithMask(
             X2, featuremask=featuremask, printTime=False)
-    '''
+
     #If a test set is needed for the combined subject model
     '''
     XL1T = features.extractFeaturesWithMask(
@@ -143,20 +143,16 @@ def startLearning():
             X2T, featuremask=featuremask, printTime=False)
     '''
     #uncomment for using samples as features
-
+    '''
     XL2 = X2[0]
     print(len(X2[0]))
-    if len(XL2[0] == 2):
-        for i in range(len(X2[0])):
-            #XL2[i] = np.concatenate((XL2[i], X2[1][i], X2[3][i]))
-            XL2[i] = np.array([XL2[i][0]])
-            print(XL2[i])
-            #np.append(XL[i], X[1][i])
-            #np.append(XL[i], X[2][i])
-            #np.append(XL[i], X[3][i])
-        print(len(XL2[0]))
-    else:
-        pass
+    for i in range(len(X2[0])):
+        #XL2[i] = np.concatenate((XL2[i], X2[1][i], X2[3][i]))
+        #np.append(XL[i], X[1][i])
+        #np.append(XL[i], X[2][i])
+        #np.append(XL[i], X[3][i])
+    print(len(XL2[0]))
+    '''
 
 
 
@@ -168,7 +164,7 @@ def startLearning():
     #XLjoined = np.append(XL1, XL2, axis = 0)
     scaler = classifier.makeScaler(XL2)
 
-    #XLtrain1, XLtest1, yTrain1, yTest1, XL1 = classifier.scaleAndSplit(XL1, y1[0], scaler)
+    XLtrain1, XLtest1, yTrain1, yTest1, XL1 = classifier.scaleAndSplit(XL1, y1[0], scaler)
     XLtrain2, XLtest2, yTrain2, yTest2, XL2 = classifier.scaleAndSplit(XL2, y2[0], scaler)
 
 
